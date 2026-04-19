@@ -160,20 +160,20 @@
         {
             GameManager.Instance.AddResult(1, true);
             GameManager.Instance.AddResult(2, true);
-        }  
-        private void UpdateUI() //genera la ui del minijuego por codigo 
+        }
+    private void UpdateUI()
+    {
+        if (timerText != null)
         {
-            if (timerText != null)
-            {
-                int minutes = Mathf.FloorToInt(gameTimer / 60f);
-                int seconds = Mathf.FloorToInt(gameTimer % 60f);
-                timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
-            }
-            if (player1ScoreText != null) player1ScoreText.text = "P1: " + GameManager.Instance.player1Score;
-            if (player2ScoreText != null) player2ScoreText.text = "P2: " + GameManager.Instance.player2Score;
-        }    
+            int minutes = Mathf.FloorToInt(gameTimer / 60f);
+            int seconds = Mathf.FloorToInt(gameTimer % 60f);
+            timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+        }
+        if (player1ScoreText != null) player1ScoreText.text = "P1: " + GameManager.Instance.player1RoundPoints;
+        if (player2ScoreText != null) player2ScoreText.text = "P2: " + GameManager.Instance.player2RoundPoints;
+    }
 
-        private IEnumerator FlashPlayer(GameObject player)
+    private IEnumerator FlashPlayer(GameObject player)
         {
             SpriteRenderer sr = player.GetComponentInChildren<SpriteRenderer>();
             float elapsed = 0f;
