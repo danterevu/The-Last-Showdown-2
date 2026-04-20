@@ -20,6 +20,7 @@ public class FinalScreenManager : MonoBehaviour
     public void OnRestartButton()
     {
         GameManager.Instance.ResetGame();
-        SceneLoader.Instance.LoadRuleta();
+        SceneLoader.Instance.LoadMenu();
     }
+    
 }
