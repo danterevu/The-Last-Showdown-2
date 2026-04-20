@@ -96036,7 +96036,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameDuration: 120
-  zoneChangeDuration: 120
+  zoneChangeDuration: 30
   pointsPerSecond: 2
   flashDuration: 1
   zones:
@@ -127239,8 +127239,20 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7677241430617555858, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      propertyPath: coyoteTime
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7677241430617555858, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
       propertyPath: respawnDelay
       value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7677241430617555858, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      propertyPath: jumpBufferTime
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7677241430617555858, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      propertyPath: groundCheckDistance
+      value: 0.2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -127304,8 +127316,24 @@ PrefabInstance:
       value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 3732607951623789684, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: coyoteTime
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3732607951623789684, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
       propertyPath: respawnDelay
       value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3732607951623789684, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: fallMultiplier
+      value: 3.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3732607951623789684, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: jumpBufferTime
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3732607951623789684, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: groundCheckDistance
+      value: 0.2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
