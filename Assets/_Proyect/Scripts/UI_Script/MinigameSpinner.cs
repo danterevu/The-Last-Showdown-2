@@ -174,7 +174,7 @@ public class MinigameSpinner : MonoBehaviour
     private void RefreshOverlays()
     {
         if (playedOverlays == null || playedOverlays.Length == 0) return;
-        List<int> available = GameManager.Instance.GetAvailableMinigames();
+        List<int> available = GameManager.Instance.GetAvailableMinigames(); 
 
         for (int i = 0; i < playedOverlays.Length; i++)
         {

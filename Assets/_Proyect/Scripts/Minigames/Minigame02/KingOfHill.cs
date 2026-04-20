@@ -58,10 +58,9 @@ public class KingOfHill : MonoBehaviour
     {
         if (GameManager.Instance == null)
         {
-            GameObject gm = new GameObject("GameManager");
-            gm.AddComponent<GameManager>();
+            GameObject gm = new GameObject("GameManager"); // crea un game object
+            gm.AddComponent<GameManager>(); //al game object se le da el componente gamemanager
         }
-
        
 
         p1Controller = player1.GetComponent<PlatformPlayerController>();
