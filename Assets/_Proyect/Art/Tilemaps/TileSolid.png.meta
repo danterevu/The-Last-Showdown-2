@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 1ce78d346952a2440a4344f1d547f54a
+guid: 13a494e2167dad04aa63e83e1cb75f2d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8750406566116260893
-    second: minijuego3Tilemap_0
+      213: -960061109046213986
+    second: TileSolid_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: minijuego3Tilemap_0
+      name: TileSolid_0
       rect:
         serializedVersion: 2
-        x: 638
-        y: 248
-        width: 388
-        height: 265
+        x: 30
+        y: 9
+        width: 132
+        height: 131
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d1cfa950960bf6970800000000000000
-      internalID: 8750406566116260893
+      spriteID: e9202a8028d2da2f0800000000000000
+      internalID: -960061109046213986
       vertices: []
       indices: 
       edges: []
