@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 4434388874885046720}
   m_Layer: 7
   m_Name: Player1
-  m_TagString: Untagged
+  m_TagString: Player1
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -30,9 +30,9 @@ Transform:
   m_GameObject: {fileID: 1355413625400800343}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: 1.4998417, y: 1.822339, z: -0.40585697}
+  m_LocalScale: {x: 0.75, y: 0.75465155, z: 0.12018481}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -119,8 +119,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.0026571527, y: 0.0039857626}
-  m_Size: {x: 0.1439405, y: 0.17893744}
+  m_Offset: {x: -0.021552723, y: 0.004484023}
+  m_Size: {x: 1.9777534, y: 1.9655627}
   m_Direction: 0
 --- !u!212 &3226933138572375385
 SpriteRenderer:
@@ -165,7 +165,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 2
   m_Sprite: {fileID: -7391493387824456820, guid: a2db327e860040548a1b2adb32c5df8d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

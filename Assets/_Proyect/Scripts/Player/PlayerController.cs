@@ -34,12 +34,13 @@ public class PlayerController : MonoBehaviour
     private InputAction interactAction;
     
 
-    public enum MovementMode { Platform, TopDown } //se definen dos estados de juego, estilo plataformero o top down
+    public enum MovementMode { Platform, TopDown, TopDownWithGravity } //se definen dos estados de juego, estilo plataformero o top down
 
     private void Awake()
     {
         anim= GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
+        rb.sleepMode = RigidbodySleepMode2D.NeverSleep;
     }
 
     private void OnEnable()
@@ -74,18 +75,28 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    private void FixedUpdate() //se fija que modo de input se esta usando
+   
+    private void FixedUpdate()     //se fija que modo de input se esta usando
     {
         if (movementMode == MovementMode.Platform)
             HandlePlatformMovement();
-        else
+        else if (movementMode == MovementMode.TopDown)
             HandleTopDownMovement();
+        else if (movementMode == MovementMode.TopDownWithGravity)
+            HandleTopDownWithGravity();
     }
 
     private void HandlePlatformMovement() //logica base de un plataformero
     {
         rb.gravityScale = gravityScale; //hay gravedad
         rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y); 
+    }
+
+    private void HandleTopDownWithGravity()
+    {
+        rb.gravityScale = gravityScale; // gravedad activa para que caiga
+        rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
+        // solo mueve en X, la Y la maneja la gravedad
     }
 
     private void HandleTopDownMovement() //logica base de un top down
@@ -146,10 +157,15 @@ public class PlayerController : MonoBehaviour
     }
     public void SetFrozen(bool frozen)
     {
-        if (frozen) //si esta congelado, el movimiento es (0,0)
+        if (frozen)
+        {
             rb.linearVelocity = Vector2.zero;
-
-        this.enabled = !frozen;
+            this.enabled = false;   // Desactiva el Update y FixedUpdate del PlayerController
+        }
+        else
+        {
+            this.enabled = true;
+        }
     }
     private void UpdateAnimations(Vector2 moveInput)
     {

@@ -11,25 +11,30 @@ public class HolographicPlatforms : MonoBehaviour
     [SerializeField] private TileMapManager tileMapManager;
     [SerializeField] private GameObject player1;
     [SerializeField] private GameObject player2;
-    [SerializeField] private Transform player1Spawn;
-    [SerializeField] private Transform player2Spawn;
+
+    [Header("Spawns por tile")]
+    [SerializeField] private int player1SpawnCol = 1;
+    [SerializeField] private int player1SpawnRow = 1;
+    [SerializeField] private int player2SpawnCol = 8;
+    [SerializeField] private int player2SpawnRow = 8;
 
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private TextMeshProUGUI player1ScoreText;
     [SerializeField] private TextMeshProUGUI player2ScoreText;
 
-    [Header("Respawn")]
-    [SerializeField] private float respawnDelay = 0.5f; // espera antes de respawnear
-
     [Header("Debug")]
     [SerializeField] private float gameTimer;
     [SerializeField] private bool gameRunning;
 
-    // para detectar caida simultanea
+    private Rigidbody2D rb1;
+    private Rigidbody2D rb2;
+    private Collider2D col1;
+    private Collider2D col2;
+
     private bool player1Fell = false;
     private bool player2Fell = false;
-    private bool isHandlingFall = false; // evita que se llame dos veces a la vez
+    private bool isHandlingFall = false;
 
     private PlayerController p1Controller;
     private PlayerController p2Controller;
@@ -44,28 +49,25 @@ public class HolographicPlatforms : MonoBehaviour
 
         p1Controller = player1.GetComponent<PlayerController>();
         p2Controller = player2.GetComponent<PlayerController>();
+        rb1 = player1.GetComponent<Rigidbody2D>();
+        rb2 = player2.GetComponent<Rigidbody2D>();
+        col1 = player1.GetComponent<Collider2D>();
+        col2 = player2.GetComponent<Collider2D>();
 
         StartMinigame();
     }
-
-   
-    //  INICIO
-
 
     private void StartMinigame()
     {
         gameTimer = gameDuration;
         gameRunning = true;
 
-        RespawnPlayer(1, instant: true);
-        RespawnPlayer(2, instant: true);
+        // Teletransporte inicial
+        StartCoroutine(TeleportPlayerSafe(1));
+        StartCoroutine(TeleportPlayerSafe(2));
 
         UpdateUI();
     }
-
-
-    //  UPDATE
-   
 
     private void Update()
     {
@@ -83,65 +85,42 @@ public class HolographicPlatforms : MonoBehaviour
         UpdateUI();
     }
 
-    
-    //  CAIDA - llamado desde DeathZone
-   
-
     public void OnPlayerFell(int player)
     {
         if (!gameRunning) return;
-        if (isHandlingFall) return; // ya estamos procesando una caida
 
-        // registrar quien cayo
+        Debug.Log("OnPlayerFell llamado: Player" + player);
+
         if (player == 1) player1Fell = true;
         else player2Fell = true;
 
-        // esperar un frame para ver si el otro tambien cayo
-        StartCoroutine(EvaluateFall());
+        if (!isHandlingFall)
+            StartCoroutine(EvaluateFall());
     }
 
     private IEnumerator EvaluateFall()
     {
-        if (isHandlingFall) yield break;
         isHandlingFall = true;
-
-        // esperar un frame para que OnPlayerFell del otro jugador
-        // pueda registrarse si cayo al mismo tiempo
         yield return null;
 
         bool simultaneous = player1Fell && player2Fell;
 
         if (simultaneous)
-        {
-            // nadie suma puntos
-            Debug.Log("Caida simultanea - no se suman puntos");
-        }
+            Debug.Log("Caida simultanea");
         else if (player1Fell)
-        {
-            // player1 cayo, player2 gana el punto
             GameManager.Instance.AddPoints(2, 1);
-        }
         else if (player2Fell)
-        {
-            // player2 cayo, player1 gana el punto
             GameManager.Instance.AddPoints(1, 1);
-        }
 
-        // congelar jugadores caidos mientras se reconstruye
-        FreezePlayer(1, player1Fell);
-        FreezePlayer(2, player2Fell);
-
-        // reconstruir el mapa
         tileMapManager.RequestRebuild();
+        yield return new WaitForSeconds(tileMapManager.GetRebuildDuration());
 
-        // esperar el delay de respawn antes de reaparecer
-        yield return new WaitForSeconds(respawnDelay + tileMapManager.GetRebuildDuration());
+        if (player1Fell)
+            yield return StartCoroutine(TeleportPlayerSafe(1));
 
-        // respawnear solo a los que cayeron
-        if (player1Fell) RespawnPlayer(1, instant: false);
-        if (player2Fell) RespawnPlayer(2, instant: false);
+        if (player2Fell)
+            yield return StartCoroutine(TeleportPlayerSafe(2));
 
-        // resetear flags
         player1Fell = false;
         player2Fell = false;
         isHandlingFall = false;
@@ -149,35 +128,40 @@ public class HolographicPlatforms : MonoBehaviour
         UpdateUI();
     }
 
-   
-    //  RESPAWN
-
-
-    private void RespawnPlayer(int player, bool instant)
+    // ==================== TELEPORTE SEGURO ====================
+    private IEnumerator TeleportPlayerSafe(int player)
     {
-        if (player == 1)
-        {
-            player1.transform.position = player1Spawn.position;
-            FreezePlayer(1, false);
-        }
-        else
-        {
-            player2.transform.position = player2Spawn.position;
-            FreezePlayer(2, false);
-        }
-    }
+        GameObject obj = player == 1 ? player1 : player2;
+        PlayerController controller = player == 1 ? p1Controller : p2Controller;
+        Rigidbody2D rb = player == 1 ? rb1 : rb2;
 
-    private void FreezePlayer(int player, bool frozen)
-    {
-        if (player == 1)
-            p1Controller.SetFrozen(frozen);
-        else
-            p2Controller.SetFrozen(frozen);
-    }
+        int spawnCol = player == 1 ? player1SpawnCol : player2SpawnCol;
+        int spawnRow = player == 1 ? player1SpawnRow : player2SpawnRow;
+        Vector2 spawnPos = tileMapManager.GetTilePosition(spawnCol, spawnRow);
 
-   
-    //  UI
-   
+        Debug.Log($"Teletransportando Player{player} a: {spawnPos}");
+
+        // 1. Guardar estado activo y desactivar el GameObject
+        bool wasActive = obj.activeSelf;
+        obj.SetActive(false);
+
+        // 2. Mover la posición (no hay scripts ni físicas activas)
+        obj.transform.position = new Vector3(spawnPos.x, spawnPos.y + 0.1f, obj.transform.position.z);
+
+        // 3. Esperar un frame para asegurar que Unity procese
+        yield return null;
+
+        // 4. Reactivar
+        obj.SetActive(wasActive);
+
+        // 5. Resetear velocidades (por si acaso)
+        rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        rb.Sleep();
+
+        Debug.Log($"Player{player} teletransportado exitosamente a {obj.transform.position}");
+    }
+    // ========================================================
 
     private void UpdateUI()
     {
@@ -194,16 +178,12 @@ public class HolographicPlatforms : MonoBehaviour
             player2ScoreText.text = "P2: " + GameManager.Instance.player2RoundPoints;
     }
 
-    
-    //  FIN
-    
-
     public void EndMinigame()
     {
         gameRunning = false;
 
         var (p1Round, p2Round) = GameManager.Instance.FinishMinigame();
-        GameManager.Instance.EndRound(3); // id de este minijuego
+        GameManager.Instance.EndRound(3);
 
         PlayerPrefs.SetInt("LastRoundP1", p1Round);
         PlayerPrefs.SetInt("LastRoundP2", p2Round);

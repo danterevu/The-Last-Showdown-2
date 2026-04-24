@@ -1,16 +1,20 @@
+
 using UnityEngine;
 
 public class DeathZone : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    [SerializeField] private HolographicPlatforms gameManager;
 
-    // Update is called once per frame
-    void Update()
+    // llamado desde HolographicPlatforms para ignorar triggers temporalmente
+    public bool ignoring = false;
+
+    private void OnTriggerEnter2D(Collider2D other)
     {
-        
+        if (ignoring) return; // ignorar mientras se respawnea
+
+        if (other.CompareTag("Player1"))
+            gameManager.OnPlayerFell(1);
+        else if (other.CompareTag("Player2"))
+            gameManager.OnPlayerFell(2);
     }
 }

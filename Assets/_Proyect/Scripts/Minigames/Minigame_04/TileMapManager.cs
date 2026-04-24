@@ -10,7 +10,8 @@ public class TileMapManager : MonoBehaviour
     [Header("Grid Settings")]
     [SerializeField] private int columns = 10;
     [SerializeField] private int rows = 6;
-    [SerializeField] private float tileSize = 1f;       // espacio entre tiles
+    [SerializeField] private float tileSize = 1f;  // espacio entre tiles
+    [SerializeField] private float tileScale = 1.5f;   // tamaño visual del sprite
     [SerializeField] private Vector2 gridOrigin;         // esquina inferior izquierda de la grilla
 
     [Header("Sprites")]
@@ -27,6 +28,8 @@ public class TileMapManager : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private Transform tileGridParent;  // el TileGrid vacio de la hierarchy
+    [SerializeField] private HolographicPlatforms holographicPlatforms;
+
 
     // lista interna de todos los tiles generados
     private List<HolographicTile> tiles = new List<HolographicTile>();
@@ -57,14 +60,24 @@ public class TileMapManager : MonoBehaviour
     private void SpawnTile(Vector2 position)
     {
         GameObject obj = Instantiate(tilePrefab, position, Quaternion.identity, tileGridParent);
+        obj.transform.localScale = new Vector3(tileScale, tileScale, 1f);
         HolographicTile tile = obj.GetComponent<HolographicTile>();
-        tile.Initialize(spriteNormal, spriteCracked, spriteBroken, breakDelay);
+        tile.Initialize(spriteNormal, spriteCracked, spriteBroken, breakDelay, tileScale, holographicPlatforms); //  agregado holographicPlatforms
         tiles.Add(tile);
     }
 
-  
+    // devuelve la posicion mundial de un tile por columna y fila
+    public Vector2 GetTilePosition(int col, int row)
+    {
+        int index = row * columns + col;
+        Debug.Log("GetTilePosition col:" + col + " row:" + row + " index:" + index + " total tiles:" + tiles.Count);
+        if (index < 0 || index >= tiles.Count) return Vector2.zero;
+        Debug.Log("Tile position: " + tiles[index].transform.position);
+        return tiles[index].transform.position;
+    }
+
     //  REBUILD
-   
+
 
     // HolographicPlatforms llama esto cuando alguien cae
     public void RequestRebuild()
@@ -150,5 +163,24 @@ public class TileMapManager : MonoBehaviour
         // rebuildDelay + tiempo de animacion fila por fila
         float animTime = rows * 0.05f;
         return rebuildDelay + animTime;
+    }
+
+    // se ve en el Editor sin Play
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.cyan;
+
+        for (int row = 0; row < rows; row++)
+        {
+            for (int col = 0; col < columns; col++)
+            {
+                Vector2 pos = gridOrigin + new Vector2(col * tileSize, row * tileSize);
+                Gizmos.DrawWireCube(pos, new Vector3(tileSize * 0.9f, 0.2f, 0));
+            }
+        }
+
+        // centro de la grilla
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere((Vector3)GetGridCenter(), 0.2f);
     }
 }
