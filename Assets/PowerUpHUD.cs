@@ -1,7 +1,5 @@
 using TMPro;
-using UnityEditor.Search;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
 public class PowerUpHUD : MonoBehaviour
 {
