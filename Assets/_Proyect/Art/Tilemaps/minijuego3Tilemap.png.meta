@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: a8492408723cbc24d9724be2494549b7
+guid: 1ce78d346952a2440a4344f1d547f54a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8361094540093839656
-    second: Ruleta minigames nueva_0
+      213: 8750406566116260893
+    second: minijuego3Tilemap_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Ruleta minigames nueva_0
+      name: minijuego3Tilemap_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 296
-        height: 296
+        x: 638
+        y: 248
+        width: 388
+        height: 265
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8d6af3490dc67fb80800000000000000
-      internalID: -8361094540093839656
+      spriteID: d1cfa950960bf6970800000000000000
+      internalID: 8750406566116260893
       vertices: []
       indices: 
       edges: []
@@ -134,8 +134,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      Ruleta minigames nueva_0: -8361094540093839656
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
