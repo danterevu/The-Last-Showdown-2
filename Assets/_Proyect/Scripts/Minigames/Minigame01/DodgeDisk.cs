@@ -38,7 +38,10 @@
     [SerializeField] private Animator player1Animator;
     [SerializeField] private Animator player2Animator;
     [SerializeField] private float deathAnimDuration = 0.4f;
-    
+
+    [Header("Audience")]
+    [SerializeField] private AudienceAnimator audience1;
+    [SerializeField] private AudienceAnimator audience2;
     
         private bool player1UsedPowerUp = false;
         private bool player2UsedPowerUp = false;
@@ -232,7 +235,8 @@
                 }
 
                 GameManager.Instance.RemovePoints(1, 10);
-                RespawnPlayer(1);
+            if (audience2 != null) audience2.Hype();
+            RespawnPlayer(1);
             }
             else if (player == 2 && !player2Invulnerable)
             {
@@ -249,7 +253,8 @@
                 }
 
                 GameManager.Instance.RemovePoints(2, 10);
-                RespawnPlayer(2);
+            if (audience1 != null) audience1.Hype();
+            RespawnPlayer(2);
             }
         }
 

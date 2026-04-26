@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class DiskMovement : MonoBehaviour
@@ -7,8 +8,22 @@ public class DiskMovement : MonoBehaviour
     [SerializeField] private float maxSpeed = 12f;
     [SerializeField] private float acceleration = 0.1f;
 
+
+    [Header("Squash & Stretch")]
+    [SerializeField] private float squashAmount = 0.4f;
+    [SerializeField] private float stretchAmount = 0.3f;
+    [SerializeField] private float squashDuration = 0.08f;
+    [SerializeField] private float recoverDuration = 0.12f;
+
+    [Header("Camera Shake")]
+    [SerializeField] private float shakeDuration = 0.1f;
+    [SerializeField] private float shakeMagnitude = 0.2f;
+
+    private Vector3 originalScale;
+    private Coroutine squashCoroutine;
     [Header("Debug")]
     [SerializeField] private float currentSpeed;
+
 
     private Rigidbody2D rb;
     private Vector2 direction;
@@ -19,6 +34,8 @@ public class DiskMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         dodgeDisk = FindFirstObjectByType<DodgeDisk>();
+
+        originalScale = transform.localScale;
     }
 
     private void FixedUpdate()
@@ -43,7 +60,25 @@ public class DiskMovement : MonoBehaviour
         moving = true;
         rb.linearVelocity = direction * currentSpeed;
     }
+    private IEnumerator SquashOnImpact(Vector2 impactNormal)
+    {
+        bool hitHorizontalWall = Mathf.Abs(impactNormal.x) > Mathf.Abs(impactNormal.y);
 
+        Vector3 squashedScale = hitHorizontalWall
+            ? new Vector3(originalScale.x * (1 - squashAmount), originalScale.y * (1f + stretchAmount), originalScale.z)
+            : new Vector3(originalScale.x * (1f + stretchAmount), originalScale.y * (1f - squashAmount), originalScale.z);
+
+        float elapsed = 0f;
+        while (elapsed<squashDuration)
+        {
+            transform.localScale = Vector3.Lerp(squashedScale, originalScale, elapsed / recoverDuration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        transform.localScale=originalScale;
+        squashCoroutine = null;
+
+    }    
     private void OnCollisionEnter2D(Collision2D collision)
     {
         Vector2 normal = collision.contacts[0].normal;
@@ -56,6 +91,11 @@ public class DiskMovement : MonoBehaviour
 
         direction = direction.normalized;
         rb.linearVelocity = direction * currentSpeed;
+        if (squashCoroutine != null) StopCoroutine(squashCoroutine);
+        squashCoroutine = StartCoroutine(SquashOnImpact(normal));
+
+        if (CameraShake.Instance != null)
+            CameraShake.Instance.Shake(shakeDuration, shakeMagnitude);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -77,5 +117,7 @@ public class DiskMovement : MonoBehaviour
         moving = false;
         rb.linearVelocity = Vector2.zero;
         direction = Vector2.zero;
+
+        transform.localScale = originalScale;
     }
 }
