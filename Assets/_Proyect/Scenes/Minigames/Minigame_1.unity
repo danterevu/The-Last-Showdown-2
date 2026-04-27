@@ -1642,6 +1642,72 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &945432986
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 945432987}
+  - component: {fileID: 945432988}
+  m_Layer: 5
+  m_Name: HUDManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &945432987
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 945432986}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1513453431}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &945432988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 945432986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90acdf497ab4773408c9fb228f33da00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  theme: {fileID: 11400000, guid: 6486b9a73e7bc14459325c210a842930, type: 2}
+  hudColorImage: {fileID: 0}
+  player1ScoreText: {fileID: 1695230550}
+  player2ScoreText: {fileID: 624930081}
+  timerText: {fileID: 1344657323}
+  timerWarningTime: 60
+  timerDangerTime: 10
+  timerNormalColor: {r: 1, g: 1, b: 1, a: 1}
+  timerWarningColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  timerDangerColor: {r: 1, g: 0, b: 0, a: 1}
+  character1Animator: {fileID: 0}
+  character2Animator: {fileID: 0}
+  countDuration: 0.4
+  punchScale: 1.4
+  punchDuration: 0.15
+  addColor: {r: 0, g: 1, b: 0, a: 1}
+  removeColor: {r: 1, g: 0, b: 0, a: 1}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &991470747
 GameObject:
   m_ObjectHideFlags: 0
@@ -2128,6 +2194,7 @@ MonoBehaviour:
   gameDuration: 90
   pointInterval: 5
   invulnerableTime: 3
+  hudManager: {fileID: 945432988}
   diskMovement: {fileID: 2038916854}
   diskCollider: {fileID: 2038916849}
   diskSpawnPoint: {fileID: 1503186958}
@@ -2138,8 +2205,6 @@ MonoBehaviour:
   player1SpawnPoint: {fileID: 1436810342}
   player2SpawnPoint: {fileID: 991470748}
   timerText: {fileID: 1344657323}
-  player1ScoreText: {fileID: 1695230550}
-  player2ScoreText: {fileID: 624930081}
   gameTimer: 0
   pointTimer: 0
   player1Invulnerable: 0
@@ -3209,6 +3274,7 @@ RectTransform:
   - {fileID: 624930083}
   - {fileID: 1285085274}
   - {fileID: 1821595777}
+  - {fileID: 945432987}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

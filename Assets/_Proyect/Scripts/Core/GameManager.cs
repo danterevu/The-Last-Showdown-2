@@ -5,7 +5,12 @@
     {
         public static GameManager Instance;
 
-        [Header("Puntos Globales (persisten entre minijuegos)")]
+    // evento que dispara cada vez que cambian los puntos
+    // int player, int amount, bool isAdd
+    public static event System.Action<int, int, bool> OnPointsChanged;
+
+
+    [Header("Puntos Globales (persisten entre minijuegos)")]
         public int player1Score;
         public int player2Score;
 
@@ -52,14 +57,18 @@
             int final = Mathf.RoundToInt(amount * (player == 1 ? player1Multiplier : player2Multiplier));
             if (player == 1) player1RoundPoints += final;
             else player2RoundPoints += final;
-        }
+
+        OnPointsChanged?.Invoke(player, final, true);
+    }
 
         // para restar puntos (sin aplicar multiplicador, la resta es directa)
         public void RemovePoints(int player, int amount)
         {
             if (player == 1) player1RoundPoints = Mathf.Max(0, player1RoundPoints - amount);
             else player2RoundPoints = Mathf.Max(0, player2RoundPoints - amount);
-        }
+
+        OnPointsChanged?.Invoke(player, amount, false);
+    }
 
         // llamado al terminar el minijuego - transfiere puntos de ronda al global
         // devuelve los puntos ganados en la ronda para mostrarlos en Results

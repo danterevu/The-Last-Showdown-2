@@ -31,7 +31,7 @@ public class CameraShake : MonoBehaviour
         if (shakeCoroutine != null)
             StopCoroutine(shakeCoroutine);
         shakeCoroutine = StartCoroutine(ShakeCoroutine(duration, magnitude));
-    }
+    } 
     private IEnumerator ShakeCoroutine(float duration, float magnitude)
     {
         float elapsed = 0f;

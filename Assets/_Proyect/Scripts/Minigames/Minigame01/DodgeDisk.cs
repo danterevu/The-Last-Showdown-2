@@ -10,7 +10,8 @@
         [SerializeField] private float invulnerableTime = 3f;
 
         [Header("References")]
-        [SerializeField] private DiskMovement diskMovement;
+    [SerializeField] private HUDManager hudManager;
+    [SerializeField] private DiskMovement diskMovement;
         [SerializeField] private Collider2D diskCollider;
         [SerializeField] private Transform diskSpawnPoint;
         [SerializeField] private GameObject player1;
@@ -22,8 +23,7 @@
 
         [Header("UI")]
         [SerializeField] private TextMeshProUGUI timerText;
-        [SerializeField] private TextMeshProUGUI player1ScoreText;
-        [SerializeField] private TextMeshProUGUI player2ScoreText;
+ 
 
         [Header("Debug")]
         [SerializeField] private float gameTimer;
@@ -166,15 +166,17 @@
         }
     private void UpdateUI()
     {
-        if (timerText != null)
+        if (hudManager != null) hudManager.UpdateTimer(gameTimer);
+        // fallback si no hay HUDManager
+        else if (timerText != null)
         {
             int minutes = Mathf.FloorToInt(gameTimer / 60f);
             int seconds = Mathf.FloorToInt(gameTimer % 60f);
             timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
         }
-        if (player1ScoreText != null) player1ScoreText.text = "P1: " + GameManager.Instance.player1RoundPoints;
-        if (player2ScoreText != null) player2ScoreText.text = "P2: " + GameManager.Instance.player2RoundPoints;
     }
+
+
 
     private IEnumerator FlashPlayer(GameObject player)
         {
