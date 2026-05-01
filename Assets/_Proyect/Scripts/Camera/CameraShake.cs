@@ -8,8 +8,8 @@ public class CameraShake : MonoBehaviour
     private Vector3 originalLocalPos;
     private Coroutine shakeCoroutine;
 
-    [SerializeField] private float shakeDuration = 0.1f;
-    [SerializeField] private float shakeMagnitude = 0.08f;
+    //[SerializeField] private float shakeDuration = 0.1f;
+    //[SerializeField] private float shakeMagnitude = 0.08f;
     private void Awake()
     {
         if(Instance != null && Instance != this)
