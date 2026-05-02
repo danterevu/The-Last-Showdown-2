@@ -798,8 +798,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae530768243ae9044b727d4173d795b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shakeDuration: 0.1
-  shakeMagnitude: 0.08
 --- !u!1 &538370194 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 163626226805196753, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
@@ -4663,6 +4661,10 @@ PrefabInstance:
     - target: {fileID: 163626226805196753, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
       propertyPath: m_Name
       value: Player2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2301863690828031753, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
+      propertyPath: playerIndex
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3430260594853427124, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
       propertyPath: m_LocalPosition.x

@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -18,27 +17,24 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Vector2 lastDirection;
 
     [Header("Input")]
-    [SerializeField] private InputActionAsset inputActions; //Es el archivo donde están guardados la configuracion de botones
-    [SerializeField] private string actionMapName = "Player1_Platform"; //se pasa por un string cual InputActionAsset se va a usar
-   
+    [SerializeField] private InputActionAsset inputActions;
+    [SerializeField] private string actionMapName = "Player1_Platform";
+    [SerializeField] private int playerIndex = 0;
+
     [Header("Debug")]
     [SerializeField] private bool isGrounded;
-   
-    
-
 
     private Animator anim;
     private Rigidbody2D rb;
     private InputAction moveAction;
     private InputAction jumpAction;
     private InputAction interactAction;
-    
 
-    public enum MovementMode { Platform, TopDown, TopDownWithGravity } //se definen dos estados de juego, estilo plataformero o top down
+    public enum MovementMode { Platform, TopDown, TopDownWithGravity }
 
     private void Awake()
     {
-        anim= GetComponent<Animator>();
+        anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         rb.sleepMode = RigidbodySleepMode2D.NeverSleep;
     }
@@ -50,33 +46,33 @@ public class PlayerController : MonoBehaviour
             Debug.LogError("InputActions no asignado en " + gameObject.name);
             return;
         }
-        SetupInput(actionMapName); //para activar una configuracion de controles, se le pasa a al metodo SetupInput,
-                                   //el string "Player1_Platform"
+        SetupInput(actionMapName);
     }
 
     private void OnDisable()
     {
-        moveAction?.Disable(); //el ?. significa Si existe, ejecútalo"
+        moveAction?.Disable();
         if (jumpAction != null)
         {
-            jumpAction.performed -= OnJump; // Lo desconecta (-=)
-            jumpAction.Disable(); // desconecta los inputs
-            interactAction?.Disable(); // se desactiva si existe
+            jumpAction.performed -= OnJump;
+            jumpAction.Disable();
         }
-        //cuando el jugador salta, ejecutar OnJump()
+        interactAction?.Disable();
     }
 
-    private void Update() //lectura de input, no mueve al PJ TODAVIA
+    private void Update()
     {
         if (moveAction == null) return;
-        moveInput = moveAction.ReadValue<Vector2>(); //devuelve algo como: (1, 0), (-1, 0), (0, 1), (0, -1)
 
+        // Debug temporal
+        Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
+        Debug.Log($"Jugador {playerIndex + 1} | Gamepad: {(gp != null ? gp.displayName : "NULL")} | Total asignados: {InputAssigner.AssignedCount}");
+
+        moveInput = ReadFilteredMove();
         UpdateAnimations(moveInput);
-
     }
 
-   
-    private void FixedUpdate()     //se fija que modo de input se esta usando
+    private void FixedUpdate()
     {
         if (movementMode == MovementMode.Platform)
             HandlePlatformMovement();
@@ -86,33 +82,78 @@ public class PlayerController : MonoBehaviour
             HandleTopDownWithGravity();
     }
 
-    private void HandlePlatformMovement() //logica base de un plataformero
+    private void HandlePlatformMovement()
     {
-        rb.gravityScale = gravityScale; //hay gravedad
-        rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y); 
+        rb.gravityScale = gravityScale;
+        rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
     }
 
     private void HandleTopDownWithGravity()
     {
-        rb.gravityScale = gravityScale; // gravedad activa para que caiga
+        rb.gravityScale = gravityScale;
         rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
-        // solo mueve en X, la Y la maneja la gravedad
     }
 
-    private void HandleTopDownMovement() //logica base de un top down
+    private void HandleTopDownMovement()
     {
-        rb.gravityScale = 0f; //gravedad 0
-        Vector2 normalized = moveInput.normalized; //move input normalizado
+        rb.gravityScale = 0f;
         rb.linearVelocity = new Vector2(moveInput.x * topDownSpeed, moveInput.y * topDownSpeed);
-       
     }
 
-    private void OnJump(InputAction.CallbackContext context) //maneja el salto
+    private Vector2 ReadFilteredMove()
     {
-        if (isGrounded) //si esta en el piso
-            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse); //en Vector.up(0 , 1) se le da fueza en Y con un impulso
+        Vector2 result = Vector2.zero;
+
+        // Leer del gamepad asignado a este jugador
+        Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
+        if (gp != null)
+        {
+            Vector2 stick = gp.leftStick.ReadValue();
+            Vector2 dpad = gp.dpad.ReadValue();
+            result = stick.sqrMagnitude > dpad.sqrMagnitude ? stick : dpad;
+            if (result.sqrMagnitude > 0.01f) return result;
+        }
+
+        // Fallback teclado: P1 = WASD, P2 = flechas
+        if (Keyboard.current != null)
+        {
+            if (playerIndex == 0)
+            {
+                if (Keyboard.current.dKey.isPressed) result.x += 1f;
+                if (Keyboard.current.aKey.isPressed) result.x -= 1f;
+                if (Keyboard.current.wKey.isPressed) result.y += 1f;
+                if (Keyboard.current.sKey.isPressed) result.y -= 1f;
+            }
+            else
+            {
+                if (Keyboard.current.rightArrowKey.isPressed) result.x += 1f;
+                if (Keyboard.current.leftArrowKey.isPressed) result.x -= 1f;
+                if (Keyboard.current.upArrowKey.isPressed) result.y += 1f;
+                if (Keyboard.current.downArrowKey.isPressed) result.y -= 1f;
+            }
+        }
+
+        return result.sqrMagnitude > 0.01f ? result.normalized : Vector2.zero;
     }
 
+    private void OnJump(InputAction.CallbackContext context)
+    {
+        if (!IsCorrectDevice(context.control.device)) return;
+
+        if (isGrounded)
+            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+    }
+
+    private bool IsCorrectDevice(InputDevice device)
+    {
+        if (device is Keyboard)
+            return playerIndex == 0;
+
+        if (device is Gamepad gamepad)
+            return gamepad == InputAssigner.GetGamepadForPlayer(playerIndex);
+
+        return false;
+    }
 
     private void SetupInput(string mapName)
     {
@@ -122,8 +163,9 @@ public class PlayerController : MonoBehaviour
             jumpAction.performed -= OnJump;
             jumpAction.Disable();
         }
+        interactAction?.Disable();
 
-        var map = inputActions.FindActionMap(mapName); //se guarda en un var la busqueda del string mapName: "Player1_Platform"
+        var map = inputActions.FindActionMap(mapName);
         if (map == null)
         {
             Debug.LogError("Action Map no encontrado: " + mapName);
@@ -132,19 +174,21 @@ public class PlayerController : MonoBehaviour
 
         moveAction = map.FindAction("Move");
         jumpAction = map.FindAction("Jump");
-        interactAction = map.FindAction("Interact"); //Estas deben existir en el Input System
+        interactAction = map.FindAction("Interact");
 
+        moveAction?.Enable();
         interactAction?.Enable();
-        moveAction?.Enable(); //se activan
 
-        if (jumpAction != null) //si existe
+        if (jumpAction != null)
         {
             jumpAction.Enable();
-            jumpAction.performed += OnJump; //Cuando presionás salto, llama a OnJump()
+            jumpAction.performed += OnJump;
         }
-    }
 
-    public void SetMovementMode(MovementMode mode, string mapName) //Cambia el tipo de movimiento y Cambia los controles
+        // Este log solo es informativo, no indica error
+        Debug.Log($"Jugador {playerIndex + 1}: input configurado con mapa '{mapName}'");
+    }
+    public void SetMovementMode(MovementMode mode, string mapName)
     {
         movementMode = mode;
         actionMapName = mapName;
@@ -153,33 +197,45 @@ public class PlayerController : MonoBehaviour
 
     public bool GetInteractPressed()
     {
-        return interactAction != null && interactAction.WasPressedThisFrame(); //TRUE si el jugador presionó interact en ese frame
+        if (interactAction == null) return false;
+
+        // Teclado
+        if (Keyboard.current != null)
+        {
+            if (playerIndex == 0 && Keyboard.current.eKey.wasPressedThisFrame) return true;
+            if (playerIndex == 1 && Keyboard.current.lKey.wasPressedThisFrame) return true;
+        }
+
+        // Gamepad — círculo (buttonEast) para ambos jugadores
+        Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
+        if (gp != null && gp.buttonEast.wasPressedThisFrame) return true; //eastButton circulo
+
+        return false;
     }
+
     public void SetFrozen(bool frozen)
     {
         if (frozen)
         {
             rb.linearVelocity = Vector2.zero;
-            this.enabled = false;   // Desactiva el Update y FixedUpdate del PlayerController
+            this.enabled = false;
         }
         else
         {
             this.enabled = true;
         }
     }
-    private void UpdateAnimations(Vector2 moveInput)
+
+    private void UpdateAnimations(Vector2 input)
     {
         if (anim == null) return;
 
-        bool isMoving = moveInput.sqrMagnitude > 0.01f;
+        bool isMoving = input.sqrMagnitude > 0.01f;
         anim.SetBool("isMoving", isMoving);
-
-        anim.SetFloat("MoveX", moveInput.x);
-        anim.SetFloat("MoveY", moveInput.y);
+        anim.SetFloat("MoveX", input.x);
+        anim.SetFloat("MoveY", input.y);
 
         if (isMoving)
-        {
-            lastDirection = moveInput.normalized;
-        }
+            lastDirection = input.normalized;
     }
 }

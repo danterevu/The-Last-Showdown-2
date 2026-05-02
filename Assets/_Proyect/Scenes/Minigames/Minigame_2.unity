@@ -128772,6 +128772,10 @@ PrefabInstance:
       value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 3732607951623789684, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: playerIndex
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3732607951623789684, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
       propertyPath: respawnDelay
       value: 0.4
       objectReference: {fileID: 0}

@@ -35,6 +35,7 @@ public class PlatformPlayerController : MonoBehaviour
     [Header("Input")]
     [SerializeField] private InputActionAsset inputActions;
     [SerializeField] private string actionMapName = "Player1_Platform";
+    [SerializeField] private int playerIndex = 0;
 
     [Header("Debug")]
     [SerializeField] private bool isGrounded;
@@ -135,12 +136,60 @@ public class PlatformPlayerController : MonoBehaviour
         if (attackAction != null) { attackAction.Enable(); attackAction.performed += OnAttack; }
         if (interactAction != null) { interactAction.Enable(); interactAction.performed += OnInteract; }
     }
-
     private void Update()
     {
         if (isDead) return;
         if (moveAction == null) return;
-        moveInput = moveAction.ReadValue<Vector2>();
+
+        moveInput = ReadFilteredMove();
+
+        // Salto con gamepad directo
+        Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
+        if (gp != null && gp.buttonSouth.wasPressedThisFrame) //buttonSouth X
+        {
+            // simulamos el mismo comportamiento que OnJumpPerformed
+            jumpHeld = true;
+            if (isGrounded || coyoteTimeCounter > 0f)
+            {
+                ExecuteJump();
+                if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
+            }
+            else if (doubleJumpEnabled && !usedDoubleJump)
+            {
+                ExecuteJump();
+                usedDoubleJump = true;
+                if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
+            }
+            else
+            {
+                jumpBufferCounter = jumpBufferTime;
+            }
+        }
+
+        if (gp != null && gp.buttonWest.wasPressedThisFrame) //buttonWest cuadrado
+        {
+            if (!isDead && canAttack && otherPlayer != null)
+            {
+                float dist = Vector2.Distance(transform.position, otherPlayer.transform.position);
+                if (dist <= attackRange)
+                {
+                    animator.SetTrigger("Attack");
+                    StartCoroutine(KnockbackDuration());
+                    StartCoroutine(AttackCooldown());
+                }
+            }
+        }
+
+        // Interact con gamepad directo
+        if (gp != null && gp.buttonEast.wasPressedThisFrame) //buttonEast circulo
+        {
+            Debug.Log(gameObject.name + " presiono interact (gamepad)");
+            UsePowerUp();
+        }
+
+        // Soltar salto con gamepad
+        if (gp != null && gp.buttonSouth.wasReleasedThisFrame)
+            jumpHeld = false;
         CheckGround();
 
         // ESTO tiene que estar acá
@@ -185,9 +234,7 @@ public class PlatformPlayerController : MonoBehaviour
 
         }
         if (moveInput.x > 0.01f) sr.flipX = false;
-        else if (moveInput.x < -0.01f) sr.flipX = true;
-
-          
+        else if (moveInput.x < -0.01f) sr.flipX = true;     
     }
 
     private void FixedUpdate()
@@ -219,6 +266,40 @@ public class PlatformPlayerController : MonoBehaviour
         ApplyMirrorControl();
     }
 
+    private Vector2 ReadFilteredMove()
+    {
+        Vector2 result = Vector2.zero;
+
+        Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
+        if (gp != null)
+        {
+            Vector2 stick = gp.leftStick.ReadValue();
+            Vector2 dpad = gp.dpad.ReadValue();
+            result = stick.sqrMagnitude > dpad.sqrMagnitude ? stick : dpad;
+            if (result.sqrMagnitude > 0.01f) return result;
+        }
+
+        if (Keyboard.current != null)
+        {
+            if (playerIndex == 0)
+            {
+                if (Keyboard.current.dKey.isPressed) result.x += 1f;
+                if (Keyboard.current.aKey.isPressed) result.x -= 1f;
+                if (Keyboard.current.wKey.isPressed) result.y += 1f;
+                if (Keyboard.current.sKey.isPressed) result.y -= 1f;
+            }
+            else
+            {
+                if (Keyboard.current.rightArrowKey.isPressed) result.x += 1f;
+                if (Keyboard.current.leftArrowKey.isPressed) result.x -= 1f;
+                if (Keyboard.current.upArrowKey.isPressed) result.y += 1f;
+                if (Keyboard.current.downArrowKey.isPressed) result.y -= 1f;
+            }
+        }
+
+        return result.sqrMagnitude > 0.01f ? result.normalized : Vector2.zero;
+    }
+
     private void ApplyBetterGravity()
     {
         if (rb.linearVelocity.y < 0)
@@ -229,6 +310,7 @@ public class PlatformPlayerController : MonoBehaviour
 
     private void OnJumpPerformed(InputAction.CallbackContext context)
     {
+        if (!IsCorrectDevice(context.control.device)) return;
         if (isDead) return;
         jumpHeld = true;
 
@@ -265,8 +347,7 @@ public class PlatformPlayerController : MonoBehaviour
 
     private void OnAttack(InputAction.CallbackContext context)
     {
-     
-      
+        if (!IsCorrectDevice(context.control.device)) return;
 
         if (isDead || !canAttack || otherPlayer == null) return;
         float dist = Vector2.Distance(transform.position, otherPlayer.transform.position);
@@ -381,10 +462,22 @@ public class PlatformPlayerController : MonoBehaviour
 
     private void OnInteract(InputAction.CallbackContext context)
     {
+        if (!IsCorrectDevice(context.control.device)) return;
+
         Debug.Log(gameObject.name + " presiono interact");
         UsePowerUp();
     }
+    private bool IsCorrectDevice(InputDevice device)
+    {
+        if (device is Keyboard)
+            return true; // ambos jugadores pueden usar teclado,
+                         // las teclas ya están separadas en el asset
 
+        if (device is Gamepad gamepad)
+            return gamepad == InputAssigner.GetGamepadForPlayer(playerIndex);
+
+        return false;
+    }
     private void UsePowerUp()
     {
         if (!hasPowerUp || manager == null)

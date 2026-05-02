@@ -175,7 +175,7 @@ public class HUDManager : MonoBehaviour
         int minutes = Mathf.FloorToInt(timeRemaining / 60f);
         int seconds = Mathf.FloorToInt(timeRemaining % 60f);
         timerText.text = minutes.ToString("00") + ":" + seconds.ToString("00");
-        Debug.Log("time: " + timeRemaining + " warning: " + timerWarningTime + " danger: " + timerDangerTime + " state: " + timerState);
+        //Debug.Log("time: " + timeRemaining + " warning: " + timerWarningTime + " danger: " + timerDangerTime + " state: " + timerState);
 
         if (timeRemaining <= timerDangerTime)
             if (timeRemaining <= timerDangerTime)
