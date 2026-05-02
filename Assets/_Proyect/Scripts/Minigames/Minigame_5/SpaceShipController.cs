@@ -104,7 +104,7 @@ public class SpaceShipController : MonoBehaviour
         }
 
         // Buscar el mapa correcto según el jugador
-        string mapName = isPlayer1 ? "Player1_Platform" : "Player2_Platform";
+        string mapName = isPlayer1 ? "Player1_TopDown" : "Player2_TopDown";
         var map = inputActionAsset.FindActionMap(mapName);
 
         if (map == null)
