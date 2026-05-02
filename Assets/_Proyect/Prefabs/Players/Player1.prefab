@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5977419167255780278}
   - component: {fileID: 8101639817165099947}
   - component: {fileID: 4194919698614557734}
-  - component: {fileID: 517552610911746078}
+  - component: {fileID: 3002537271218251575}
   - component: {fileID: 3226933138572375385}
   - component: {fileID: 4434388874885046720}
   m_Layer: 7
@@ -84,9 +84,10 @@ MonoBehaviour:
   lastDirection: {x: 0, y: 0}
   inputActions: {fileID: -944628639613478452, guid: e3270181fb3993c478a2ddab4e8b288a, type: 3}
   actionMapName: Player1_TopDown
+  playerIndex: 0
   isGrounded: 0
---- !u!70 &517552610911746078
-CapsuleCollider2D:
+--- !u!68 &3002537271218251575
+EdgeCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -119,9 +120,35 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.021552723, y: 0.004484023}
-  m_Size: {x: 1.9777534, y: 1.9655627}
-  m_Direction: 0
+  m_Offset: {x: 0, y: 0}
+  m_EdgeRadius: 0
+  m_Points:
+  - {x: 0.80506366, y: -0.48609972}
+  - {x: 0.88187826, y: -0.6082241}
+  - {x: 0.7648897, y: -0.72852176}
+  - {x: 0.47822267, y: -0.83830875}
+  - {x: 0.07356991, y: -0.8725492}
+  - {x: -0.55535877, y: -0.8331035}
+  - {x: -0.76517254, y: -0.7997586}
+  - {x: -0.84838355, y: -0.6839355}
+  - {x: -0.7937452, y: -0.57291394}
+  - {x: -0.82925403, y: -0.20632459}
+  - {x: -0.8463852, y: 0.18164688}
+  - {x: -0.79212254, y: 0.4450629}
+  - {x: -0.681478, y: 0.61644715}
+  - {x: -0.5382573, y: 0.74664086}
+  - {x: -0.39874873, y: 0.8128529}
+  - {x: -0.039237045, y: 0.872692}
+  - {x: 0.30487043, y: 0.83334965}
+  - {x: 0.48801374, y: 0.73307735}
+  - {x: 0.66450185, y: 0.5466505}
+  - {x: 0.7898734, y: 0.17436163}
+  - {x: 0.77843064, y: -0.37833503}
+  - {x: 0.8058226, y: -0.49138296}
+  m_AdjacentStartPoint: {x: 0, y: 0}
+  m_AdjacentEndPoint: {x: 0, y: 0}
+  m_UseAdjacentStartPoint: 0
+  m_UseAdjacentEndPoint: 0
 --- !u!212 &3226933138572375385
 SpriteRenderer:
   m_ObjectHideFlags: 0

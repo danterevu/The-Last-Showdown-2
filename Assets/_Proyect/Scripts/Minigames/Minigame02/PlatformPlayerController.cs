@@ -21,9 +21,11 @@ public class PlatformPlayerController : MonoBehaviour
 
     [Header("Golpe")]
     [SerializeField] private float knockbackForce = 12f;
-    [SerializeField] private float selfKnockback = 4f;
-    [SerializeField] private float attackRange = 2f;
+    [SerializeField] private float selfKnockback = 4f; public float SelfKnockback => selfKnockback;
     [SerializeField] private float attackCooldown = 0.5f;
+
+    [Header("Hitbox")]
+    [SerializeField] private PunchHitbox punchHitbox;
 
     [Header("DNA")]
     public bool hasDNA = false;
@@ -42,6 +44,7 @@ public class PlatformPlayerController : MonoBehaviour
     [SerializeField] private bool isInvulnerable;
     [SerializeField] private bool isDead;
     [SerializeField] private bool canAttack = true;
+    [SerializeField] private bool isAttacking = false;
     [SerializeField] private bool isKnockedBack = false;
 
     private float coyoteTimeCounter;
@@ -52,9 +55,9 @@ public class PlatformPlayerController : MonoBehaviour
     private bool shieldActive = false;
     private float shieldMultiplier = 1f;
 
-    // doble salto - solo se activa con el power up
+    // doble salto
     private bool doubleJumpEnabled = false;
-    private bool usedDoubleJump = true; // empieza en true para que no pueda usar sin powerup
+    private bool usedDoubleJump = true;
 
     // gravedad pesada
     private bool heavyGravityActive = false;
@@ -76,13 +79,14 @@ public class PlatformPlayerController : MonoBehaviour
     private bool jetpackActive = false;
     private float jetpackForce = 0f;
 
-    // hook: override de velocidad total
+    // hook
     private bool hasRawVelocityOverride = false;
     private Vector2 rawVelocityOverride = Vector2.zero;
 
     [Header("PowerUp")]
     [SerializeField] private PowerUpPickup.PowerUpType currentPowerUp;
     [SerializeField] private bool hasPowerUp = false;
+
     private Animator animator;
     private Rigidbody2D rb;
     private SpriteRenderer sr;
@@ -136,6 +140,7 @@ public class PlatformPlayerController : MonoBehaviour
         if (attackAction != null) { attackAction.Enable(); attackAction.performed += OnAttack; }
         if (interactAction != null) { interactAction.Enable(); interactAction.performed += OnInteract; }
     }
+
     private void Update()
     {
         if (isDead) return;
@@ -143,70 +148,67 @@ public class PlatformPlayerController : MonoBehaviour
 
         moveInput = ReadFilteredMove();
 
-        // Salto con gamepad directo
         Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
-        if (gp != null && gp.buttonSouth.wasPressedThisFrame) //buttonSouth X
+        if (gp != null)
         {
-            // simulamos el mismo comportamiento que OnJumpPerformed
-            jumpHeld = true;
-            if (isGrounded || coyoteTimeCounter > 0f)
+            // Salto
+            if (gp.buttonSouth.wasPressedThisFrame)
             {
-                ExecuteJump();
-                if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
-            }
-            else if (doubleJumpEnabled && !usedDoubleJump)
-            {
-                ExecuteJump();
-                usedDoubleJump = true;
-                if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
-            }
-            else
-            {
-                jumpBufferCounter = jumpBufferTime;
-            }
-        }
-
-        if (gp != null && gp.buttonWest.wasPressedThisFrame) //buttonWest cuadrado
-        {
-            if (!isDead && canAttack && otherPlayer != null)
-            {
-                float dist = Vector2.Distance(transform.position, otherPlayer.transform.position);
-                if (dist <= attackRange)
+                jumpHeld = true;
+                if (isGrounded || coyoteTimeCounter > 0f)
                 {
-                    animator.SetTrigger("Attack");
-                    StartCoroutine(KnockbackDuration());
-                    StartCoroutine(AttackCooldown());
+                    ExecuteJump();
+                    if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
+                }
+                else if (doubleJumpEnabled && !usedDoubleJump)
+                {
+                    ExecuteJump();
+                    usedDoubleJump = true;
+                    if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
+                }
+                else
+                {
+                    jumpBufferCounter = jumpBufferTime;
                 }
             }
+
+            if (gp.buttonSouth.wasReleasedThisFrame)
+                jumpHeld = false;
+
+            // Ataque
+            if (gp.buttonWest.wasPressedThisFrame)
+                TryAttack();
+
+            // Interact / PowerUp
+            if (gp.buttonEast.wasPressedThisFrame)
+            {
+                Debug.Log(gameObject.name + " presiono interact (gamepad)");
+                UsePowerUp();
+            }
         }
 
-        // Interact con gamepad directo
-        if (gp != null && gp.buttonEast.wasPressedThisFrame) //buttonEast circulo
+        // Mover hitbox al lado correcto
+        if (punchHitbox != null)
         {
-            Debug.Log(gameObject.name + " presiono interact (gamepad)");
-            UsePowerUp();
+            Vector3 pos = punchHitbox.transform.localPosition;
+            pos.x = IsFacingRight() ? Mathf.Abs(pos.x) : -Mathf.Abs(pos.x);
+            punchHitbox.transform.localPosition = pos;
         }
 
-        // Soltar salto con gamepad
-        if (gp != null && gp.buttonSouth.wasReleasedThisFrame)
-            jumpHeld = false;
         CheckGround();
 
-        // ESTO tiene que estar acá
         if (animator != null)
         {
             animator.SetFloat("velocityX", Mathf.Abs(moveInput.x));
             animator.SetFloat("velocityY", rb.linearVelocity.y);
             animator.SetBool("isGrounded", isGrounded);
         }
-        
+
         if (invertControls) moveInput = -moveInput;
 
         if (isGrounded)
         {
             coyoteTimeCounter = coyoteTime;
-            // FIX double jump: solo resetear usedDoubleJump si el powerup esta activo
-            // si no, mantenerlo en true para bloquear el segundo salto
             if (doubleJumpEnabled) usedDoubleJump = false;
         }
         else
@@ -220,21 +222,16 @@ public class PlatformPlayerController : MonoBehaviour
             if (isGrounded || coyoteTimeCounter > 0f) ExecuteJump();
         }
 
-
         if (mirrorJumpPending)
         {
             mirrorJumpPending = false;
             StartCoroutine(MirrorJumpCoroutine());
-
-            // si toca el suelo dentro del buffer, salta
             if (isGrounded || coyoteTimeCounter > 0f)
                 ExecuteJump();
-
-           
-
         }
+
         if (moveInput.x > 0.01f) sr.flipX = false;
-        else if (moveInput.x < -0.01f) sr.flipX = true;     
+        else if (moveInput.x < -0.01f) sr.flipX = true;
     }
 
     private void FixedUpdate()
@@ -243,7 +240,6 @@ public class PlatformPlayerController : MonoBehaviour
 
         rb.gravityScale = heavyGravityActive ? heavyGravityValue : gravityScale;
 
-        // hook: prioridad maxima sobre todo lo demas
         if (hasRawVelocityOverride)
         {
             rb.linearVelocity = rawVelocityOverride;
@@ -317,14 +313,10 @@ public class PlatformPlayerController : MonoBehaviour
         if (isGrounded || coyoteTimeCounter > 0f)
         {
             ExecuteJump();
-            // FIX double jump: NO resetear usedDoubleJump aqui
-            // Update lo resetea solo cuando doubleJumpEnabled=true
-            // si lo reseteamos aqui, un salto normal desde el suelo habilita el double jump
             if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
         }
         else if (doubleJumpEnabled && !usedDoubleJump)
         {
-            // segundo salto: solo disponible con el power up activo
             ExecuteJump();
             usedDoubleJump = true;
             if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
@@ -348,35 +340,35 @@ public class PlatformPlayerController : MonoBehaviour
     private void OnAttack(InputAction.CallbackContext context)
     {
         if (!IsCorrectDevice(context.control.device)) return;
-
-        if (isDead || !canAttack || otherPlayer == null) return;
-        float dist = Vector2.Distance(transform.position, otherPlayer.transform.position);
-        Debug.Log($"Distancia al rival: {dist} | attackRange: {attackRange}");
-        if (dist <= attackRange)
-        {
-            animator.SetTrigger("Attack");
-            StartCoroutine(KnockbackDuration());
-            StartCoroutine(AttackCooldown());
-        }
+        TryAttack();
     }
+
+    private void TryAttack()
+    {
+        if (isDead || !canAttack || isAttacking) return;
+        isAttacking = true;
+        animator.SetTrigger("Attack");
+        StartCoroutine(AttackCooldown());
+    }
+
+    // Llamado por Animation Event cuando el puño conecta
     public void ApplyAttackHit()
     {
-        if (otherPlayer == null) return;
-        float dist = Vector2.Distance(transform.position, otherPlayer.transform.position);
-        if (dist <= attackRange)
-        {
-            float dirX = otherPlayer.transform.position.x > transform.position.x ? 1f : -1f;
-            Vector2 knockDir = new Vector2(dirX, 0.3f).normalized;
-            otherPlayer.ReceiveKnockback(knockDir);
-            rb.linearVelocity = new Vector2(-dirX * selfKnockback, selfKnockback * 0.3f);
-            StartCoroutine(KnockbackDuration());
-        }
+        punchHitbox?.Activate();
     }
+
+    // Llamado por Animation Event al terminar la animación
+    public void OnAttackFinished()
+    {
+        isAttacking = false;
+        punchHitbox?.Deactivate();
+    }
+
     public void ReceiveKnockback(Vector2 direction)
     {
         if (isInvulnerable) return;
         if (shieldActive) { otherPlayer.ReceiveKnockback(-direction * shieldMultiplier); return; }
-        animator?.SetTrigger("Hurt"); // <-- agregar esto
+        animator?.SetTrigger("Hurt");
         rb.linearVelocity = direction * knockbackForce;
         StartCoroutine(KnockbackDuration());
     }
@@ -403,7 +395,6 @@ public class PlatformPlayerController : MonoBehaviour
 
     private void CheckGround()
     {
-        // si esta subiendo, no puede estar en el suelo
         if (rb.linearVelocity.y > 0.1f)
         {
             isGrounded = false;
@@ -422,19 +413,19 @@ public class PlatformPlayerController : MonoBehaviour
 
         bool onGround = hitLeft.collider != null || hitRight.collider != null;
         bool onHead = (headLeft.collider != null && headLeft.collider.transform.root != transform) ||
-                        (headRight.collider != null && headRight.collider.transform.root != transform);
+                      (headRight.collider != null && headRight.collider.transform.root != transform);
 
         isGrounded = onGround || onHead;
     }
 
     private IEnumerator Die()
     {
-  
         isDead = true;
         isKnockedBack = false;
+        isAttacking = false;
+        punchHitbox?.Deactivate();
         rb.linearVelocity = Vector2.zero;
         rb.gravityScale = 0f;
-      
         animator.SetTrigger("Die");
         yield return new WaitForSeconds(respawnDelay);
         sr.enabled = false;
@@ -463,21 +454,18 @@ public class PlatformPlayerController : MonoBehaviour
     private void OnInteract(InputAction.CallbackContext context)
     {
         if (!IsCorrectDevice(context.control.device)) return;
-
         Debug.Log(gameObject.name + " presiono interact");
         UsePowerUp();
     }
+
     private bool IsCorrectDevice(InputDevice device)
     {
-        if (device is Keyboard)
-            return true; // ambos jugadores pueden usar teclado,
-                         // las teclas ya están separadas en el asset
-
+        if (device is Keyboard) return true;
         if (device is Gamepad gamepad)
             return gamepad == InputAssigner.GetGamepadForPlayer(playerIndex);
-
         return false;
     }
+
     private void UsePowerUp()
     {
         if (!hasPowerUp || manager == null)
@@ -490,8 +478,10 @@ public class PlatformPlayerController : MonoBehaviour
         manager.ActivatePowerUp(currentPowerUp, this, otherPlayer);
     }
 
+    public bool IsFacingRight() => !sr.flipX;
     public bool HasPowerUp() => hasPowerUp;
     public PowerUpPickup.PowerUpType GetCurrentPowerUp() => currentPowerUp;
+
     public void ReceivePowerUp(PowerUpPickup.PowerUpType type)
     {
         currentPowerUp = type;
@@ -504,8 +494,6 @@ public class PlatformPlayerController : MonoBehaviour
     public void SetDoubleJump(bool active)
     {
         doubleJumpEnabled = active;
-        // al activar el powerup: habilitar el segundo salto
-        // al desactivar: bloquearlo de nuevo
         usedDoubleJump = !active;
     }
 
@@ -544,7 +532,6 @@ public class PlatformPlayerController : MonoBehaviour
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         coyoteTimeCounter = 0f;
         jumpBufferCounter = 0f;
-        // simular jumpHeld para que ApplyBetterGravity no corte el salto inmediatamente
         bool prevJumpHeld = jumpHeld;
         jumpHeld = true;
         yield return new WaitForSeconds(0.25f);

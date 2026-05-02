@@ -31,7 +31,7 @@ AnimationClip:
     - time: 0.38333333
       value: {fileID: -6568634375014480378, guid: 3881f0f42a65aa64abb8f4552869ea4f, type: 3}
     - time: 0.43333334
-      value: {fileID: 5617349569544286042, guid: 31393bb8b4b780d4182378349d828c09, type: 3}
+      value: {fileID: 637664860184326431, guid: 8b150c39b3bfda4499c277670c67fe38, type: 3}
     - time: 0.5
       value: {fileID: 4350925562984178549, guid: 8d2de3ca920a08c4da03363d83401a29, type: 3}
     - time: 0.55
@@ -71,7 +71,7 @@ AnimationClip:
     - {fileID: -3956442697266641888, guid: 0b37dfabf7d84404aa289b689b97f200, type: 3}
     - {fileID: 5576903358864926562, guid: 16dacb18c8c694d45aeada1cd6e17588, type: 3}
     - {fileID: -6568634375014480378, guid: 3881f0f42a65aa64abb8f4552869ea4f, type: 3}
-    - {fileID: 5617349569544286042, guid: 31393bb8b4b780d4182378349d828c09, type: 3}
+    - {fileID: 637664860184326431, guid: 8b150c39b3bfda4499c277670c67fe38, type: 3}
     - {fileID: 4350925562984178549, guid: 8d2de3ca920a08c4da03363d83401a29, type: 3}
     - {fileID: 5696366805891596448, guid: dc418e9721c2c644fb481766665973a3, type: 3}
     - {fileID: 637664860184326431, guid: 8b150c39b3bfda4499c277670c67fe38, type: 3}
@@ -105,6 +105,13 @@ AnimationClip:
   m_Events:
   - time: 0.51666665
     functionName: ApplyAttackHit
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.6166667
+    functionName: OnAttackFinished
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0

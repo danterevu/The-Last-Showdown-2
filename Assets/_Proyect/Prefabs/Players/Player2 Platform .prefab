@@ -124,6 +124,7 @@ MonoBehaviour:
   invulnerableTime: 2
   inputActions: {fileID: -944628639613478452, guid: 2eefc3655699b6b4c94338e68a1d94bb, type: 3}
   actionMapName: Player2_Platform
+  playerIndex: 0
   isGrounded: 0
   isInvulnerable: 0
   isDead: 0
@@ -192,7 +193,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.072128296, y: -0.050489426}
+  m_Offset: {x: -0.07212824, y: -0.050489426}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -202,7 +203,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.7789841, y: 1.8511086}
+  m_Size: {x: 1.778984, y: 1.8511086}
   m_EdgeRadius: 0
 --- !u!95 &6580697724506949206
 Animator:
@@ -292,7 +293,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.056715995, y: 0.44616112}
+  m_Offset: {x: -0.029475689, y: 0.44616112}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -302,5 +303,5 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.8432467, y: 0.10767776}
+  m_Size: {x: 1.7491431, y: 0.10767776}
   m_EdgeRadius: 0
