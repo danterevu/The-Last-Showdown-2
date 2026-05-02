@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: d4ccb1b04c1ca704b9423eaf6fee0ed1
+guid: 62219ec42e8de074a8aef236ede6c317
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 869131615398643326
-    second: Dodge Disk Saw_0
+      213: -7306263569217167098
+    second: HUDBorder_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -52,7 +52,7 @@ TextureImporter:
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
-  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteBorder: {x: 0, y: 21, z: 0, w: 24}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -100,23 +100,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Dodge Disk Saw_0
+      name: HUDBorder_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 300
-        height: 299
-      alignment: 9
-      pivot: {x: 0.5001335, y: 0.50193995}
+        x: 3
+        y: 24
+        width: 494
+        height: 99
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e76c5ee6996cf0c00800000000000000
-      internalID: 869131615398643326
+      spriteID: 601ee697effea9a90800000000000000
+      internalID: -7306263569217167098
       vertices: []
       indices: 
       edges: []
@@ -125,8 +125,8 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 1a939f2f7d5ddbb49be836a014e14e7e
-    internalID: 0
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 1537655665
     vertices: []
     indices: 
     edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Dodge Disk Saw_0: 869131615398643326
+      HUDBorder_0: -7306263569217167098
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

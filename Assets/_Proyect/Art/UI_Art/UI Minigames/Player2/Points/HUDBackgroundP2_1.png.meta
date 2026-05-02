@@ -1,19 +1,16 @@
 fileFormatVersion: 2
-guid: c12ae158af2e5db4e9b818813febed93
+guid: 725c6c0f5c1bd8c4391343befae38f43
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -9073407148675805729
-    second: HUD3_0
+      213: -5060501403660767709
+    second: HUDBackgroundP2_1_0
   - first:
-      213: 6257700037283321819
-    second: HUD3_1
+      213: 2954315816859050186
+    second: HUDBackgroundP2_1_1
   - first:
-      213: -1217264445825671625
-    second: HUD3_2
-  - first:
-      213: -8013491909554862639
-    second: HUD3_3
+      213: 1824668648930583912
+    second: HUDBackgroundP2_1_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +43,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -84,7 +81,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -109,13 +106,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: HUD3_0
+      name: HUDBackgroundP2_1_0
       rect:
         serializedVersion: 2
-        x: 3
-        y: 4
-        width: 26
-        height: 37
+        x: 8
+        y: 39
+        width: 41
+        height: 41
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -124,20 +121,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fdd40b07548c41280800000000000000
-      internalID: -9073407148675805729
+      spriteID: 32e2f69f8cc75c9b0800000000000000
+      internalID: -5060501403660767709
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HUD3_1
+      name: HUDBackgroundP2_1_1
       rect:
         serializedVersion: 2
-        x: 4
-        y: 5
-        width: 54
-        height: 75
+        x: 15
+        y: 29
+        width: 458
+        height: 87
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -146,20 +143,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: bd798397701d7d650800000000000000
-      internalID: 6257700037283321819
+      spriteID: ac0a3323596dff820800000000000000
+      internalID: 2954315816859050186
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HUD3_2
+      name: HUDBackgroundP2_1_2
       rect:
         serializedVersion: 2
-        x: 5
-        y: 1
-        width: 490
-        height: 99
+        x: 464
+        y: 52
+        width: 30
+        height: 34
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -168,30 +165,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 73e19d49f686b1fe0800000000000000
-      internalID: -1217264445825671625
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: HUD3_3
-      rect:
-        serializedVersion: 2
-        x: 472
-        y: 14
-        width: 26
-        height: 66
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1d50488c09b5ac090800000000000000
-      internalID: -8013491909554862639
+      spriteID: 865ac4cf776825910800000000000000
+      internalID: 1824668648930583912
       vertices: []
       indices: 
       edges: []
@@ -210,10 +185,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      HUD3_0: -9073407148675805729
-      HUD3_1: 6257700037283321819
-      HUD3_2: -1217264445825671625
-      HUD3_3: -8013491909554862639
+      HUDBackgroundP2_1_0: -5060501403660767709
+      HUDBackgroundP2_1_1: 2954315816859050186
+      HUDBackgroundP2_1_2: 1824668648930583912
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

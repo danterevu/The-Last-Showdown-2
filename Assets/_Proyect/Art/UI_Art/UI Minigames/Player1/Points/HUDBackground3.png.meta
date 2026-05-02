@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: d4ccb1b04c1ca704b9423eaf6fee0ed1
+guid: 6f9a890f2451e3d49a729390c03a019c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 869131615398643326
-    second: Dodge Disk Saw_0
+      213: -5445274375994792673
+    second: HUDBackground3_0
+  - first:
+      213: 3452561563893098341
+    second: HUDBackground3_1
+  - first:
+      213: -591537559974560288
+    second: HUDBackground3_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +52,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -100,23 +106,67 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Dodge Disk Saw_0
+      name: HUDBackground3_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 300
-        height: 299
-      alignment: 9
-      pivot: {x: 0.5001335, y: 0.50193995}
+        x: 12
+        y: 46
+        width: 21
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e76c5ee6996cf0c00800000000000000
-      internalID: 869131615398643326
+      spriteID: f152b4a2ecf7e64b0800000000000000
+      internalID: -5445274375994792673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HUDBackground3_1
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 30
+        width: 458
+        height: 86
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 567e30d2376f9ef20800000000000000
+      internalID: 3452561563893098341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HUDBackground3_2
+      rect:
+        serializedVersion: 2
+        x: 459
+        y: 39
+        width: 31
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ed3a6a29bf6ac7f0800000000000000
+      internalID: -591537559974560288
       vertices: []
       indices: 
       edges: []
@@ -125,7 +175,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 1a939f2f7d5ddbb49be836a014e14e7e
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +185,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Dodge Disk Saw_0: 869131615398643326
+      HUDBackground3_0: -5445274375994792673
+      HUDBackground3_1: 3452561563893098341
+      HUDBackground3_2: -591537559974560288
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

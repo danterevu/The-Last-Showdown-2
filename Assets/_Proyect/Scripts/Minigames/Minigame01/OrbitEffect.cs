@@ -25,9 +25,7 @@ public class OrbitEffect : MonoBehaviour
     {
         currentAngle += orbitSpeed * Time.deltaTime;
         float rad = currentAngle * Mathf.Deg2Rad;
-        transform.localPosition = new Vector3(Mathf.Cos(rad) * orbitRadius + offsetX,
-    Mathf.Sin(rad) * orbitRadius + offsetY,
-    0f);
+
 
         transform.Rotate(0f, 0f, selfRotationSpeed * Time.deltaTime, Space.Self);
     }

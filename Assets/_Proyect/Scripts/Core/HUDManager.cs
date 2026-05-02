@@ -8,7 +8,7 @@ public class HUDManager : MonoBehaviour
 {
     [Header("Tema visual")]
     [SerializeField] private HUDTheme theme;
-    [SerializeField] private Image hudColorImage;
+    [SerializeField] private Image[] hudColorImages; 
 
     [Header("Score")]
     [SerializeField] private TextMeshProUGUI player1ScoreText;
@@ -33,6 +33,16 @@ public class HUDManager : MonoBehaviour
     [SerializeField] private Color addColor = Color.green;
     [SerializeField] private Color removeColor = Color.red;
     [SerializeField] private Color normalColor = Color.white;
+
+    [Header("Cooldown en los puntos")]
+    [SerializeField] private float scoreDisplayCooldown = 0.5f;
+
+    private float cooldownTimer1 = 0f;
+    private float cooldownTimer2 = 0f;
+    private int pendingScore1 = 0;
+    private int pendingScore2 = 0;
+    private bool pendingIsAdd1 = true;
+    private bool pendingIsAdd2 = true;
 
     private int displayedScore1;
     private int displayedScore2;
@@ -70,34 +80,68 @@ public class HUDManager : MonoBehaviour
         if (player2ScoreText != null) score2OriginalScale = player2ScoreText.transform.localScale;
         timerState = -1; 
     }
+    private void Update()
+    {
+        if (cooldownTimer1 > 0f)
+        {
+            cooldownTimer1 -= Time.deltaTime;
+            if (cooldownTimer1 <= 0f)
+                FlushScore(1);
+        }
+        if (cooldownTimer2 > 0f)
+        {
+            cooldownTimer2 -= Time.deltaTime;
+            if (cooldownTimer2 <= 0f)
+                FlushScore(2);
+        }
+    }
     private void HandlePointsChanged(int player, int amount, bool isAdd)
     {
         if (player == 1)
         {
-            int target = GameManager.Instance.player1RoundPoints;
-            if (countCoroutine1 != null) StopCoroutine(countCoroutine1);
-            if (punchCoroutine1 != null) StopCoroutine(punchCoroutine1);
-            countCoroutine1 = StartCoroutine(CountScore(1, displayedScore1, target));
-            punchCoroutine1 = StartCoroutine(PunchText(player1ScoreText, isAdd)); 
+            pendingScore1 = GameManager.Instance.player1RoundPoints;
+            pendingIsAdd1 = isAdd;
+            if (cooldownTimer1 <= 0f)
+                cooldownTimer1 = scoreDisplayCooldown;
         }
         else
         {
-            int target = GameManager.Instance.player2RoundPoints;
+            pendingScore2 = GameManager.Instance.player2RoundPoints;
+            pendingIsAdd2 = isAdd;
+            if (cooldownTimer2 <= 0f)
+                cooldownTimer2 = scoreDisplayCooldown;
+        }
+    }
+    private void FlushScore(int player)
+    {
+        if (player == 1)
+        {
+            if (countCoroutine1 != null) StopCoroutine(countCoroutine1);
+            if (punchCoroutine1 != null) StopCoroutine(punchCoroutine1);
+            countCoroutine1 = StartCoroutine(CountScore(1, displayedScore1, pendingScore1));
+            punchCoroutine1 = StartCoroutine(PunchText(player1ScoreText, pendingIsAdd1));
+            if (pendingIsAdd1) NotifyCharacterPoint(1);
+            else NotifyCharacterLosePoint(1);
+        }
+        else
+        {
             if (countCoroutine2 != null) StopCoroutine(countCoroutine2);
             if (punchCoroutine2 != null) StopCoroutine(punchCoroutine2);
-            countCoroutine2 = StartCoroutine(CountScore(2, displayedScore2, target));
-            punchCoroutine2 = StartCoroutine(PunchText(player2ScoreText, isAdd));
+            countCoroutine2 = StartCoroutine(CountScore(2, displayedScore2, pendingScore2));
+            punchCoroutine2 = StartCoroutine(PunchText(player2ScoreText, pendingIsAdd2));
+            if (pendingIsAdd2) NotifyCharacterPoint(2);
+            else NotifyCharacterLosePoint(2);
         }
-        if (isAdd) NotifyCharacterCelebrate(player);
-        else NotifyCharacterTaunt(player == 1 ? 2 : 1);
-
     }
     private void ApplyTheme()
     {
         if (theme == null) return;
-        if (hudColorImage != null) hudColorImage.color = theme.hudColor;
-        if(player1ScoreText != null) player1ScoreText.color = theme.player1TextColor; 
-        if(player2ScoreText!= null) player2ScoreText.color = theme.player2TextColor; 
+
+        foreach (Image img in hudColorImages)
+            if (img != null) img.color = theme.hudColor;
+
+        if (player1ScoreText != null) player1ScoreText.color = theme.player1TextColor;
+        if (player2ScoreText != null) player2ScoreText.color = theme.player2TextColor;
         if (timerText != null) timerNormalColor = theme.timerTextColor;
     }
 
@@ -223,22 +267,13 @@ public class HUDManager : MonoBehaviour
 
     }
     //Interaciones de los personajes
-    public void NotifyCharacterCelebrate(int player)
-    {
-        Animator anim = player == 1 ? character1Animator : character2Animator;
-        if (anim != null) anim.SetTrigger("Celebrate");
-    }
-    public void NotifyCharacterTaunt(int player)
-    {
-        Animator anim = player == 1 ? character1Animator : character2Animator;
-        if (anim != null) anim.SetTrigger("Taunt");
-    }
-    public void NotifyCharacterWin(int player)
+    
+    public void NotifyCharacterPoint(int player)
     {
         Animator anim = player == 1 ? character1Animator : character2Animator;
         if (anim != null) anim.SetTrigger("Win");
     }
-        public void NotifyCharacterLose(int player)
+        public void NotifyCharacterLosePoint(int player)
     {
         Animator anim = player == 1 ? character1Animator : character2Animator;
         if (anim != null) anim.SetTrigger("Lose");
