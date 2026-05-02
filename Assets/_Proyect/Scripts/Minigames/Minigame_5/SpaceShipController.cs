@@ -141,17 +141,8 @@ public class SpaceShipController : MonoBehaviour
         // pero hasInput = false evita que se aplique aceleración
     }
 
-    /// Convierte un vector analógico continuo a una de las 8 direcciones discretas.
-    ///
-    /// Cómo funciona:
-    ///   1. Atan2(y, x) convierte el vector a un ángulo en grados (-180 a 180)
-    ///   2. Dividir por 45 y redondear  uno de los 8 sectores (0,1,2,...,7)
-    ///   3. Multiplicar por 45  ángulo "snapeado"
-    ///   4. Cos/Sin reconstruyen el vector unitario en esa dirección
     
-    /// Ejemplo: input (0.7, 0.7)  ángulo 45  sigue siendo (0.71, 0.71)
-    ///          input (0.3, 0.9)  ángulo 72 se snapea a 90  (0, 1)
-    
+   
     private Vector2 SnapToEightDirections(Vector2 input)
     {
         float angleDeg = Mathf.Atan2(input.y, input.x) * Mathf.Rad2Deg;
