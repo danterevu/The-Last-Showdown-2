@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 839bb816496d59143afde6b14158b770, type: 3}
+  m_Name: WeaponData 1
+  m_EditorClassIdentifier: 
+  type: 1
+  weaponName: Arma
+  icon: {fileID: 3284663955337371784, guid: 10e7998b57f2e584cb288dc07c7aac5a, type: 3}
+  projectilePrefab: {fileID: 2318206693037641433, guid: 114d55dccbffdb94f90be4de7ebe586e, type: 3}
+  projectileSpeed: 12
+  damage: 10
+  range: 10
+  maxAmmo: 30
+  semiAutoDelay: 0.25
+  chargeTime: 1.5
+  laserDamageMultiplier: 5
+  laserSizeMultiplier: 3
+  shotgunPellets: 6
+  shotgunSpread: 30
+  shotgunKnockback: 8
+  shotgunFireRate: 0.6
+  minigunshotsPerSecond: 12

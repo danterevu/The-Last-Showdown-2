@@ -1,12 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// SETUP requerido en el Inspector:
-///   - Rigidbody2D en el mismo GameObject (se configura automáticamente)
-///   - inputActionAsset: arrastrar PlayerInputActions_1 o _2 según el jugador
-///   - isPlayer1: true = usa map "Player1_Platform", false = "Player2_Platform"
-///   - El sprite de la nave debe apuntar hacia ARRIBA en su textura (offset = -90°)
-///     Si apunta a la DERECHA, cambiar rotationOffset a 0 en el Inspector
+
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class SpaceShipController : MonoBehaviour

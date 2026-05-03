@@ -3,20 +3,19 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+
 /// Manager del minijuego de naves espaciales.
 /// Reutiliza la lógica de cambio de zona y flash de KingOfHill,
 /// adaptada para el contexto de naves con respawn por salir del área.
-///
+
 /// SETUP en Unity:
 ///   - 5 GameObjects de zona, cada uno con BoxCollider2D trigger + SpaceZoneBoundary
 ///   - 2 spawns por zona (arrays player1Spawns y player2Spawns, misma longitud que zones)
 ///   - Una cámara con ZoneCameraController (reutilizada de Minigame02)
 ///   - HUDManager en escena para el timer
+
 public class SpaceMinigame : MonoBehaviour
 {
-    
-    //  INSPECTOR
-    
 
     [Header("Duración")]
     [SerializeField] private float gameDuration = 90f;
@@ -24,7 +23,7 @@ public class SpaceMinigame : MonoBehaviour
 
     [Header("Zonas (5 zonas)")]
     [SerializeField] private SpaceZoneBoundary[] zones;          // los 5 boundary objects
-    [SerializeField] private Transform[] zoneCenters;            // Transform de cada zona (para la cámara)
+    // zoneCenters eliminado: usamos zones[i].Center que lee el centro del BoxCollider2D automáticamente
 
     [Header("Spawns (mismo orden que zones)")]
     [SerializeField] private Transform[] player1Spawns;
@@ -53,14 +52,12 @@ public class SpaceMinigame : MonoBehaviour
     [SerializeField] private float zoneTimer;
     [SerializeField] private bool gameRunning;
 
-   
-    //  ESTADO INTERNO
-   
+    [SerializeField] private WeaponSpawner weaponSpawner;
 
     private SpaceShipController p1Controller;
     private SpaceShipController p2Controller;
 
-  
+    // Flag para evitar múltiples respawns simultáneos del mismo jugador
     private bool p1Respawning;
     private bool p2Respawning;
 
@@ -68,6 +65,7 @@ public class SpaceMinigame : MonoBehaviour
 
     private void Start()
     {
+        
        
         if (GameManager.Instance == null)
         {
@@ -84,7 +82,8 @@ public class SpaceMinigame : MonoBehaviour
         // Teleport inmediato a los spawns de la zona elegida
         TeleportToSpawns(currentZoneIndex);
 
-        
+        // Suscribirse a los eventos de salida de zona de TODAS las zonas
+        // El manager siempre escucha; solo reacciona a la zona activa
         foreach (var zone in zones)
             zone.OnShipExited += HandleShipExited;
 
@@ -122,8 +121,7 @@ public class SpaceMinigame : MonoBehaviour
         }
     }
 
-    //  INICIO
-   
+    
 
     private void StartMinigame()
     {
@@ -135,11 +133,8 @@ public class SpaceMinigame : MonoBehaviour
     }
 
     
-    //  SISTEMA DE ZONAS  (reutilizado de KingOfHill)
-    
 
     
- 
     private IEnumerator ChangeZone()
     {
         gameRunning = false;
@@ -150,7 +145,7 @@ public class SpaceMinigame : MonoBehaviour
 
         yield return StartCoroutine(Flash());
 
-        // Elegir zona distinta a la actual 
+        // Elegir zona distinta a la actual (igual que KOH)
         int newZone;
         do { newZone = Random.Range(0, zones.Length); }
         while (newZone == currentZoneIndex && zones.Length > 1);
@@ -168,15 +163,12 @@ public class SpaceMinigame : MonoBehaviour
     }
 
     
-    /// Apunta la cámara al centro de la zona activa.
-    
     private void ActivateZone(int index)
     {
-        zoneCamera.SetZoneCenter(zoneCenters[index].position, index);
+       
+        zoneCamera.SetZoneCenter(zones[index].Center, index);
     }
 
-   
-    /// Mueve ambos jugadores a sus spawns de la zona dada.
     
     private void TeleportToSpawns(int index)
     {
@@ -184,7 +176,7 @@ public class SpaceMinigame : MonoBehaviour
         player2.transform.position = player2Spawns[index].position;
     }
 
-  
+   
     private IEnumerator Flash()
     {
         flashImage.gameObject.SetActive(true);
@@ -211,15 +203,7 @@ public class SpaceMinigame : MonoBehaviour
 
         flashImage.gameObject.SetActive(false);
     }
-
-    
-    //  RESPAWN
-   
-
-    
-    
-    /// Solo reacciona si la zona que disparó el evento es la zona activa.
-   
+  
     private void HandleShipExited(GameObject ship, int playerNumber)
     {
        
@@ -231,9 +215,7 @@ public class SpaceMinigame : MonoBehaviour
         else if (playerNumber == 2 && !p2Respawning)
             StartCoroutine(RespawnPlayer(player2, playerNumber, player2Spawns[currentZoneIndex]));
     }
-
-    /// Maneja el respawn completo: desactiva la nave, espera, reaparece con invulnerabilidad.
-    
+   
     private IEnumerator RespawnPlayer(GameObject shipObj, int playerNumber, Transform spawn)
     {
         // Marcar como "respawneando" para evitar múltiples triggers simultáneos
@@ -251,32 +233,30 @@ public class SpaceMinigame : MonoBehaviour
         // (ajustar o eliminar según diseño del juego)
         GameManager.Instance.RemovePoints(playerNumber, 5);
 
-        // 2. Esperar antes de reaparecer 
+        // 2. Esperar antes de reaparecer
         yield return new WaitForSeconds(respawnDelay);
 
-        //  3. Teletransportar al spawn y activar 
+        // 3. Teletransportar al spawn y activar 
         shipObj.transform.position = spawn.position;
         controller.ForceStop(); // asegurar que no queda velocidad residual
         shipObj.SetActive(true);
 
-        //  4. Parpadeo de invulnerabilidad
+        // 4. Parpadeo de invulnerabilidad 
         // El parpadeo indica visualmente al rival que no puede hacer daño
         // (si tu juego tiene daño entre naves; si no, es solo feedback visual)
         if (spriteRenderer != null)
             yield return StartCoroutine(BlinkSprite(spriteRenderer, invincibleTime));
 
-        //  5. Limpiar flag
+        // 5. Limpiar flag 
         if (playerNumber == 1) p1Respawning = false;
         else p2Respawning = false;
     }
 
-    
-    /// Parpadea un sprite alternando alpha
-    
+   
     private IEnumerator BlinkSprite(SpriteRenderer sr, float duration)
     {
         float elapsed = 0f;
-        float blinkRate = 0.12f; // segundos entre cada toggle
+        float blinkRate = 0.12f; 
         bool visible = true;
 
         while (elapsed < duration)
@@ -293,10 +273,6 @@ public class SpaceMinigame : MonoBehaviour
         // Asegurar que queda visible al terminar
         sr.color = Color.white;
     }
-
-   
-    //  FIN DEL MINIJUEGO  (stub — se completa en la siguiente iteración)
-    
 
     public void EndMinigame()
     {
@@ -321,11 +297,8 @@ public class SpaceMinigame : MonoBehaviour
     }
 
     
-    
-
-    
     public bool IsRunning => gameRunning;
 
-
+    
     public int CurrentZoneIndex => currentZoneIndex;
 }
