@@ -195,9 +195,6 @@ public class KingOfHill : MonoBehaviour
             case PowerUpPickup.PowerUpType.Hook:
                 StartCoroutine(powerUpEffects.ActivateHook(user, target));
                 break;
-            case PowerUpPickup.PowerUpType.DoubleJump:
-                StartCoroutine(powerUpEffects.ActivateDoubleJump(user));
-                break;
             case PowerUpPickup.PowerUpType.HeavyGravity:
                 StartCoroutine(powerUpEffects.ActivateHeavyGravity(target));
                 break;

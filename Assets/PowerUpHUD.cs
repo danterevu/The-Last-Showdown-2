@@ -54,7 +54,6 @@ public class PowerUpHUD : MonoBehaviour
     private void Show(PowerUpPickup.PowerUpType type)
     {
         if (iconImage != null) iconImage.sprite = GetSprite(type);
-        if (powerUpNameText != null) powerUpNameText.text = GetGame(type);
     }
     private void ShowEmpty()
     {
@@ -68,27 +67,11 @@ public class PowerUpHUD : MonoBehaviour
             case PowerUpPickup.PowerUpType.Cage: return spriteCage;
             case PowerUpPickup.PowerUpType.Shield: return spriteShield;
             case PowerUpPickup.PowerUpType.Hook: return spriteHook;
-            case PowerUpPickup.PowerUpType.DoubleJump: return spriteDoubleJump;
             case PowerUpPickup.PowerUpType.HeavyGravity: return spriteHeavyGravity;
             case PowerUpPickup.PowerUpType.MirrorControl: return spriteMirrorControl;
             case PowerUpPickup.PowerUpType.InvertControls: return spriteInvertControls;
             case PowerUpPickup.PowerUpType.Jetpack: return spriteJetpack;
             default: return spriteEmpty;
-        }
-    }
-    private string GetGame(PowerUpPickup.PowerUpType type)
-    {
-        switch (type)
-        {
-            case PowerUpPickup.PowerUpType.Cage: return "Cage";
-            case PowerUpPickup.PowerUpType.Shield: return "Shield";
-            case PowerUpPickup.PowerUpType.Hook: return "Hook";
-            case PowerUpPickup.PowerUpType.DoubleJump: return "Double Jump";
-            case PowerUpPickup.PowerUpType.HeavyGravity: return "Heavy Gravity";
-            case PowerUpPickup.PowerUpType.MirrorControl: return "Mirror Control";
-            case PowerUpPickup.PowerUpType.InvertControls: return "Invert Controls";
-            case PowerUpPickup.PowerUpType.Jetpack: return "Jetpack";
-            default: return "Without Power Up";
         }
     }
 

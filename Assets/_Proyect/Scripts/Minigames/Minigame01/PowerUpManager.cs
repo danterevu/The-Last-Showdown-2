@@ -3,12 +3,13 @@ using System.Collections;
 
 public class PowerUpManager : MonoBehaviour
 {
-    public enum PowerUpType { Swap, Freeze, Wall, Magnet } //los 4 estados/power-ups
+    // InvertControls agregado desde Minigame02
+    public enum PowerUpType { Swap, Freeze, Wall, Magnet, InvertControls }
 
     [Header("References")]
     [SerializeField] private GameObject player1;
     [SerializeField] private GameObject player2;
-    [SerializeField] private DiskMovement diskMovement; //referencias para poder manipularlos 
+    [SerializeField] private DiskMovement diskMovement;
     [SerializeField] private GameObject wallPrefab;
     [SerializeField] private PowerUpMovement powerUpPickup;
 
@@ -16,17 +17,27 @@ public class PowerUpManager : MonoBehaviour
     [SerializeField] private float freezeDuration = 3f;
     [SerializeField] private float wallDuration = 5f;
     [SerializeField] private float magnetDuration = 3f;
+    [SerializeField] private float invertDuration = 4f;
     private float magnetStrength = 3f;
+
+    [Header("Efectos Magnet")]
+    [SerializeField] private GameObject magnetEffectPlayer1; // hijo del jugador 1
+    [SerializeField] private GameObject magnetEffectPlayer2; // hijo del jugador 2
+
+    [Header("Efectos InvertControls")]
+    [SerializeField] private GameObject invertEffectPlayer1; // hijo del jugador 1
+    [SerializeField] private GameObject invertEffectPlayer2; // hijo del jugador 2
 
     [Header("Debug")]
     [SerializeField] private PowerUpType player1PowerUp;
-    [SerializeField] private PowerUpType player2PowerUp; //booleanos para saber que power-up tiene cada uno en ese momento
+    [SerializeField] private PowerUpType player2PowerUp;
     [SerializeField] private bool player1HasPowerUp;
-    [SerializeField] private bool player2HasPowerUp; //booleanos para saber si tienen un power-up agarrado o no
+    [SerializeField] private bool player2HasPowerUp;
     [SerializeField] private bool player1Frozen;
     [SerializeField] private bool player2Frozen;
     [SerializeField] private bool wallActive;
     [SerializeField] private bool magnetActive;
+    [SerializeField] private bool invertActive;
 
     [Header("HUD")]
     [SerializeField] private PowerUpHUDMinigame1 player1HUD;
@@ -35,39 +46,45 @@ public class PowerUpManager : MonoBehaviour
     private GameObject activeWall;
     private PlayerController player1Controller;
     private PlayerController player2Controller;
+    private Animator player1Animator;
+    private Animator player2Animator;
     private Rigidbody2D rb;
     [SerializeField] private GameObject Disk;
 
     private void Awake()
     {
         player1Controller = player1.GetComponent<PlayerController>();
-        player2Controller = player2.GetComponent<PlayerController>(); //obtengo su script
+        player2Controller = player2.GetComponent<PlayerController>();
+        player1Animator = player1.GetComponent<Animator>();
+        player2Animator = player2.GetComponent<Animator>();
         rb = Disk.GetComponent<Rigidbody2D>();
+
+        // asegurarse que los efectos arrancan desactivados
+        magnetEffectPlayer1?.SetActive(false);
+        magnetEffectPlayer2?.SetActive(false);
+        invertEffectPlayer1?.SetActive(false);
+        invertEffectPlayer2?.SetActive(false);
     }
 
     private void Update()
     {
-        // player 1 activa power up
-        if (player1HasPowerUp && player1Controller.GetInteractPressed()) //si tiene un power-up y aprieta la tecla asignada, se activa
-            ActivatePowerUp(1); //1 seria el PJ 1
+        if (player1HasPowerUp && player1Controller.GetInteractPressed())
+            ActivatePowerUp(1);
 
-        // player 2 activa power up
         if (player2HasPowerUp && player2Controller.GetInteractPressed())
             ActivatePowerUp(2);
     }
 
     // PICKUP 
-    public void OnPlayerPickup(int player) //se llama en el trigger del PowerUpMovement, y se le para 1 o 2
+    public void OnPlayerPickup(int player)
     {
-
-        if (player == 1 && !player1HasPowerUp) //chequea que player es (1 o 2) y si tiene ya un power-up o no
+        if (player == 1 && !player1HasPowerUp)
         {
-            player1PowerUp = GetRandomPowerUp(); //se otorga un power-up de forma random
-            player1HasPowerUp = true; //TRUE tiene un power-up
-
+            player1PowerUp = GetRandomPowerUp();
+            player1HasPowerUp = true;
             player1HUD?.ShowIcon(1, player1PowerUp);
-            powerUpPickup.gameObject.SetActive(false); //se desactiva
-            Invoke(nameof(RespawnPickup), 2f); //se llama a la funcion RespawnPickup, que lo activa de nuevo en un lugar random
+            powerUpPickup.gameObject.SetActive(false);
+            Invoke(nameof(RespawnPickup), 2f);
         }
         else if (player == 2 && !player2HasPowerUp)
         {
@@ -84,9 +101,9 @@ public class PowerUpManager : MonoBehaviour
         powerUpPickup.Reposition();
     }
 
-    private PowerUpType GetRandomPowerUp() //genera un numero random que es el power-up
+    private PowerUpType GetRandomPowerUp()
     {
-        int r = Random.Range(0, 4);
+        int r = Random.Range(0, System.Enum.GetValues(typeof(PowerUpType)).Length);
         return (PowerUpType)r;
     }
 
@@ -99,37 +116,52 @@ public class PowerUpManager : MonoBehaviour
 
         PowerUpType type = player == 1 ? player1PowerUp : player2PowerUp;
 
-        // consumir el power up
-        if (player == 1)
-        {
-            player1HasPowerUp = false;
-                player1HUD?.HideIcon(1);
+        if (player == 1) { player1HasPowerUp = false; player1HUD?.HideIcon(1); }
+        else { player2HasPowerUp = false; player2HUD?.HideIcon(2); }
 
-        }  
-        // ya no tiene el power-up
-        else
-        {
-            player2HasPowerUp = false;
-            player2HUD?.HideIcon(2);
-        }
-        int opponent = player == 1 ? 2 : 1; //determina quien es el oponente
+        int opponent = player == 1 ? 2 : 1;
 
-        switch (type) //se evaluan los casos y se ejecutan
+        Animator userAnim = player == 1 ? player1Animator : player2Animator;
+        Animator opponentAnim = player == 1 ? player2Animator : player1Animator;
+
+        switch (type)
         {
             case PowerUpType.Swap:
+                userAnim?.SetTrigger("Swap");
+                opponentAnim?.SetTrigger("Swap");
                 ActivateSwap(player, opponent);
                 break;
+
             case PowerUpType.Freeze:
                 if (!player1Frozen && !player2Frozen)
+                {
+                    opponentAnim?.SetTrigger("Frozen");
                     StartCoroutine(ActivateFreeze(opponent));
+                }
                 break;
+
             case PowerUpType.Wall:
                 if (!wallActive)
+                {
+                    userAnim?.SetTrigger("Wall");
                     StartCoroutine(ActivateWall());
+                }
                 break;
+
             case PowerUpType.Magnet:
                 if (!magnetActive)
+                {
+                    userAnim?.SetTrigger("Magnet");
                     StartCoroutine(ActivateMagnet(opponent));
+                }
+                break;
+
+            case PowerUpType.InvertControls:
+                if (!invertActive)
+                {
+                    opponentAnim?.SetTrigger("Inverted");
+                    StartCoroutine(ActivateInvertControls(opponent));
+                }
                 break;
         }
     }
@@ -139,38 +171,36 @@ public class PowerUpManager : MonoBehaviour
     {
         GameObject p1 = player == 1 ? player1 : player2;
         GameObject p2 = player == 1 ? player2 : player1;
-
         Vector3 temp = p1.transform.position;
         p1.transform.position = p2.transform.position;
         p2.transform.position = temp;
     }
 
     // FREEZE 
-    private IEnumerator ActivateFreeze(int opponent) //IEnumerator permite lógica en el tiempo
+    private IEnumerator ActivateFreeze(int opponent)
     {
         PlayerController opponentController = opponent == 1 ? player1Controller : player2Controller;
+        Animator opponentAnim = opponent == 1 ? player1Animator : player2Animator;
 
         if (opponent == 1) player1Frozen = true;
         else player2Frozen = true;
 
         opponentController.SetFrozen(true);
-
         yield return new WaitForSeconds(freezeDuration);
-
         opponentController.SetFrozen(false);
+
+        opponentAnim?.SetTrigger("Unfreeze");
 
         if (opponent == 1) player1Frozen = false;
         else player2Frozen = false;
     }
 
-    //  WALL 
+    // WALL 
     private IEnumerator ActivateWall()
     {
         wallActive = true;
         activeWall = Instantiate(wallPrefab, Vector3.zero, Quaternion.identity);
-
         yield return new WaitForSeconds(wallDuration);
-
         Destroy(activeWall);
         wallActive = false;
     }
@@ -179,19 +209,45 @@ public class PowerUpManager : MonoBehaviour
     private IEnumerator ActivateMagnet(int opponent)
     {
         magnetActive = true;
-        GameObject target = opponent == 1 ? player1 : player2;
+
+        // activar efecto visual sobre el oponente (el que es atraído)
+        GameObject opponentObj = opponent == 1 ? player1 : player2;
+        GameObject magnetEffect = opponent == 1 ? magnetEffectPlayer1 : magnetEffectPlayer2;
+        magnetEffect?.SetActive(true);
 
         float elapsed = 0f;
-        while (elapsed < magnetDuration) //Loop de 3 segundos
+        while (elapsed < magnetDuration)
         {
-            Vector2 dirToTarget = (target.transform.position - diskMovement.transform.position).normalized;
+            Vector2 dirToTarget = (opponentObj.transform.position - diskMovement.transform.position).normalized;
             Vector2 currentDir = rb.linearVelocity.normalized;
             Vector2 newDir = Vector2.Lerp(currentDir, dirToTarget, magnetStrength * Time.deltaTime);
             diskMovement.SetDirection(newDir.normalized);
             elapsed += Time.deltaTime;
-            yield return null; //Espera al siguiente frame
+            yield return null;
         }
 
+        magnetEffect?.SetActive(false);
         magnetActive = false;
+    }
+
+    // INVERT CONTROLS
+    private IEnumerator ActivateInvertControls(int opponent)
+    {
+        invertActive = true;
+        PlayerController opponentController = opponent == 1 ? player1Controller : player2Controller;
+        Animator opponentAnim = opponent == 1 ? player1Animator : player2Animator;
+
+        // activar efecto visual sobre el oponente
+        GameObject invertEffect = opponent == 1 ? invertEffectPlayer1 : invertEffectPlayer2;
+        invertEffect?.SetActive(true);
+
+        opponentController.SetInvertControls(true);
+        yield return new WaitForSeconds(invertDuration);
+        opponentController.SetInvertControls(false);
+
+        invertEffect?.SetActive(false);
+        opponentAnim?.SetTrigger("Uninverted");
+
+        invertActive = false;
     }
 }

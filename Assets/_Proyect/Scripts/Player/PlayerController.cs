@@ -23,6 +23,8 @@ public class PlayerController : MonoBehaviour
 
     [Header("Debug")]
     [SerializeField] private bool isGrounded;
+    [SerializeField] private bool controlsInverted;
+    [SerializeField] private bool isFrozen; // reemplaza el this.enabled = false
 
     private Animator anim;
     private Rigidbody2D rb;
@@ -68,12 +70,19 @@ public class PlayerController : MonoBehaviour
         Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
         Debug.Log($"Jugador {playerIndex + 1} | Gamepad: {(gp != null ? gp.displayName : "NULL")} | Total asignados: {InputAssigner.AssignedCount}");
 
-        moveInput = ReadFilteredMove();
+        moveInput = isFrozen ? Vector2.zero : ReadFilteredMove();
         UpdateAnimations(moveInput);
     }
 
     private void FixedUpdate()
     {
+        if (isFrozen)
+        {
+            // mantener velocidad en 0 mientras está congelado
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
         if (movementMode == MovementMode.Platform)
             HandlePlatformMovement();
         else if (movementMode == MovementMode.TopDown)
@@ -111,7 +120,8 @@ public class PlayerController : MonoBehaviour
             Vector2 stick = gp.leftStick.ReadValue();
             Vector2 dpad = gp.dpad.ReadValue();
             result = stick.sqrMagnitude > dpad.sqrMagnitude ? stick : dpad;
-            if (result.sqrMagnitude > 0.01f) return result;
+            if (result.sqrMagnitude > 0.01f)
+                return controlsInverted ? -result : result;
         }
 
         // Fallback teclado: P1 = WASD, P2 = flechas
@@ -133,11 +143,15 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        return result.sqrMagnitude > 0.01f ? result.normalized : Vector2.zero;
+        if (result.sqrMagnitude > 0.01f)
+            result = result.normalized;
+
+        return controlsInverted ? -result : result;
     }
 
     private void OnJump(InputAction.CallbackContext context)
     {
+        if (isFrozen) return; // no saltar si está congelado
         if (!IsCorrectDevice(context.control.device)) return;
 
         if (isGrounded)
@@ -185,9 +199,9 @@ public class PlayerController : MonoBehaviour
             jumpAction.performed += OnJump;
         }
 
-        // Este log solo es informativo, no indica error
         Debug.Log($"Jugador {playerIndex + 1}: input configurado con mapa '{mapName}'");
     }
+
     public void SetMovementMode(MovementMode mode, string mapName)
     {
         movementMode = mode;
@@ -208,22 +222,20 @@ public class PlayerController : MonoBehaviour
 
         // Gamepad — círculo (buttonEast) para ambos jugadores
         Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
-        if (gp != null && gp.buttonEast.wasPressedThisFrame) return true; //eastButton circulo
+        if (gp != null && gp.buttonEast.wasPressedThisFrame) return true;
 
         return false;
     }
 
     public void SetFrozen(bool frozen)
     {
-        if (frozen)
-        {
-            rb.linearVelocity = Vector2.zero;
-            this.enabled = false;
-        }
-        else
-        {
-            this.enabled = true;
-        }
+        isFrozen = frozen;
+        if (frozen) rb.linearVelocity = Vector2.zero;
+    }
+
+    public void SetInvertControls(bool inverted)
+    {
+        controlsInverted = inverted;
     }
 
     private void UpdateAnimations(Vector2 input)
