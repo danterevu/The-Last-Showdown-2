@@ -67,8 +67,8 @@ public class PlayerController : MonoBehaviour
         if (moveAction == null) return;
 
         // Debug temporal
-        Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
-        Debug.Log($"Jugador {playerIndex + 1} | Gamepad: {(gp != null ? gp.displayName : "NULL")} | Total asignados: {InputAssigner.AssignedCount}");
+        //Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
+        //Debug.Log($"Jugador {playerIndex + 1} | Gamepad: {(gp != null ? gp.displayName : "NULL")} | Total asignados: {InputAssigner.AssignedCount}");
 
         moveInput = isFrozen ? Vector2.zero : ReadFilteredMove();
         UpdateAnimations(moveInput);

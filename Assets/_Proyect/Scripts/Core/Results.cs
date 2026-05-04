@@ -25,6 +25,7 @@ public class Results : MonoBehaviour
 
     public void OnContinuarButton()
     {
+        Debug.Log($"currentRound: {GameManager.Instance.currentRound} | TOTAL_ROUNDS: {GameManager.TOTAL_ROUNDS} | IsGameOver: {GameManager.Instance.IsGameOver()}");
         if (GameManager.Instance.IsGameOver())
             SceneLoader.Instance.LoadFinalScreen();
         else

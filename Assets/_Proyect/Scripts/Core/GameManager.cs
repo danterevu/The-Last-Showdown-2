@@ -20,7 +20,7 @@
 
         [Header("Estado del juego")]
         public int currentRound = 1;
-        public const int TOTAL_ROUNDS = 2;
+        public const int TOTAL_ROUNDS = 3;
 
         // modificador activo para esta ronda
         [HideInInspector] public float player1Multiplier = 1f;
