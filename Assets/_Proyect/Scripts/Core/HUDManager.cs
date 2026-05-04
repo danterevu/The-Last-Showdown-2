@@ -172,6 +172,7 @@ public class HUDManager : MonoBehaviour
 
 
         Vector3 originalScale = text == player1ScoreText ? score1OriginalScale : score2OriginalScale;
+        if (originalScale == Vector3.zero) originalScale = Vector3.one;
         Color targetColor = isAdd ? addColor : removeColor;
         text.color = targetColor;
 

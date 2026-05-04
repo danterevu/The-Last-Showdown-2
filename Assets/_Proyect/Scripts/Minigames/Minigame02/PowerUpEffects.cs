@@ -43,6 +43,12 @@ public class PowerUpEffects : MonoBehaviour
     private GameObject GetVFX(GameObject vfx1, GameObject vfx2, int playerIndex)
         => playerIndex == 1 ? vfx1 : vfx2;
 
+    private void Awake()
+    {
+        if (jetpackObjectPlayer1 != null) jetpackObjectPlayer1.SetActive(false);
+        if (jetpackObjectPlayer2 != null) jetpackObjectPlayer2.SetActive(false);
+    }
+
     // JAULA
     public IEnumerator ActivateCage(int zoneIndex)
     {
@@ -166,11 +172,12 @@ public class PowerUpEffects : MonoBehaviour
         int idx = GetPlayerIndex(user);
         GameObject jetpackObj = idx == 1 ? jetpackObjectPlayer1 : jetpackObjectPlayer2;
         Animator jetpackAnim = idx == 1 ? jetpackAnimatorPlayer1 : jetpackAnimatorPlayer2;
-
+        Debug.Log("jetpackObj: " + jetpackObj + " | jetpackAnim: " + jetpackAnim);
         user.SetJetpack(true, jetpackForce, jetpackObj, jetpackAnim);
 
         yield return new WaitForSeconds(jetpackDuration);
 
         user.SetJetpack(false, 0f, null, null);
+        //hola
     }
 }

@@ -30,6 +30,9 @@ public class SpaceMinigame : MonoBehaviour
     [Header("Respawn")]
     [SerializeField] private float respawnDelay = 1.5f;
 
+
+
+
     private const int KILLS_TO_WIN_ROUND = 3;
     private const int ROUNDS_TO_WIN_GAME = 3;
     private const int POINTS_WIN_ROUND = 20;
@@ -52,6 +55,7 @@ public class SpaceMinigame : MonoBehaviour
     private WeaponSpawner weaponSpawner;
     private SpacePowerUpSpawner powerUpSpawner;
 
+    [SerializeField] private SpaceHUDRounds hudRounds;
     private void Awake()
     {
         Instance = this;
@@ -63,7 +67,9 @@ public class SpaceMinigame : MonoBehaviour
     {
         // GOLDEN KILL: habilitar el flag para la primera kill del primer round
         ModifierManager.Instance?.ResetGoldenKill();
-
+        hudRounds?.UpdateKills(0, 0);
+        hudRounds?.UpdateRounds(0, 0);
+        hudRounds?.UpdateCurrentRound(1);
         ActivateZone(0);
         DoRespawn(player1, player1Spawns[0]);
         DoRespawn(player2, player2Spawns[0]);
@@ -71,20 +77,30 @@ public class SpaceMinigame : MonoBehaviour
 
     public void RegisterKill(int killer, int victim)
     {
+        Debug.Log($"RegisterKill killer={killer} victim={victim} p1Inv={p1Invulnerable} p2Inv={p2Invulnerable} roundOver={roundOver}");
         if (roundOver || gameOver) return;
-
         if (victim == 1 && p1Invulnerable) return;
         if (victim == 2 && p2Invulnerable) return;
 
         if (victim == 1) p1Invulnerable = true;
         else p2Invulnerable = true;
 
+        // Explotar la nave
+        Transform victimTransform = victim == 1 ? player1 : player2;
+        victimTransform?.GetComponent<Explodable>()?.Explode();
+
         if (killer == 1) kills1++;
         else kills2++;
+
+        hudRounds?.UpdateKills(kills1, kills2);
 
         if (kills1 >= KILLS_TO_WIN_ROUND || kills2 >= KILLS_TO_WIN_ROUND)
         {
             int roundWinner = kills1 >= KILLS_TO_WIN_ROUND ? 1 : 2;
+            if (roundWinner == 1) roundsWon1++;
+            else roundsWon2++;
+            hudRounds?.UpdateCurrentRound(roundsWon1 + roundsWon2 + 1);
+            hudRounds?.UpdateRounds(roundsWon1, roundsWon2);
             StartCoroutine(HandleRoundWon(roundWinner));
         }
         else
@@ -96,9 +112,6 @@ public class SpaceMinigame : MonoBehaviour
     private IEnumerator HandleRoundWon(int winner)
     {
         roundOver = true;
-
-        if (winner == 1) roundsWon1++;
-        else roundsWon2++;
 
         GameManager.Instance?.AddPoints(winner, POINTS_WIN_ROUND);
 

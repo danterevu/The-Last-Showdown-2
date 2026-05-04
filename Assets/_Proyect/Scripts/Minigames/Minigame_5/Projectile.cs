@@ -65,12 +65,14 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        Debug.Log($"Impacto: {other.gameObject.name} tag={other.tag}");
         // Determinar si impactó a un jugador
         int hitPlayer = 0;
         if (other.CompareTag("Player1")) hitPlayer = 1;
         else if (other.CompareTag("Player2")) hitPlayer = 2;
         else
         {
+           
             // Impactó contra una pared u otro objeto
             Destroy(gameObject);
             return;
@@ -94,7 +96,7 @@ public class Projectile : MonoBehaviour
         }
 
         // Restar puntos al jugador impactado (daño directo, sin modificador)
-        GameManager.Instance?.RemovePoints(hitPlayer, Mathf.RoundToInt(damage));
+        SpaceMinigame.Instance?.RegisterKill(ownerPlayer, hitPlayer);
 
         // Sumar puntos al dueño del proyectil (kill bonus con posible multiplicador)
         int killBonus = Mathf.RoundToInt((damage / 2f) * killPointsMultiplier);
@@ -102,7 +104,7 @@ public class Projectile : MonoBehaviour
 
         // CameraShake al impacto
         CameraShake.Instance?.Shake(0.1f, 0.08f);
-
+        GetComponent<Collider2D>().enabled = false;
         Destroy(gameObject);
     }
 }

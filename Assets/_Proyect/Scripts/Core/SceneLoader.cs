@@ -21,7 +21,11 @@ public class SceneLoader : MonoBehaviour
     // LOAD SCENES 
     public void LoadMinigame(int minigameId)
     {
-        string sceneName = "Minigame" + "_" + minigameId.ToString();
+        string sceneName = minigameId switch
+        {
+            3 => "Minigame_5",
+            _ => "Minigame_" + minigameId
+        };
         SceneManager.LoadScene(sceneName);
     }
     public void LoadCharacterSelection()

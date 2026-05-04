@@ -81,13 +81,19 @@ public class Explodable : MonoBehaviour
 
     private IEnumerator HideAndDestroy()
     {
-       
         foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>())
             sr.enabled = false;
         foreach (Collider2D col in GetComponentsInChildren<Collider2D>())
             col.enabled = false;
 
         yield return new WaitForSeconds(piecesLifetime);
-        Destroy(gameObject);
+
+        // Reactivar en vez de destruir
+        foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>())
+            sr.enabled = true;
+        foreach (Collider2D col in GetComponentsInChildren<Collider2D>())
+            col.enabled = true;
+
+        isDead = false;
     }
 }

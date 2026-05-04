@@ -22,7 +22,7 @@ public class ModifiersSpinner : MonoBehaviour
     {
         { 1, new[] { "Bonus Kill",   "Bonus Death",    "Bonus Winner"    } }, // DodgeDisk
         { 2, new[] { "Comeback x3", "Bonus Hardpoint", "Point Bleed"     } }, // KOH
-        { 5, new[] { "Golden Kill",  "Combo Rounds",   "Sin Modificador" } }, // Space
+        { 3, new[] { "Golden Kill",  "Combo Rounds",   "Sin Modificador" } }, // Space
     };
 
     private Rigidbody2D rb;

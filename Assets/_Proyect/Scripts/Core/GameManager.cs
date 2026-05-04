@@ -17,15 +17,12 @@ public class GameManager : MonoBehaviour
     public int player1RoundPoints;
     public int player2RoundPoints;
 
-<<<<<<< Updated upstream
+
         [Header("Estado del juego")]
         public int currentRound = 1;
         public const int TOTAL_ROUNDS = 3;
-=======
-    [Header("Estado del juego")]
-    public int currentRound = 1;
-    public const int TOTAL_ROUNDS = 2;
->>>>>>> Stashed changes
+
+
 
     // modificador activo para esta ronda
     [HideInInspector] public float player1Multiplier = 1f;

@@ -219,9 +219,9 @@ public class KingOfHill : MonoBehaviour
         if (timerText) timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
 
         if (player1ScoreText)
-            player1ScoreText.text = "P1: " + GameManager.Instance.player1RoundPoints;
+            player1ScoreText.text = "" + GameManager.Instance.player1RoundPoints;
         if (player2ScoreText)
-            player2ScoreText.text = "P2: " + GameManager.Instance.player2RoundPoints;
+            player2ScoreText.text = "" + GameManager.Instance.player2RoundPoints;
     }
 
     private void HandleHardPointPoints()

@@ -101,6 +101,7 @@ public class PlatformPlayerController : MonoBehaviour
 
     private PlatformPlayerController otherPlayer;
     private Vector3 spawnPoint;
+    private SpriteRenderer _jetpackSR;
     private KingOfHill manager;
 
     private void Awake()
@@ -109,6 +110,9 @@ public class PlatformPlayerController : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         col = GetComponent<Collider2D>();
         animator = GetComponent<Animator>();
+
+        // desactivar jetpack al inicio
+        if (_jetpackObject != null) _jetpackObject.SetActive(false);
     }
 
     private void OnEnable() { SetupInput(); }
@@ -234,6 +238,8 @@ public class PlatformPlayerController : MonoBehaviour
 
         if (moveInput.x > 0.01f) sr.flipX = false;
         else if (moveInput.x < -0.01f) sr.flipX = true;
+
+        if (_jetpackSR != null) _jetpackSR.flipX = sr.flipX;
     }
 
     private void FixedUpdate()
@@ -251,7 +257,14 @@ public class PlatformPlayerController : MonoBehaviour
         }
 
         if (jetpackActive && jumpHeld)
+        {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jetpackForce);
+            if (_jetpackAnimator != null) _jetpackAnimator.SetBool("Fire", true);
+        }
+        else if (jetpackActive)
+        {
+            if (_jetpackAnimator != null) _jetpackAnimator.SetBool("Fire", false);
+        }
 
         if (!isKnockedBack)
         {
@@ -395,7 +408,7 @@ public class PlatformPlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Spike") && !isDead && !isInvulnerable)
+        if (other.CompareTag("Spike") && !isDead)
             StartCoroutine(Die());
     }
 
@@ -523,14 +536,18 @@ public class PlatformPlayerController : MonoBehaviour
     {
         jetpackActive = active;
         jetpackForce = force;
-        _jetpackObject = jetpackObject;
-        _jetpackAnimator = jetpackAnimator;
 
-        if (_jetpackObject != null)
-            _jetpackObject.SetActive(active);
-
-        if (!active)
+        if (active)
         {
+            _jetpackObject = jetpackObject;
+            _jetpackAnimator = jetpackAnimator;
+            _jetpackSR = _jetpackObject != null ? _jetpackObject.GetComponent<SpriteRenderer>() : null;
+            if (_jetpackObject != null) _jetpackObject.SetActive(true);
+        }
+        else
+        {
+            if (_jetpackObject != null) _jetpackObject.SetActive(false);
+            _jetpackSR = null;
             _jetpackObject = null;
             _jetpackAnimator = null;
         }
