@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Va en el prefab de proyectil. Se mueve en lÃ­nea recta y se destruye
+/// Va en el prefab de proyectil. Se mueve en línea recta y se destruye
 /// al alcanzar el rango o al impactar contra algo.
 ///
 /// SETUP del prefab:
@@ -20,13 +20,13 @@ public class Projectile : MonoBehaviour
     private float speed;
     private float damage;
     private float range;
-    private int   ownerPlayer;   // 1 o 2, para no daÃ±arse a sÃ­ mismo
+    private int ownerPlayer;   // 1 o 2, para no dañarse a sí mismo
     private float traveledDistance;
 
     private Rigidbody2D rb;
 
     // -----------------------------------------------------------------------
-    //  INICIALIZACIÃ“N
+    //  INICIALIZACIÓN
     // -----------------------------------------------------------------------
 
     private void Awake()
@@ -37,13 +37,13 @@ public class Projectile : MonoBehaviour
     }
 
     /// <summary>
-    /// Llamado por WeaponController justo despuÃ©s de Instantiate.
+    /// Llamado por WeaponController justo después de Instantiate.
     /// </summary>
     public void Init(Vector2 direction, float speed, float damage, float range, int ownerPlayer)
     {
-        this.speed       = speed;
-        this.damage      = damage;
-        this.range       = range;
+        this.speed = speed;
+        this.damage = damage;
+        this.range = range;
         this.ownerPlayer = ownerPlayer;
         rb.linearVelocity = direction.normalized * speed;
     }
@@ -65,24 +65,40 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // Ignorar al dueÃ±o del proyectil
+        // Determinar si impactó a un jugador
         int hitPlayer = 0;
         if (other.CompareTag("Player1")) hitPlayer = 1;
         else if (other.CompareTag("Player2")) hitPlayer = 2;
         else
         {
-            // ImpactÃ³ contra una pared u otro objeto
+            // Impactó contra una pared u otro objeto
             Destroy(gameObject);
             return;
         }
 
-        if (hitPlayer == ownerPlayer) return; // no se daÃ±a a sÃ­ mismo
+        // No dañarse a sí mismo
+        if (hitPlayer == ownerPlayer) return;
 
-        // Restar puntos al jugador impactado (daÃ±o = puntos que pierde)
+        // --- MODIFICADOR: Golden Kill ---
+        // Si es la primera kill de la ronda con este mod activo, los puntos
+        // del owner se multiplican por goldenKillMultiplier (x3 por defecto).
+        float killPointsMultiplier = 1f;
+        bool isGoldenKill = ModifierManager.Instance != null
+                            && ModifierManager.Instance.IsGoldenKillAvailable();
+
+        if (isGoldenKill)
+        {
+            killPointsMultiplier = ModifierManager.Instance.goldenKillMultiplier;
+            ModifierManager.Instance.ConsumeGoldenKill();
+            Debug.Log($"[GoldenKill] ¡Primera kill! Los puntos del jugador {ownerPlayer} son x{killPointsMultiplier}");
+        }
+
+        // Restar puntos al jugador impactado (daño directo, sin modificador)
         GameManager.Instance?.RemovePoints(hitPlayer, Mathf.RoundToInt(damage));
 
-        // Sumar puntos al dueÃ±o del proyectil (kill bonus)
-        GameManager.Instance?.AddPoints(ownerPlayer, Mathf.RoundToInt(damage / 2f));
+        // Sumar puntos al dueño del proyectil (kill bonus con posible multiplicador)
+        int killBonus = Mathf.RoundToInt((damage / 2f) * killPointsMultiplier);
+        GameManager.Instance?.AddPoints(ownerPlayer, killBonus);
 
         // CameraShake al impacto
         CameraShake.Instance?.Shake(0.1f, 0.08f);

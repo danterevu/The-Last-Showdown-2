@@ -3,20 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-
-
-public class WeaponSpawner : MonoBehaviour
+/// SETUP:
+///   - powerUpPickupPrefab: prefab con SpacePowerUpPickup.cs
+///   - zones: puntos de spawn por zona (igual estructura que WeaponSpawner)
+///   - spawnInterval: segundos entre spawns
+///   - respawnDelay: segundos para volver a aparecer tras recogerse
+public class SpacePowerUpSpawner : MonoBehaviour
 {
-    [Header("Armas disponibles en el pool")]
-    [Tooltip("Todas las armas que pueden aparecer. Se elige una al azar por spawn.")]
-    [SerializeField] private WeaponData[] weaponPool;
+    [Header("Prefab del pickup")]
+    [SerializeField] private GameObject powerUpPickupPrefab;
 
-    [Header("Prefab base del pickup")]
-    [SerializeField] private GameObject weaponPickupPrefab;
-
-    [Header("Configuración de tiempo")]
-    [SerializeField] private float spawnInterval = 5f;  // segundos entre spawns
-    [SerializeField] private float respawnDelay = 8f;   // segundos para volver a aparecer tras recogerse
+    [Header("Tiempo")]
+    [SerializeField] private float spawnInterval = 15f;
+    [SerializeField] private float respawnDelay = 10f;
 
     [System.Serializable]
     public class ZoneSpawnPoints
@@ -27,21 +26,15 @@ public class WeaponSpawner : MonoBehaviour
     [Header("Puntos de spawn por zona")]
     [SerializeField] private ZoneSpawnPoints[] zones;
 
-
-
     private List<Transform> availablePoints = new List<Transform>();
     private int currentZoneIndex = -1;
 
- 
     private void Start()
     {
         StartCoroutine(SpawnLoop());
     }
 
- 
-
-    /// SpaceMinigame llama esto al activar una zona nueva.
-    /// Resetea los puntos disponibles a los de la nueva zona.
+    /// SpaceMinigame llama esto al cambiar de zona.
     public void SetActiveZone(int zoneIndex)
     {
         currentZoneIndex = zoneIndex;
@@ -53,38 +46,31 @@ public class WeaponSpawner : MonoBehaviour
             availablePoints.Add(point);
     }
 
-  
-
     private IEnumerator SpawnLoop()
     {
         while (true)
         {
             yield return new WaitForSeconds(spawnInterval);
 
-            if (availablePoints.Count > 0 && weaponPool.Length > 0)
-                SpawnWeapon();
+            if (availablePoints.Count > 0)
+                SpawnPowerUp();
         }
     }
 
-    private void SpawnWeapon()
+    private void SpawnPowerUp()
     {
-        // Elegir punto de spawn al azar
         int pointIndex = Random.Range(0, availablePoints.Count);
         Transform point = availablePoints[pointIndex];
         availablePoints.RemoveAt(pointIndex);
 
-        // Elegir arma al azar del pool
-        WeaponData chosenWeapon = weaponPool[Random.Range(0, weaponPool.Length)];
+        // Elegir tipo random
+        SpacePowerUpType type = (SpacePowerUpType)Random.Range(0, System.Enum.GetValues(typeof(SpacePowerUpType)).Length);
 
-        // Instanciar el pickup
-        GameObject obj = Instantiate(weaponPickupPrefab, point.position, Quaternion.identity);
-        WeaponPickup pickup = obj.GetComponent<WeaponPickup>();
-        pickup.Init(chosenWeapon, this, point);
+        GameObject obj = Instantiate(powerUpPickupPrefab, point.position, Quaternion.identity);
+        SpacePowerUpPickup pickup = obj.GetComponent<SpacePowerUpPickup>();
+        pickup.Init(type, this, point);
     }
 
-  
-
-    /// <summary>Llamado por WeaponPickup al ser recogido.</summary>
     public void OnPickupCollected(Transform point)
     {
         StartCoroutine(RespawnPoint(point, currentZoneIndex));
@@ -94,11 +80,9 @@ public class WeaponSpawner : MonoBehaviour
     {
         yield return new WaitForSeconds(respawnDelay);
 
-        // Ignorar si ya cambiamos de zona
         if (currentZoneIndex != zoneAtPickup) yield break;
         if (zones == null || currentZoneIndex >= zones.Length) yield break;
 
-        // Verificar que el punto pertenezca a la zona activa antes de devolverlo
         foreach (Transform p in zones[currentZoneIndex].points)
         {
             if (p == point)

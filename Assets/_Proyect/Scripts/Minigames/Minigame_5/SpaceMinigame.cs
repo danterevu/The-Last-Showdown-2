@@ -1,304 +1,246 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-
-
-/// Manager del minijuego de naves espaciales.
-/// Reutiliza la lógica de cambio de zona y flash de KingOfHill,
-/// adaptada para el contexto de naves con respawn por salir del área.
-
-/// SETUP en Unity:
-///   - 5 GameObjects de zona, cada uno con BoxCollider2D trigger + SpaceZoneBoundary
-///   - 2 spawns por zona (arrays player1Spawns y player2Spawns, misma longitud que zones)
-///   - Una cámara con ZoneCameraController (reutilizada de Minigame02)
-///   - HUDManager en escena para el timer
 
 public class SpaceMinigame : MonoBehaviour
 {
+    public static SpaceMinigame Instance;
 
-    [Header("Duración")]
-    [SerializeField] private float gameDuration = 90f;
-    [SerializeField] private float zoneChangeDuration = 25f;
+    [Header("Jugadores")]
+    [SerializeField] private Transform player1;
+    [SerializeField] private Transform player2;
 
-    [Header("Zonas (5 zonas)")]
-    [SerializeField] private SpaceZoneBoundary[] zones;          // los 5 boundary objects
-    // zoneCenters eliminado: usamos zones[i].Center que lee el centro del BoxCollider2D automáticamente
-
-    [Header("Spawns (mismo orden que zones)")]
+    [Header("Spawns por zona (indice = zona)")]
     [SerializeField] private Transform[] player1Spawns;
     [SerializeField] private Transform[] player2Spawns;
 
-    [Header("Jugadores")]
-    [SerializeField] private GameObject player1;
-    [SerializeField] private GameObject player2;
+    [Header("Zonas")]
+    [SerializeField] private SpaceZoneBoundary[] zones;
 
-    [Header("Cámara")]
-    [SerializeField] private ZoneCameraController zoneCamera;    // reutilizada de KOH
+    [Header("Camara")]
+    [SerializeField] private ZoneCameraController zoneCamera;
 
-    [Header("UI")]
-    [SerializeField] private Image flashImage;                   // panel negro full-screen para transición
+    [Header("Flash de transicion")]
+    [SerializeField] private Image flashImage;
     [SerializeField] private float flashDuration = 0.8f;
+
+    [Header("HUD")]
     [SerializeField] private HUDManager hudManager;
 
     [Header("Respawn")]
-    [Tooltip("Segundos de invulnerabilidad + parpadeo al reaparecer")]
     [SerializeField] private float respawnDelay = 1.5f;
-    [SerializeField] private float invincibleTime = 2f;
 
-    [Header("Debug")]
-    [SerializeField] private int currentZoneIndex;
-    [SerializeField] private float gameTimer;
-    [SerializeField] private float zoneTimer;
-    [SerializeField] private bool gameRunning;
+    private const int KILLS_TO_WIN_ROUND = 3;
+    private const int ROUNDS_TO_WIN_GAME = 3;
+    private const int POINTS_WIN_ROUND = 20;
+    private const int POINTS_WIN_GAME = 150;
 
-    [SerializeField] private WeaponSpawner weaponSpawner;
+    private int currentZoneIndex = 0;
 
-    private SpaceShipController p1Controller;
-    private SpaceShipController p2Controller;
+    private int kills1 = 0;
+    private int kills2 = 0;
 
-    // Flag para evitar múltiples respawns simultáneos del mismo jugador
-    private bool p1Respawning;
-    private bool p2Respawning;
+    private int roundsWon1 = 0;
+    private int roundsWon2 = 0;
 
-   
+    private bool roundOver = false;
+    private bool gameOver = false;
+
+    private bool p1Invulnerable = false;
+    private bool p2Invulnerable = false;
+
+    private WeaponSpawner weaponSpawner;
+    private SpacePowerUpSpawner powerUpSpawner;
+
+    private void Awake()
+    {
+        Instance = this;
+        weaponSpawner = FindFirstObjectByType<WeaponSpawner>();
+        powerUpSpawner = FindFirstObjectByType<SpacePowerUpSpawner>();
+    }
 
     private void Start()
     {
-        
-       
-        if (GameManager.Instance == null)
-        {
-            new GameObject("GameManager").AddComponent<GameManager>();
-            Debug.LogWarning("[SpaceMinigame] GameManager creado en escena para testing.");
-        }
+        // GOLDEN KILL: habilitar el flag para la primera kill del primer round
+        ModifierManager.Instance?.ResetGoldenKill();
 
-        p1Controller = player1.GetComponent<SpaceShipController>();
-        p2Controller = player2.GetComponent<SpaceShipController>();
-
-        // Elegir zona inicial aleatoria antes de que los jugadores se inicialicen
-        currentZoneIndex = Random.Range(0, zones.Length);
-
-        // Teleport inmediato a los spawns de la zona elegida
-        TeleportToSpawns(currentZoneIndex);
-
-        // Suscribirse a los eventos de salida de zona de TODAS las zonas
-        // El manager siempre escucha; solo reacciona a la zona activa
-        foreach (var zone in zones)
-            zone.OnShipExited += HandleShipExited;
-
-        StartMinigame();
+        ActivateZone(0);
+        DoRespawn(player1, player1Spawns[0]);
+        DoRespawn(player2, player2Spawns[0]);
     }
 
-    private void OnDestroy()
+    public void RegisterKill(int killer, int victim)
     {
-        // Limpiar suscripciones para evitar null references
-        foreach (var zone in zones)
-            if (zone != null)
-                zone.OnShipExited -= HandleShipExited;
-    }
+        if (roundOver || gameOver) return;
 
-    private void Update()
-    {
-        if (!gameRunning) return;
+        if (victim == 1 && p1Invulnerable) return;
+        if (victim == 2 && p2Invulnerable) return;
 
-        gameTimer -= Time.deltaTime;
-        zoneTimer -= Time.deltaTime;
+        if (victim == 1) p1Invulnerable = true;
+        else p2Invulnerable = true;
 
-        // Actualizar el timer del HUD
-        hudManager?.UpdateTimer(gameTimer);
+        if (killer == 1) kills1++;
+        else kills2++;
 
-        if (zoneTimer <= 0f)
+        if (kills1 >= KILLS_TO_WIN_ROUND || kills2 >= KILLS_TO_WIN_ROUND)
         {
-            StartCoroutine(ChangeZone());
-            zoneTimer = zoneChangeDuration;
+            int roundWinner = kills1 >= KILLS_TO_WIN_ROUND ? 1 : 2;
+            StartCoroutine(HandleRoundWon(roundWinner));
         }
-
-        if (gameTimer <= 0f)
+        else
         {
-            gameTimer = 0f;
-            EndMinigame();
+            StartCoroutine(RespawnBothDelayed());
         }
     }
 
-    
-
-    private void StartMinigame()
+    private IEnumerator HandleRoundWon(int winner)
     {
-        gameTimer = gameDuration;
-        zoneTimer = zoneChangeDuration;
-        gameRunning = true;
+        roundOver = true;
 
-        ActivateZone(currentZoneIndex);
-    }
+        if (winner == 1) roundsWon1++;
+        else roundsWon2++;
 
-    
+        GameManager.Instance?.AddPoints(winner, POINTS_WIN_ROUND);
 
-    
-    private IEnumerator ChangeZone()
-    {
-        gameRunning = false;
+        bool gameWon = roundsWon1 >= ROUNDS_TO_WIN_GAME || roundsWon2 >= ROUNDS_TO_WIN_GAME;
+        bool noMoreZones = (currentZoneIndex + 1) >= (zones != null ? zones.Length : 0);
 
-        // Detener las naves durante la transición para que no sigan moviéndose
-        p1Controller.ForceStop();
-        p2Controller.ForceStop();
-
-        yield return StartCoroutine(Flash());
-
-        // Elegir zona distinta a la actual (igual que KOH)
-        int newZone;
-        do { newZone = Random.Range(0, zones.Length); }
-        while (newZone == currentZoneIndex && zones.Length > 1);
-
-        currentZoneIndex = newZone;
-
-        TeleportToSpawns(currentZoneIndex);
-        ActivateZone(currentZoneIndex);
-
-        // Resetear flags de respawn al cambiar zona
-        p1Respawning = false;
-        p2Respawning = false;
-
-        gameRunning = true;
-    }
-
-    
-    private void ActivateZone(int index)
-    {
-       
-        zoneCamera.SetZoneCenter(zones[index].Center, index);
-    }
-
-    
-    private void TeleportToSpawns(int index)
-    {
-        player1.transform.position = player1Spawns[index].position;
-        player2.transform.position = player2Spawns[index].position;
-    }
-
-   
-    private IEnumerator Flash()
-    {
-        flashImage.gameObject.SetActive(true);
-        float half = flashDuration / 2f;
-        float t = 0f;
-
-        while (t < half)
+        if (gameWon || noMoreZones)
         {
-            t += Time.deltaTime;
-            flashImage.color = new Color(0, 0, 0, Mathf.Clamp01(t / half));
-            yield return null;
+            int gameWinner;
+            if (roundsWon1 > roundsWon2) gameWinner = 1;
+            else if (roundsWon2 > roundsWon1) gameWinner = 2;
+            else
+                gameWinner = (GameManager.Instance != null &&
+                              GameManager.Instance.player1RoundPoints >= GameManager.Instance.player2RoundPoints) ? 1 : 2;
+
+            GameManager.Instance?.AddPoints(gameWinner, POINTS_WIN_GAME);
+
+            gameOver = true;
+            yield return new WaitForSeconds(respawnDelay);
+            yield return StartCoroutine(FlashTransition());
+            EndGame(gameWinner); // COMBO ROUNDS: pasamos el ganador
+            yield break;
         }
 
-        flashImage.color = Color.black;
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(respawnDelay);
+        yield return StartCoroutine(FlashTransition());
 
-        t = 0f;
-        while (t < half)
-        {
-            t += Time.deltaTime;
-            flashImage.color = new Color(0, 0, 0, Mathf.Clamp01(1f - t / half));
-            yield return null;
-        }
+        ActivateZone(currentZoneIndex + 1);
+        ResetRoundKills();
 
-        flashImage.gameObject.SetActive(false);
+        DoRespawn(player1, player1Spawns[currentZoneIndex]);
+        DoRespawn(player2, player2Spawns[currentZoneIndex]);
+
+        p1Invulnerable = false;
+        p2Invulnerable = false;
+        roundOver = false;
     }
-  
-    private void HandleShipExited(GameObject ship, int playerNumber)
+
+    private IEnumerator RespawnBothDelayed()
     {
-       
-
-        if (!gameRunning) return;
-
-        if (playerNumber == 1 && !p1Respawning)
-            StartCoroutine(RespawnPlayer(player1, playerNumber, player1Spawns[currentZoneIndex]));
-        else if (playerNumber == 2 && !p2Respawning)
-            StartCoroutine(RespawnPlayer(player2, playerNumber, player2Spawns[currentZoneIndex]));
-    }
-   
-    private IEnumerator RespawnPlayer(GameObject shipObj, int playerNumber, Transform spawn)
-    {
-        // Marcar como "respawneando" para evitar múltiples triggers simultáneos
-        if (playerNumber == 1) p1Respawning = true;
-        else p2Respawning = true;
-
-        SpaceShipController controller = shipObj.GetComponent<SpaceShipController>();
-        SpriteRenderer spriteRenderer = shipObj.GetComponentInChildren<SpriteRenderer>();
-
-        // 1. Detener nave y ocultarla 
-        controller.ForceStop();
-        shipObj.SetActive(false);
-
-        // Pequeña penalización de puntos por salir de la zona
-        // (ajustar o eliminar según diseño del juego)
-        GameManager.Instance.RemovePoints(playerNumber, 5);
-
-        // 2. Esperar antes de reaparecer
         yield return new WaitForSeconds(respawnDelay);
 
-        // 3. Teletransportar al spawn y activar 
-        shipObj.transform.position = spawn.position;
-        controller.ForceStop(); // asegurar que no queda velocidad residual
-        shipObj.SetActive(true);
+        if (roundOver || gameOver) yield break;
 
-        // 4. Parpadeo de invulnerabilidad 
-        // El parpadeo indica visualmente al rival que no puede hacer daño
-        // (si tu juego tiene daño entre naves; si no, es solo feedback visual)
-        if (spriteRenderer != null)
-            yield return StartCoroutine(BlinkSprite(spriteRenderer, invincibleTime));
+        DoRespawn(player1, player1Spawns[currentZoneIndex]);
+        DoRespawn(player2, player2Spawns[currentZoneIndex]);
 
-        // 5. Limpiar flag 
-        if (playerNumber == 1) p1Respawning = false;
-        else p2Respawning = false;
+        p1Invulnerable = false;
+        p2Invulnerable = false;
     }
 
-   
-    private IEnumerator BlinkSprite(SpriteRenderer sr, float duration)
+    private void DoRespawn(Transform player, Transform spawnPoint)
     {
-        float elapsed = 0f;
-        float blinkRate = 0.12f; 
-        bool visible = true;
+        if (player == null || spawnPoint == null) return;
 
-        while (elapsed < duration)
+        player.position = spawnPoint.position;
+        player.rotation = spawnPoint.rotation;
+
+        var ship = player.GetComponent<SpaceShipController>();
+        if (ship != null) ship.ForceStop();
+
+        var rb = player.GetComponent<Rigidbody2D>();
+        if (rb != null)
         {
-            visible = !visible;
-            sr.color = visible
-                ? Color.white
-                : new Color(1f, 1f, 1f, 0.25f);
+            rb.linearVelocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+        }
+    }
 
-            yield return new WaitForSeconds(blinkRate);
-            elapsed += blinkRate;
+    private void ActivateZone(int index)
+    {
+        currentZoneIndex = index;
+
+        if (zones != null)
+        {
+            for (int i = 0; i < zones.Length; i++)
+                zones[i].gameObject.SetActive(i == index);
         }
 
-        // Asegurar que queda visible al terminar
-        sr.color = Color.white;
+        if (zoneCamera != null && zones != null && index < zones.Length)
+            zoneCamera.SetZoneCenter(zones[index].Center, index);
+
+        weaponSpawner?.SetActiveZone(index);
+        powerUpSpawner?.SetActiveZone(index);
     }
 
-    public void EndMinigame()
+    private void ResetRoundKills()
     {
-        if (!gameRunning) return; // evitar doble llamada
-        gameRunning = false;
+        kills1 = 0;
+        kills2 = 0;
 
-        hudManager?.StopTimerPulse();
-
-        // Detener ambas naves
-        p1Controller?.ForceStop();
-        p2Controller?.ForceStop();
-
-        // Transferir puntos de ronda al score global
-        var (p1Round, p2Round) = GameManager.Instance.FinishMinigame();
-        GameManager.Instance.EndRound(3); // id del minijuego de naves 
-
-        // Guardar para la pantalla de resultados
-        PlayerPrefs.SetInt("LastRoundP1", p1Round);
-        PlayerPrefs.SetInt("LastRoundP2", p2Round);
-
-        SceneLoader.Instance.LoadResults();
+        // GOLDEN KILL: la primera kill del nuevo round vuelve a ser elegible
+        ModifierManager.Instance?.ResetGoldenKill();
     }
 
-    
-    public bool IsRunning => gameRunning;
+    // gameWinner: 1 o 2 (quién ganó el minijuego completo)
+    private void EndGame(int gameWinner)
+    {
+        // COMBO ROUNDS: registrar el ganador del minijuego para acumular racha.
+        // Se llama ANTES de FinishMinigame para que el bonus quede
+        // incluido en los puntos de ronda que se transfieren al global.
+        ModifierManager.Instance?.RegisterSpaceRoundWinner(gameWinner);
 
-    
-    public int CurrentZoneIndex => currentZoneIndex;
+        GameManager.Instance?.FinishMinigame();
+        GameManager.Instance?.EndRound(5);
+
+        if (SceneLoader.Instance != null)
+            SceneLoader.Instance.LoadResults();
+    }
+
+    private IEnumerator FlashTransition()
+    {
+        if (flashImage == null) yield break;
+
+        flashImage.enabled = true;
+        Color c = flashImage.color;
+        float half = flashDuration * 0.5f;
+        float elapsed = 0f;
+
+        while (elapsed < half)
+        {
+            c.a = Mathf.Lerp(0f, 1f, elapsed / half);
+            flashImage.color = c;
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        c.a = 1f;
+        flashImage.color = c;
+        yield return new WaitForSeconds(0.1f);
+
+        elapsed = 0f;
+        while (elapsed < half)
+        {
+            c.a = Mathf.Lerp(1f, 0f, elapsed / half);
+            flashImage.color = c;
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        c.a = 0f;
+        flashImage.color = c;
+        flashImage.enabled = false;
+    }
 }

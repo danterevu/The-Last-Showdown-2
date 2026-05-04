@@ -2,13 +2,6 @@ using UnityEngine;
 using System;
 
 
-/// Va en cada GameObject de zona. Requiere un BoxCollider2D en modo Trigger
-/// que defina los límites del área de juego.
-///
-/// SETUP en Unity:
-///   - Cada zona es un GameObject con BoxCollider2D (Is Trigger = true)
-///   - El tamaño del collider define el área jugable
-///   - Este componente debe estar en el mismo GameObject
 
 [RequireComponent(typeof(BoxCollider2D))]
 

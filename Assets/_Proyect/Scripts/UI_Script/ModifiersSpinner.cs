@@ -14,11 +14,15 @@ public class ModifiersSpinner : MonoBehaviour
     [Header("Sprites por minijuego")]
     [SerializeField] private Sprite spriteKOH;
     [SerializeField] private Sprite spriteDodgeDisk;
+    [SerializeField] private Sprite spriteSpace; // sprite para el Minigame_5
 
+    // Índice del array = sección de la ruleta (0, 1, 2)
+    // El texto "Sin Modificador" en el slot 2 de Space mapea al enum None
     private static readonly Dictionary<int, string[]> modifierNames = new()
     {
-        { 1, new[] { "Bonus Kill", "Bonus Death", "Bonus Winner" } },
-        { 2, new[] { "Comeback x3", "Bonus Hardpoint", "Point Bleed" } },
+        { 1, new[] { "Bonus Kill",   "Bonus Death",    "Bonus Winner"    } }, // DodgeDisk
+        { 2, new[] { "Comeback x3", "Bonus Hardpoint", "Point Bleed"     } }, // KOH
+        { 5, new[] { "Golden Kill",  "Combo Rounds",   "Sin Modificador" } }, // Space
     };
 
     private Rigidbody2D rb;
@@ -34,7 +38,6 @@ public class ModifiersSpinner : MonoBehaviour
         rb.angularDamping = 0.2f;
 
         targetMinigame = PlayerPrefs.GetInt("SelectedMinigame", 1);
-
         UpdateSprite();
         UpdateSectionTexts();
         SpinIt();
@@ -47,6 +50,8 @@ public class ModifiersSpinner : MonoBehaviour
             sr.sprite = spriteDodgeDisk;
         else if (targetMinigame == 2 && spriteKOH != null)
             sr.sprite = spriteKOH;
+        else if (targetMinigame == 5 && spriteSpace != null)
+            sr.sprite = spriteSpace;
     }
 
     private void UpdateSectionTexts()
@@ -102,19 +107,36 @@ public class ModifiersSpinner : MonoBehaviour
         int modIndex = Mathf.FloorToInt(normalizedAngle / degreesPerSlice);
         modIndex = Mathf.Clamp(modIndex, 0, totalMods - 1);
 
-        // +1 para saltear el None=0 del enum
-        int enumIndex = modIndex + 1;
-
         string modName = modifierNames.ContainsKey(targetMinigame)
             ? modifierNames[targetMinigame][modIndex] : "?";
+
         Debug.Log($"Minijuego {targetMinigame} | Modificador: {modName}");
 
         if (ModifierManager.Instance != null)
         {
             if (targetMinigame == 1)
-                ModifierManager.Instance.SetDodgeDiskModifier((ModifierManager.DodgeDiskModifier)enumIndex);
+            {
+                // DodgeDisk: None=0, BonusKill=1, BonusDeath=2, BonusWinner=3
+                // los 3 slots siempre mapean a un mod real (no hay None)
+                ModifierManager.Instance.SetDodgeDiskModifier(
+                    (ModifierManager.DodgeDiskModifier)(modIndex + 1));
+            }
             else if (targetMinigame == 2)
-                ModifierManager.Instance.SetKOHModifier((ModifierManager.KOHModifier)enumIndex);
+            {
+                // KOH: None=0, Comeback=1, Progressive=2, PointBleed=3
+                ModifierManager.Instance.SetKOHModifier(
+                    (ModifierManager.KOHModifier)(modIndex + 1));
+            }
+            else if (targetMinigame == 5)
+            {
+                // Space: None=0, GoldenKill=1, ComboRounds=2
+                // slot 0  GoldenKill (1)
+                // slot 1  ComboRounds (2)
+                // slot 2  Sin Modificador (0 = None)
+                int spaceEnumIndex = modIndex < 2 ? modIndex + 1 : 0;
+                ModifierManager.Instance.SetSpaceModifier(
+                    (ModifierManager.SpaceModifier)spaceEnumIndex);
+            }
         }
 
         SceneLoader.Instance.LoadMinigame(targetMinigame);
