@@ -62,6 +62,7 @@ public class WeaponController : MonoBehaviour
             case WeaponData.WeaponType.Pistol: UpdatePistol(); break;
             case WeaponData.WeaponType.Laser: UpdateLaser(); break;
             case WeaponData.WeaponType.Minigun: UpdateMinigun(); break;
+            case WeaponData.WeaponType.Shotgun: UpdateShotgun(); break;
         }
     }
 
@@ -90,6 +91,7 @@ public class WeaponController : MonoBehaviour
         UpdateWeaponAnimator();
         OnWeaponChanged?.Invoke(currentWeapon, currentAmmo);
     }
+
 
     private void DropWeapon()
     {
@@ -203,6 +205,20 @@ public class WeaponController : MonoBehaviour
         }
     }
 
+    private void UpdateShotgun()
+    {
+        bool pressedThisFrame = shootHeld && !wasPressedLastFrame;
+        wasPressedLastFrame = shootHeld;
+
+        if (pressedThisFrame && fireCooldown <= 0f)
+        {
+            FireShotgun();
+            TriggerShootAnim();
+            fireCooldown = currentWeapon.shotgunFireRate;
+            SpendAmmo();
+        }
+    }
+
     // ─── FIRE ────────────────────────────────────────────────────────────────
 
     private void FireSingle(float dmg, float spd, float sizeMultiplier, Vector2? overrideDir = null)
@@ -225,6 +241,33 @@ public class WeaponController : MonoBehaviour
         Projectile proj = obj.GetComponent<Projectile>();
         if (proj != null)
             proj.Init(dir, spd, dmg, currentWeapon.range, isPlayer1 ? 1 : 2);
+    }
+
+    private void FireShotgun()
+    {
+        Vector2 baseDir = transform.right;
+
+        // 3 balas: central, diagonal izquierda, diagonal derecha
+        float half = currentWeapon.shotgunSpread / 2f;
+        float[] angles = { 0f, -half, half };
+
+        foreach (float angle in angles)
+        {
+            Vector2 dir = RotateVector(baseDir, angle);
+            FireSingle(currentWeapon.damage, currentWeapon.projectileSpeed, 1f, dir);
+        }
+
+        // Knockback: empuja la nave hacia atrás
+        if (shipController != null)
+            shipController.AddImpulse(-baseDir * currentWeapon.shotgunKnockback);
+    }
+
+    private Vector2 RotateVector(Vector2 v, float angleDeg)
+    {
+        float rad = angleDeg * Mathf.Deg2Rad;
+        float cos = Mathf.Cos(rad);
+        float sin = Mathf.Sin(rad);
+        return new Vector2(v.x * cos - v.y * sin, v.x * sin + v.y * cos);
     }
 
     // ─── UTILS ───────────────────────────────────────────────────────────────

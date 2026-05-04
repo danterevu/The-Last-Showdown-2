@@ -16,10 +16,10 @@ MonoBehaviour:
   weaponName: Arma
   icon: {fileID: 3284663955337371784, guid: 10e7998b57f2e584cb288dc07c7aac5a, type: 3}
   projectilePrefab: {fileID: 2318206693037641433, guid: 114d55dccbffdb94f90be4de7ebe586e, type: 3}
-  projectileSpeed: 12
+  projectileSpeed: 22
   damage: 10
-  range: 10
-  maxAmmo: 30
+  range: 40
+  maxAmmo: 5
   semiAutoDelay: 0.25
   chargeTime: 1.5
   laserDamageMultiplier: 5

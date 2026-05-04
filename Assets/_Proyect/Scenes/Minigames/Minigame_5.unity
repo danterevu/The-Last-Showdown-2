@@ -7830,9 +7830,9 @@ MonoBehaviour:
   slowGrandeProjectilePrefab: {fileID: 8045770357265927284, guid: 03e5fed4f1622374a82e73fe776946ca, type: 3}
   meteorPrefab: {fileID: 2182635671732875495, guid: 6d52c6e58cede52429c1c49ef69766e9, type: 3}
   homingMissilePrefab: {fileID: 537026890223020271, guid: fb75fe48f430bea499854094e4808fb9, type: 3}
-  rocketSabotageAcceleration: 20
+  rocketSabotageAcceleration: 40
   rocketSabotageDuration: 4
-  repulsionForce: 20
+  repulsionForce: 40
   player1Ship: {fileID: 1595566646}
   player2Ship: {fileID: 74986924}
 --- !u!4 &402852956
@@ -18412,6 +18412,7 @@ MonoBehaviour:
   weaponPool:
   - {fileID: 11400000, guid: 2ee1c618b0b778841b71b19f2e657072, type: 2}
   - {fileID: 11400000, guid: 703bfb596582bc44b807751f51e76d46, type: 2}
+  - {fileID: 11400000, guid: 908d8f44a88dedb4c95a5e1b3c63a41c, type: 2}
   weaponPickupPrefab: {fileID: 2542425065243099186, guid: ef9f858335b920144a88aacc147ce869, type: 3}
   spawnInterval: 12
   respawnDelay: 8

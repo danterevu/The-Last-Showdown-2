@@ -122,13 +122,16 @@ public class PowerUpHolder : MonoBehaviour
     {
         if (SpacePowerUpManager.Instance == null)
         {
-            Debug.LogError("[PowerUpHolder] SpacePowerUpManager.Instance es NULL. Asegurate de tener un GameObject con SpacePowerUpManager en la escena.");
+            Debug.LogError("[PowerUpHolder] SpacePowerUpManager.Instance es NULL.");
             return;
         }
 
-        Vector2 origin = firePoint != null ? firePoint.position : transform.position;
-        Debug.Log($"[PowerUpHolder] SlowGrande: origin={origin}, direction={transform.right}, ownerPlayer={(isPlayer1 ? 1 : 2)}");
-        SpacePowerUpManager.Instance.LaunchSlowGrande(origin, transform.right, isPlayer1 ? 1 : 2);
+        Vector2 origin = firePoint != null ? (Vector2)firePoint.position : (Vector2)transform.position;
+        Vector2 shootDir = transform.right; // la dirección en que mira la nave
+        int player = isPlayer1 ? 1 : 2;
+
+        Debug.Log($"[PowerUpHolder] SlowGrande: origin={origin}, direction={shootDir}, ownerPlayer={player}");
+        SpacePowerUpManager.Instance.LaunchSlowGrande(origin, shootDir, player);
     }
 
     private void ActivateRocketSabotage()

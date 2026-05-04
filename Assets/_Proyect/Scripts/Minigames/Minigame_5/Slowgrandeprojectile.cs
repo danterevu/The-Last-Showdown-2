@@ -1,10 +1,5 @@
 using UnityEngine;
 
-/// SETUP del prefab:
-///   - SpriteRenderer con sprite de la pelota
-///   - Rigidbody2D: Gravity=0, Collision Detection=Continuous
-///   - CircleCollider2D con Is Trigger = true
-///   - Este script
 [RequireComponent(typeof(Rigidbody2D))]
 public class SlowGrandeProjectile : MonoBehaviour
 {
@@ -14,17 +9,28 @@ public class SlowGrandeProjectile : MonoBehaviour
 
     [Header("Explosion")]
     [SerializeField] private GameObject slowFieldPrefab;
+    [Tooltip("Cuánto más grande que el SlowField normal es la explosión")]
+    [SerializeField] private float explosionScale = 3f;
 
     private float traveledDistance;
     private int ownerPlayer;
+    private Rigidbody2D rb;
+
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        rb.gravityScale = 0f;
+        rb.linearDamping = 0f;
+    }
 
     public void Init(Vector2 direction, int ownerPlayer)
     {
         this.ownerPlayer = ownerPlayer;
 
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
-        rb.gravityScale = 0f;
-        rb.linearDamping = 0f;
+        // Fallback: si direction es zero, lanzar hacia adelante
+        if (direction.sqrMagnitude < 0.01f)
+            direction = Vector2.right;
+
         rb.linearVelocity = direction.normalized * speed;
 
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
@@ -40,11 +46,8 @@ public class SlowGrandeProjectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // Ignorar al dueno
         if (other.CompareTag("Player1") && ownerPlayer == 1) return;
         if (other.CompareTag("Player2") && ownerPlayer == 2) return;
-
-        // Ignorar objetos que no deben detonar el proyectil
         if (other.GetComponent<SpaceZoneBoundary>() != null) return;
         if (other.GetComponent<SlowField>() != null) return;
         if (other.GetComponent<WeaponPickup>() != null) return;
@@ -57,7 +60,11 @@ public class SlowGrandeProjectile : MonoBehaviour
     private void Explode()
     {
         if (slowFieldPrefab != null)
-            Instantiate(slowFieldPrefab, transform.position, Quaternion.identity);
+        {
+            GameObject field = Instantiate(slowFieldPrefab, transform.position, Quaternion.identity);
+            // Agrandar el radio de la explosion respecto al SlowField normal
+            field.transform.localScale *= explosionScale;
+        }
 
         Destroy(gameObject);
     }
