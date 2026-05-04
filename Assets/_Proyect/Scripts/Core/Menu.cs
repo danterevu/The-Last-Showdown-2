@@ -10,6 +10,11 @@ public class Menu : MonoBehaviour
 
     public void MenuButton()
     {
-        SceneLoader.Instance.LoadRuleta();
+        SceneLoader.Instance.LoadCharacterSelection();
+    }
+
+    public void Quit()
+    {
+        Application.Quit();
     }
 }

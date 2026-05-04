@@ -80,8 +80,8 @@ public class InputAssigner : MonoBehaviour
             startPrompt.SetActive(assignedGamepads.Count >= 2);
     }
 
-    private void LoadNextScene()
+    public void LoadNextScene()
     {
-        SceneLoader.Instance.LoadMinigame(2);
+        SceneLoader.Instance.LoadRuleta();
     }
 }

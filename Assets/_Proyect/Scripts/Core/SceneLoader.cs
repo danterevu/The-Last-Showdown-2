@@ -24,6 +24,10 @@ public class SceneLoader : MonoBehaviour
         string sceneName = "Minigame" + "_" + minigameId.ToString();
         SceneManager.LoadScene(sceneName);
     }
+    public void LoadCharacterSelection()
+    {
+        SceneManager.LoadScene("CharacterSelection");
+    }
     public void LoadRuleta()
     {
         SceneManager.LoadScene("Select_Minigame");
