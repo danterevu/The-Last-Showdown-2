@@ -58,7 +58,7 @@ public class PowerUpHUD : MonoBehaviour
     private void ShowEmpty()
     {
         if (iconImage != null) iconImage.sprite = spriteEmpty;
-        if(powerUpNameText!= null) powerUpNameText.text="Without Power Up";
+      
     }
     private Sprite GetSprite(PowerUpPickup.PowerUpType type)
     {
@@ -69,7 +69,7 @@ public class PowerUpHUD : MonoBehaviour
             case PowerUpPickup.PowerUpType.Hook: return spriteHook;
             case PowerUpPickup.PowerUpType.HeavyGravity: return spriteHeavyGravity;
             case PowerUpPickup.PowerUpType.MirrorControl: return spriteMirrorControl;
-            case PowerUpPickup.PowerUpType.InvertControls: return spriteInvertControls;
+       ;
             case PowerUpPickup.PowerUpType.Jetpack: return spriteJetpack;
             default: return spriteEmpty;
         }

@@ -5,35 +5,45 @@ public class PowerUpEffects : MonoBehaviour
 {
     [Header("Jaula")]
     [SerializeField] private float cageDuration = 5f;
-    [SerializeField] private GameObject[] cagesByZone; // una jaula prefab por zona, asignar en Inspector
+    [SerializeField] private GameObject[] cagesByZone;
 
     [Header("Escudo")]
     [SerializeField] private float shieldDuration = 4f;
     [SerializeField] private float shieldKnockbackMultiplier = 3f;
+    [SerializeField] private GameObject shieldVFXPlayer1;
+    [SerializeField] private GameObject shieldVFXPlayer2;
 
     [Header("Gancho")]
     [SerializeField] private float hookSpeed = 15f;
     [SerializeField] private LineRenderer hookLine;
-    [SerializeField] private LayerMask hookObstacleLayer; // layers que bloquean el gancho
-
-    [Header("Doble Salto")]
-    [SerializeField] private float doubleJumpDuration = 6f;
+    [SerializeField] private LayerMask hookObstacleLayer;
 
     [Header("Gravedad")]
     [SerializeField] private float heavyGravityScale = 15f;
     [SerializeField] private float heavyGravityDuration = 3f;
+    [SerializeField] private GameObject heavyGravityVFXPlayer1;
+    [SerializeField] private GameObject heavyGravityVFXPlayer2;
 
     [Header("Control Espejo")]
     [SerializeField] private float mirrorDuration = 4f;
-
-    [Header("Invertir Controles")]
-    [SerializeField] private float invertDuration = 4f;
+    [SerializeField] private GameObject mirrorVFXPlayer1;
+    [SerializeField] private GameObject mirrorVFXPlayer2;
 
     [Header("Jetpack")]
     [SerializeField] private float jetpackDuration = 5f;
     [SerializeField] private float jetpackForce = 8f;
+    [SerializeField] private GameObject jetpackObjectPlayer1;
+    [SerializeField] private GameObject jetpackObjectPlayer2;
+    [SerializeField] private Animator jetpackAnimatorPlayer1;
+    [SerializeField] private Animator jetpackAnimatorPlayer2;
 
-    // JAULA: activa/desactiva el GameObject de jaula de la zona actual
+    private int GetPlayerIndex(PlatformPlayerController player)
+        => player.CompareTag("Player1") ? 1 : 2;
+
+    private GameObject GetVFX(GameObject vfx1, GameObject vfx2, int playerIndex)
+        => playerIndex == 1 ? vfx1 : vfx2;
+
+    // JAULA
     public IEnumerator ActivateCage(int zoneIndex)
     {
         if (zoneIndex < 0 || zoneIndex >= cagesByZone.Length)
@@ -47,15 +57,21 @@ public class PowerUpEffects : MonoBehaviour
         cage.SetActive(false);
     }
 
-    // ESCUDO: devuelve knockback al atacante
+    // ESCUDO
     public IEnumerator ActivateShield(PlatformPlayerController user)
     {
+        int idx = GetPlayerIndex(user);
+        GameObject vfx = GetVFX(shieldVFXPlayer1, shieldVFXPlayer2, idx);
+        if (vfx) vfx.SetActive(true);
+
         user.SetShield(true, shieldKnockbackMultiplier);
         yield return new WaitForSeconds(shieldDuration);
         user.SetShield(false, 1f);
+
+        if (vfx) vfx.SetActive(false);
     }
 
-    // GANCHO: jala al target hacia el user si hay linea de vision libre
+    // GANCHO
     public IEnumerator ActivateHook(PlatformPlayerController user, PlatformPlayerController target)
     {
         Vector2 userPos = user.transform.position;
@@ -63,7 +79,6 @@ public class PowerUpEffects : MonoBehaviour
         Vector2 dir = targetPos - userPos;
         float dist = dir.magnitude;
 
-        // chequear obstaculos entre user y target
         RaycastHit2D[] hits = Physics2D.RaycastAll(userPos, dir.normalized, dist, hookObstacleLayer);
         bool blocked = false;
         RaycastHit2D firstHit = default;
@@ -91,7 +106,6 @@ public class PowerUpEffects : MonoBehaviour
             yield break;
         }
 
-        // ejecutar gancho
         if (hookLine != null) { hookLine.enabled = true; hookLine.positionCount = 2; }
 
         float elapsed = 0f;
@@ -118,43 +132,45 @@ public class PowerUpEffects : MonoBehaviour
         if (hookLine != null) hookLine.enabled = false;
     }
 
-    // DOBLE SALTO
-    public IEnumerator ActivateDoubleJump(PlatformPlayerController user)
-    {
-        user.SetDoubleJump(true);
-        yield return new WaitForSeconds(doubleJumpDuration);
-        user.SetDoubleJump(false);
-    }
-
     // GRAVEDAD AUMENTADA
     public IEnumerator ActivateHeavyGravity(PlatformPlayerController target)
     {
+        int idx = GetPlayerIndex(target);
+        GameObject vfx = GetVFX(heavyGravityVFXPlayer1, heavyGravityVFXPlayer2, idx);
+        if (vfx) vfx.SetActive(true);
+
         target.SetHeavyGravity(true, heavyGravityScale);
         yield return new WaitForSeconds(heavyGravityDuration);
         target.SetHeavyGravity(false, 0f);
+
+        if (vfx) vfx.SetActive(false);
     }
 
     // CONTROL ESPEJO
     public IEnumerator ActivateMirrorControl(PlatformPlayerController user, PlatformPlayerController target)
     {
+        int idx = GetPlayerIndex(user);
+        GameObject vfx = GetVFX(mirrorVFXPlayer1, mirrorVFXPlayer2, idx);
+        if (vfx) vfx.SetActive(true);
+
         user.SetMirrorControl(true, target);
         yield return new WaitForSeconds(mirrorDuration);
         user.SetMirrorControl(false, null);
-    }
 
-    // CONTROLES INVERTIDOS
-    public IEnumerator ActivateInvertControls(PlatformPlayerController target)
-    {
-        target.SetInvertControls(true);
-        yield return new WaitForSeconds(invertDuration);
-        target.SetInvertControls(false);
+        if (vfx) vfx.SetActive(false);
     }
 
     // JETPACK
     public IEnumerator ActivateJetpack(PlatformPlayerController user)
     {
-        user.SetJetpack(true, jetpackForce);
+        int idx = GetPlayerIndex(user);
+        GameObject jetpackObj = idx == 1 ? jetpackObjectPlayer1 : jetpackObjectPlayer2;
+        Animator jetpackAnim = idx == 1 ? jetpackAnimatorPlayer1 : jetpackAnimatorPlayer2;
+
+        user.SetJetpack(true, jetpackForce, jetpackObj, jetpackAnim);
+
         yield return new WaitForSeconds(jetpackDuration);
-        user.SetJetpack(false, 0f);
+
+        user.SetJetpack(false, 0f, null, null);
     }
 }

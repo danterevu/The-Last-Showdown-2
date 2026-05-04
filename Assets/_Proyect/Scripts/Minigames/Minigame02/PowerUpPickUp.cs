@@ -15,7 +15,6 @@ public class PowerUpPickup : MonoBehaviour
         Hook,           // gancho que atrae al otro
         HeavyGravity,   // aumenta gravedad del otro
         MirrorControl,  // copia tu movimiento al rival
-        InvertControls, // invierte inputs del rival
         Jetpack         // volar manteniendo salto
     
     }

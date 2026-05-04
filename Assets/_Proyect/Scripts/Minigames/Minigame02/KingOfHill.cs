@@ -201,9 +201,8 @@ public class KingOfHill : MonoBehaviour
             case PowerUpPickup.PowerUpType.MirrorControl:
                 StartCoroutine(powerUpEffects.ActivateMirrorControl(user, target));
                 break;
-            case PowerUpPickup.PowerUpType.InvertControls:
-                StartCoroutine(powerUpEffects.ActivateInvertControls(target));
-                break;
+           
+
             case PowerUpPickup.PowerUpType.Jetpack:
                 StartCoroutine(powerUpEffects.ActivateJetpack(user));
                 break;

@@ -1,7 +1,6 @@
 using UnityEngine;
 
-/// Adjuntá este script a cada prefab de pieza/fragmento.
-/// Se encarga del fade out y auto-destruccion.
+
 public class DebrisPiece : MonoBehaviour
 {
     [SerializeField] private float lifetime = 2f;

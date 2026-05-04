@@ -78,6 +78,8 @@ public class PlatformPlayerController : MonoBehaviour
     // jetpack
     private bool jetpackActive = false;
     private float jetpackForce = 0f;
+    private GameObject _jetpackObject;
+    private Animator _jetpackAnimator;
 
     // hook
     private bool hasRawVelocityOverride = false;
@@ -329,12 +331,16 @@ public class PlatformPlayerController : MonoBehaviour
 
     private void OnJumpCanceled(InputAction.CallbackContext context) { jumpHeld = false; }
 
+   
     private void ExecuteJump()
     {
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         coyoteTimeCounter = 0f;
         jumpBufferCounter = 0f;
         isGrounded = false;
+
+        if (jetpackActive && _jetpackAnimator != null)
+            _jetpackAnimator.SetTrigger("Fire");
     }
 
     private void OnAttack(InputAction.CallbackContext context)
@@ -512,7 +518,23 @@ public class PlatformPlayerController : MonoBehaviour
     public void ForceVelocity(Vector2 velocity) { isForcedMove = true; rb.linearVelocity = velocity; }
     public void ForceVelocityRaw(Vector2 velocity) { hasRawVelocityOverride = true; rawVelocityOverride = velocity; }
     public void SetInvertControls(bool active) { invertControls = active; }
-    public void SetJetpack(bool active, float force) { jetpackActive = active; jetpackForce = force; }
+    // Reemplazar los dos SetJetpack por uno solo:
+    public void SetJetpack(bool active, float force, GameObject jetpackObject = null, Animator jetpackAnimator = null)
+    {
+        jetpackActive = active;
+        jetpackForce = force;
+        _jetpackObject = jetpackObject;
+        _jetpackAnimator = jetpackAnimator;
+
+        if (_jetpackObject != null)
+            _jetpackObject.SetActive(active);
+
+        if (!active)
+        {
+            _jetpackObject = null;
+            _jetpackAnimator = null;
+        }
+    }
 
     public Collider2D GetCollider() => col;
     public Rigidbody2D GetRigidbody() => rb;
