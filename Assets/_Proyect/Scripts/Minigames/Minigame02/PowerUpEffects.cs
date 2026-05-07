@@ -180,4 +180,28 @@ public class PowerUpEffects : MonoBehaviour
         user.SetJetpack(false, 0f, null, null);
         //hola
     }
+
+    // Cancela todos los efectos activos (se llama al cambiar de zona)
+    public void CancelAll(PlatformPlayerController p1, PlatformPlayerController p2)
+    {
+        StopAllCoroutines(); // detiene shield, gancho, jaula, etc.
+
+        // apagar todos los VFX
+        if (shieldVFXPlayer1) shieldVFXPlayer1.SetActive(false);
+        if (shieldVFXPlayer2) shieldVFXPlayer2.SetActive(false);
+        if (heavyGravityVFXPlayer1) heavyGravityVFXPlayer1.SetActive(false);
+        if (heavyGravityVFXPlayer2) heavyGravityVFXPlayer2.SetActive(false);
+        if (mirrorVFXPlayer1) mirrorVFXPlayer1.SetActive(false);
+        if (mirrorVFXPlayer2) mirrorVFXPlayer2.SetActive(false);
+        if (jetpackObjectPlayer1) jetpackObjectPlayer1.SetActive(false);
+        if (jetpackObjectPlayer2) jetpackObjectPlayer2.SetActive(false);
+
+        // apagar jaulas de todas las zonas
+        foreach (var cage in cagesByZone)
+            if (cage) cage.SetActive(false);
+
+        // limpiar estado en los jugadores
+        p1?.ClearActivePowerUpEffects();
+        p2?.ClearActivePowerUpEffects();
+    }
 }

@@ -131,6 +131,8 @@ public class KingOfHill : MonoBehaviour
 
         yield return StartCoroutine(Flash());
 
+        powerUpEffects.CancelAll(p1Controller, p2Controller);
+
         int newZone;
         do { newZone = Random.Range(0, zones.Length); }
         while (newZone == currentZoneIndex && zones.Length > 1);

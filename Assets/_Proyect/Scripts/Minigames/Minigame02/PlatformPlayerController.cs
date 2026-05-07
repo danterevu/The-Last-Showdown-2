@@ -22,6 +22,8 @@ public class PlatformPlayerController : MonoBehaviour
     [Header("Golpe")]
     [SerializeField] private float knockbackForce = 12f;
     [SerializeField] private float selfKnockback = 4f; public float SelfKnockback => selfKnockback;
+    [SerializeField] private float knockbackLift = 5f;     //Levantamiento
+    [SerializeField] private float stunDuration = 0.8f;
     [SerializeField] private float attackCooldown = 0.5f;
 
     [Header("Hitbox")]
@@ -46,6 +48,7 @@ public class PlatformPlayerController : MonoBehaviour
     [SerializeField] private bool canAttack = true;
     [SerializeField] private bool isAttacking = false;
     [SerializeField] private bool isKnockedBack = false;
+    [SerializeField] private bool isStunned = false;
 
     private float coyoteTimeCounter;
     private float jumpBufferCounter;
@@ -178,7 +181,7 @@ public class PlatformPlayerController : MonoBehaviour
                 }
             }
 
-            if (gp.buttonSouth.wasReleasedThisFrame)
+            if (gp.buttonSouth.wasReleasedThisFrame && !isStunned)
                 jumpHeld = false;
 
             // Ataque
@@ -266,7 +269,7 @@ public class PlatformPlayerController : MonoBehaviour
             if (_jetpackAnimator != null) _jetpackAnimator.SetBool("Fire", false);
         }
 
-        if (!isKnockedBack)
+        if (!isKnockedBack && !isStunned)
         {
             Vector2 inputToUse = isForcedMove ? forcedMoveInput : moveInput;
             rb.linearVelocity = new Vector2(inputToUse.x * moveSpeed, rb.linearVelocity.y);
@@ -322,7 +325,7 @@ public class PlatformPlayerController : MonoBehaviour
     private void OnJumpPerformed(InputAction.CallbackContext context)
     {
         if (!IsCorrectDevice(context.control.device)) return;
-        if (isDead) return;
+        if (isDead || isStunned) return;
         jumpHeld = true;
 
         if (isGrounded || coyoteTimeCounter > 0f)
@@ -387,9 +390,18 @@ public class PlatformPlayerController : MonoBehaviour
     {
         if (isInvulnerable) return;
         if (shieldActive) { otherPlayer.ReceiveKnockback(-direction * shieldMultiplier); return; }
+
+        
+        bool wasAttacking = isAttacking;
+        isAttacking = false;           
+        punchHitbox?.Deactivate();     
+
         animator?.SetTrigger("Hurt");
-        rb.linearVelocity = direction * knockbackForce;
+        rb.linearVelocity = new Vector2(direction.x * knockbackForce, knockbackLift); // levantamiento
         StartCoroutine(KnockbackDuration());
+
+        if (!wasAttacking)             // solo stunearse si NO era golpe simultáneo
+            StartCoroutine(StunDuration());
     }
 
     private IEnumerator KnockbackDuration()
@@ -397,6 +409,13 @@ public class PlatformPlayerController : MonoBehaviour
         isKnockedBack = true;
         yield return new WaitForSeconds(0.3f);
         isKnockedBack = false;
+    }
+
+    private IEnumerator StunDuration()
+    {
+        isStunned = true;
+        yield return new WaitForSeconds(stunDuration);
+        isStunned = false;
     }
 
     private IEnumerator AttackCooldown()
@@ -441,8 +460,10 @@ public class PlatformPlayerController : MonoBehaviour
     {
         isDead = true;
         isKnockedBack = false;
+        isStunned = false;
         isAttacking = false;
         punchHitbox?.Deactivate();
+        ClearPowerUpState();
         rb.linearVelocity = Vector2.zero;
         rb.gravityScale = 0f;
         animator.SetTrigger("Die");
@@ -575,5 +596,23 @@ public class PlatformPlayerController : MonoBehaviour
         jumpHeld = true;
         yield return new WaitForSeconds(0.25f);
         jumpHeld = prevJumpHeld;
+    }
+
+    // Limpia efectos activos (shield, jetpack, mirror, gravedad)
+    public void ClearActivePowerUpEffects()
+    {
+        SetShield(false, 1f);
+        SetHeavyGravity(false, 0f);
+        SetMirrorControl(false, null);
+        SetJetpack(false, 0f);
+        isStunned = false;
+        isKnockedBack = false;
+    }
+
+    // Limpia power up en inventario + efectos activos (al morir)
+    public void ClearPowerUpState()
+    {
+        hasPowerUp = false;
+        ClearActivePowerUpEffects();
     }
 }
