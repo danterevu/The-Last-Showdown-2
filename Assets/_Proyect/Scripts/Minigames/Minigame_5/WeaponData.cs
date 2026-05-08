@@ -15,6 +15,9 @@ public class WeaponData : ScriptableObject
     public string weaponName = "Arma";
     public Sprite icon;                  // ícono que aparece en el HUD
 
+    [Header("Fire Points")]
+    public int[] firePointIndexes;
+
     [Header("Proyectil")]
     public GameObject projectilePrefab;  // prefab con Projectile.cs
     public float projectileSpeed = 12f;
@@ -26,6 +29,7 @@ public class WeaponData : ScriptableObject
 
     [Header("Munición")]
     public int maxAmmo = 30;
+
 
     [Header("Pistola - semi-automática")]
     [Tooltip("Delay mínimo entre disparos (evita spam de clicks)")]

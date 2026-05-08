@@ -54,11 +54,16 @@ public class ZoneCameraController : MonoBehaviour
 
     private void CalculateBounds(int index)
     {
-        // los limites son las posiciones de las paredes
-        maxY = wallsUp[index].position.y;
-        minY = wallsDown[index].position.y;
-        minX = wallsLeft[index].position.x;
-        maxX = wallsRight[index].position.x;
+        SpriteRenderer up = wallsUp[index].GetComponent<SpriteRenderer>();
+        SpriteRenderer down = wallsDown[index].GetComponent<SpriteRenderer>();
+        SpriteRenderer left = wallsLeft[index].GetComponent<SpriteRenderer>();
+        SpriteRenderer right = wallsRight[index].GetComponent<SpriteRenderer>();
+
+        maxY = up.bounds.min.y;
+        minY = down.bounds.max.y;
+
+        minX = left.bounds.max.x;
+        maxX = right.bounds.min.x;
     }
 
     private void LateUpdate()
