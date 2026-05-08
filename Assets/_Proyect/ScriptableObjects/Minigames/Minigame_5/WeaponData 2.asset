@@ -16,7 +16,8 @@ MonoBehaviour:
   weaponName: Arma
   icon: {fileID: -6492260497952362442, guid: 0639c26b650ec944288f99c2d595aa14, type: 3}
   firePointIndexes: 000000000100000002000000
-  projectilePrefab: {fileID: 2318206693037641433, guid: 114d55dccbffdb94f90be4de7ebe586e, type: 3}
+  player1ProjectilePrefab: {fileID: 2318206693037641433, guid: 114d55dccbffdb94f90be4de7ebe586e, type: 3}
+  player2ProjectilePrefab: {fileID: 2318206693037641433, guid: 1ba47984147479043957d4752c6d5032, type: 3}
   projectileSpeed: 12
   damage: 10
   range: 10

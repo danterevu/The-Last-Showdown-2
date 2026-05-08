@@ -1,16 +1,9 @@
 using UnityEngine;
 
-/// <summary>
-/// Va en el prefab de proyectil. Se mueve en línea recta y se destruye
-/// al alcanzar el rango o al impactar contra algo.
-///
-/// SETUP del prefab:
-///   - SpriteRenderer con el sprite del proyectil
-///   - Rigidbody2D: Gravity=0, Collision Detection=Continuous
-///   - CircleCollider2D con Is Trigger = true
-///   - Este script
-/// </summary>
+
 [RequireComponent(typeof(Rigidbody2D))]
+
+
 public class Projectile : MonoBehaviour
 {
     // -----------------------------------------------------------------------
@@ -72,7 +65,21 @@ public class Projectile : MonoBehaviour
         else if (other.CompareTag("Player2")) hitPlayer = 2;
         else
         {
-           
+            if (other.gameObject.layer == LayerMask.NameToLayer("InteractiveAsteroid"))
+            {
+                Rigidbody2D asteroidRb = other.attachedRigidbody;
+
+                if (asteroidRb != null)
+                {
+                    Vector2 pushDir =
+                        ((Vector2)other.transform.position - (Vector2)transform.position).normalized;
+
+                    asteroidRb.AddForce(
+                        pushDir * 5f,
+                        ForceMode2D.Impulse
+                    );
+                }
+            }
             // Impactó contra una pared u otro objeto
             Destroy(gameObject);
             return;

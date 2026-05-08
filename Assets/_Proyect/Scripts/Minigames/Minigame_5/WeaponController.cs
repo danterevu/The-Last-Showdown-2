@@ -313,7 +313,12 @@ public class WeaponController : MonoBehaviour
         float sizeMultiplier,
         Vector2? overrideDir = null)
     {
-        if (currentWeapon.projectilePrefab == null || shootPoint == null)
+        GameObject prefabToUse =
+        isPlayer1
+        ? currentWeapon.player1ProjectilePrefab
+        : currentWeapon.player2ProjectilePrefab;
+
+        if (prefabToUse == null || shootPoint == null)
             return;
 
         Vector2 dir = overrideDir ?? (Vector2)shootPoint.right;
@@ -325,9 +330,9 @@ public class WeaponController : MonoBehaviour
             Quaternion.Euler(0f, 0f, angle);
 
         GameObject obj = Instantiate(
-            currentWeapon.projectilePrefab,
-            shootPoint.position,
-            bulletRot
+        prefabToUse,
+        shootPoint.position,
+        bulletRot
         );
 
         if (!Mathf.Approximately(sizeMultiplier, 1f))

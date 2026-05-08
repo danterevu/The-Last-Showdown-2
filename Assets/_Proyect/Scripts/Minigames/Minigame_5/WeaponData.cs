@@ -18,8 +18,9 @@ public class WeaponData : ScriptableObject
     [Header("Fire Points")]
     public int[] firePointIndexes;
 
-    [Header("Proyectil")]
-    public GameObject projectilePrefab;  // prefab con Projectile.cs
+    [Header("Projectile Prefabs")]
+    public GameObject player1ProjectilePrefab;
+    public GameObject player2ProjectilePrefab;
     public float projectileSpeed = 12f;
     public float damage          = 10f;
 
