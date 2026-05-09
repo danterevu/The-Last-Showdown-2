@@ -7,7 +7,7 @@ public class PowerUpPickup : MonoBehaviour
 
     private PowerUpSpawner spawner;
     private Transform spawnPoint;
-
+    public GameObject explodeParticles;
     public enum PowerUpType
     {
         Cage,           // jaula alrededor del hardpoint
@@ -37,6 +37,14 @@ public class PowerUpPickup : MonoBehaviour
 
         player.ReceivePowerUp(type);
         spawner.OnPickupCollected(spawnPoint);
+        Explode();
+        Destroy(gameObject);
+       
+    }
+    public void Explode()
+    {
+        Instantiate(explodeParticles, transform.position, Quaternion.identity);
+
         Destroy(gameObject);
     }
 }

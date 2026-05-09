@@ -26,6 +26,12 @@ public class PlatformPlayerController : MonoBehaviour
     [SerializeField] private float stunDuration = 0.8f;
     [SerializeField] private float attackCooldown = 0.5f;
 
+    [Header("Crush")]
+    [SerializeField] private bool isCrushed = false;
+
+    [Header("Effects")]
+    [SerializeField] private GameObject hitParticles;
+
     [Header("Hitbox")]
     [SerializeField] private PunchHitbox punchHitbox;
 
@@ -154,6 +160,7 @@ public class PlatformPlayerController : MonoBehaviour
     {
         if (isDead) return;
         if (moveAction == null) return;
+        CheckWall();
 
         moveInput = ReadFilteredMove();
 
@@ -397,6 +404,22 @@ public class PlatformPlayerController : MonoBehaviour
         punchHitbox?.Deactivate();     
 
         animator?.SetTrigger("Hurt");
+        Quaternion rotation;
+
+        if (direction.x > 0)
+        {
+            rotation = Quaternion.Euler(0, 0, 180);
+        }
+        else
+        {
+            rotation = Quaternion.identity;
+        }
+
+        Vector3 hitPosition =
+     transform.position + new Vector3(direction.x * 0.5f, 0f, 0f);
+
+        Instantiate(hitParticles, hitPosition, rotation);
+      
         rb.linearVelocity = new Vector2(direction.x * knockbackForce, knockbackLift); // levantamiento
         StartCoroutine(KnockbackDuration());
 
@@ -430,7 +453,11 @@ public class PlatformPlayerController : MonoBehaviour
         if (other.CompareTag("Spike") && !isDead)
             StartCoroutine(Die());
     }
-
+    public void SetCrushed(bool crushed)
+    {
+        isCrushed = crushed;
+        animator?.SetBool("isCrushed", crushed);
+    }
     private void CheckGround()
     {
         if (rb.linearVelocity.y > 0.1f)
@@ -454,8 +481,19 @@ public class PlatformPlayerController : MonoBehaviour
                       (headRight.collider != null && headRight.collider.transform.root != transform);
 
         isGrounded = onGround || onHead;
-    }
 
+        
+       
+       
+    }
+    private void CheckWall()
+    {
+       
+        bool tryingToMove = Mathf.Abs(moveInput.x) > 0.1f;
+        bool blockedByWall = tryingToMove && Mathf.Abs(rb.linearVelocity.x) < 0.1f;
+
+        animator?.SetBool("isAgainstWall", blockedByWall);
+    }
     private IEnumerator Die()
     {
         isDead = true;
@@ -607,6 +645,8 @@ public class PlatformPlayerController : MonoBehaviour
         SetJetpack(false, 0f);
         isStunned = false;
         isKnockedBack = false;
+        isCrushed = false;
+        animator?.SetBool("isCrushed", false);
     }
 
     // Limpia power up en inventario + efectos activos (al morir)
