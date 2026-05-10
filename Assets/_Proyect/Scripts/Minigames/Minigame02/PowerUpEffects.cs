@@ -21,13 +21,12 @@ public class PowerUpEffects : MonoBehaviour
     [Header("Gravedad")]
     [SerializeField] private float heavyGravityScale = 15f;
     [SerializeField] private float heavyGravityDuration = 3f;
-    [SerializeField] private GameObject heavyGravityVFXPlayer1;
-    [SerializeField] private GameObject heavyGravityVFXPlayer2;
+    [SerializeField] private ParticleSystem heavyGravityVFXPlayer1;
+    [SerializeField] private ParticleSystem heavyGravityVFXPlayer2;
 
     [Header("Control Espejo")]
     [SerializeField] private float mirrorDuration = 4f;
-    [SerializeField] private GameObject mirrorVFXPlayer1;
-    [SerializeField] private GameObject mirrorVFXPlayer2;
+    // AfterImage se busca automaticamente en el jugador
 
     [Header("Jetpack")]
     [SerializeField] private float jetpackDuration = 5f;
@@ -40,13 +39,19 @@ public class PowerUpEffects : MonoBehaviour
     private int GetPlayerIndex(PlatformPlayerController player)
         => player.CompareTag("Player1") ? 1 : 2;
 
-    private GameObject GetVFX(GameObject vfx1, GameObject vfx2, int playerIndex)
-        => playerIndex == 1 ? vfx1 : vfx2;
-
-    private void Awake()
+    private void PlayVFX(ParticleSystem ps)
     {
-        if (jetpackObjectPlayer1 != null) jetpackObjectPlayer1.SetActive(false);
-        if (jetpackObjectPlayer2 != null) jetpackObjectPlayer2.SetActive(false);
+        if (ps == null) return;
+        ps.gameObject.SetActive(true);  // asegurarse que esté activo
+        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        ps.Play();
+    }
+
+    private void StopVFX(ParticleSystem ps)
+    {
+        if (ps == null) return;
+        ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        ps.gameObject.SetActive(false); // desactivar al terminar
     }
 
     // JAULA
@@ -67,14 +72,14 @@ public class PowerUpEffects : MonoBehaviour
     public IEnumerator ActivateShield(PlatformPlayerController user)
     {
         int idx = GetPlayerIndex(user);
-        GameObject vfx = GetVFX(shieldVFXPlayer1, shieldVFXPlayer2, idx);
-        if (vfx) vfx.SetActive(true);
+        GameObject vfx = idx == 1 ? shieldVFXPlayer1 : shieldVFXPlayer2;
+        if (vfx != null) vfx.SetActive(true);
 
         user.SetShield(true, shieldKnockbackMultiplier);
         yield return new WaitForSeconds(shieldDuration);
         user.SetShield(false, 1f);
 
-        if (vfx) vfx.SetActive(false);
+        if (vfx != null) vfx.SetActive(false);
     }
 
     // GANCHO
@@ -99,7 +104,6 @@ public class PowerUpEffects : MonoBehaviour
 
         if (blocked)
         {
-            Debug.Log("Gancho bloqueado");
             if (hookLine != null)
             {
                 hookLine.enabled = true;
@@ -142,28 +146,33 @@ public class PowerUpEffects : MonoBehaviour
     public IEnumerator ActivateHeavyGravity(PlatformPlayerController target)
     {
         int idx = GetPlayerIndex(target);
-        GameObject vfx = GetVFX(heavyGravityVFXPlayer1, heavyGravityVFXPlayer2, idx);
-        if (vfx) vfx.SetActive(true);
+        ParticleSystem vfx = idx == 1 ? heavyGravityVFXPlayer1 : heavyGravityVFXPlayer2;
+        PlayVFX(vfx);
 
         target.SetHeavyGravity(true, heavyGravityScale);
-        yield return new WaitForSeconds(heavyGravityDuration);
-        target.SetHeavyGravity(false, 0f);
+        target.SetCrushed(true);
 
-        if (vfx) vfx.SetActive(false);
+        yield return new WaitForSeconds(heavyGravityDuration);
+
+        target.SetHeavyGravity(false, 0f);
+        target.SetCrushed(false);
+
+        StopVFX(vfx);
     }
 
     // CONTROL ESPEJO
     public IEnumerator ActivateMirrorControl(PlatformPlayerController user, PlatformPlayerController target)
     {
-        int idx = GetPlayerIndex(user);
-        GameObject vfx = GetVFX(mirrorVFXPlayer1, mirrorVFXPlayer2, idx);
-        if (vfx) vfx.SetActive(true);
+        // ANTES: user.GetComponent
+        // DESPUÉS: target.GetComponent
+        AfterImageEffect afterImage = target.GetComponent<AfterImageEffect>();
+        afterImage?.StartEffect(true);
 
         user.SetMirrorControl(true, target);
         yield return new WaitForSeconds(mirrorDuration);
         user.SetMirrorControl(false, null);
 
-        if (vfx) vfx.SetActive(false);
+        afterImage?.StopEffect();
     }
 
     // JETPACK
@@ -172,36 +181,30 @@ public class PowerUpEffects : MonoBehaviour
         int idx = GetPlayerIndex(user);
         GameObject jetpackObj = idx == 1 ? jetpackObjectPlayer1 : jetpackObjectPlayer2;
         Animator jetpackAnim = idx == 1 ? jetpackAnimatorPlayer1 : jetpackAnimatorPlayer2;
-        Debug.Log("jetpackObj: " + jetpackObj + " | jetpackAnim: " + jetpackAnim);
+
         user.SetJetpack(true, jetpackForce, jetpackObj, jetpackAnim);
-
         yield return new WaitForSeconds(jetpackDuration);
-
         user.SetJetpack(false, 0f, null, null);
-        //hola
     }
 
-    // Cancela todos los efectos activos (se llama al cambiar de zona)
+    // CANCEL ALL
     public void CancelAll(PlatformPlayerController p1, PlatformPlayerController p2)
     {
-        StopAllCoroutines(); // detiene shield, gancho, jaula, etc.
+        StopAllCoroutines();
 
-        // apagar todos los VFX
-        if (shieldVFXPlayer1) shieldVFXPlayer1.SetActive(false);
-        if (shieldVFXPlayer2) shieldVFXPlayer2.SetActive(false);
-        if (heavyGravityVFXPlayer1) heavyGravityVFXPlayer1.SetActive(false);
-        if (heavyGravityVFXPlayer2) heavyGravityVFXPlayer2.SetActive(false);
-        if (mirrorVFXPlayer1) mirrorVFXPlayer1.SetActive(false);
-        if (mirrorVFXPlayer2) mirrorVFXPlayer2.SetActive(false);
-        if (jetpackObjectPlayer1) jetpackObjectPlayer1.SetActive(false);
-        if (jetpackObjectPlayer2) jetpackObjectPlayer2.SetActive(false);
+        StopVFX(heavyGravityVFXPlayer1);
+        StopVFX(heavyGravityVFXPlayer2);
 
-        // apagar jaulas de todas las zonas
-        foreach (var cage in cagesByZone)
-            if (cage) cage.SetActive(false);
+        if (shieldVFXPlayer1 != null) shieldVFXPlayer1.SetActive(false);
+        if (shieldVFXPlayer2 != null) shieldVFXPlayer2.SetActive(false);
 
-        // limpiar estado en los jugadores
-        p1?.ClearActivePowerUpEffects();
-        p2?.ClearActivePowerUpEffects();
+        p1.GetComponent<AfterImageEffect>()?.StopEffect();
+        p2.GetComponent<AfterImageEffect>()?.StopEffect();
+
+        p1.ClearActivePowerUpEffects();
+        p2.ClearActivePowerUpEffects();
+ 
+        p1.GetComponent<AfterImageEffect>()?.StopEffect();
+        p2.GetComponent<AfterImageEffect>()?.StopEffect();
     }
 }
