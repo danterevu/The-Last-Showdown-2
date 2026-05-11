@@ -1,12 +1,17 @@
 using UnityEngine;
 
+public interface IPlayerController
+{
+    void SetCrushed(bool crushed);
+}
+
 public class HeadCollider : MonoBehaviour
 {
-    private PlatformPlayerController owner;
+    private IPlayerController owner;
 
     private void Awake()
     {
-        owner = GetComponentInParent<PlatformPlayerController>();
+        owner = GetComponentInParent<IPlayerController>();
     }
 
     private void OnTriggerEnter2D(Collider2D other)

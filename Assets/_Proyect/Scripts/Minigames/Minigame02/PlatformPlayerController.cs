@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
 
-public class PlatformPlayerController : MonoBehaviour
+public class PlatformPlayerController : MonoBehaviour, IPlayerController
 {
     [Header("Movimiento")]
     [SerializeField] private float moveSpeed = 5f;

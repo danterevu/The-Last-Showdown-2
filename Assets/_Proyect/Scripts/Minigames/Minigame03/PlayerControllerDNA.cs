@@ -2,8 +2,11 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
 
-public class PlayerControllerDNA : MonoBehaviour
+public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 {
+    [Header("Crush")]
+    [SerializeField] private bool isCrushed = false;
+
     [Header("Movimiento")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float gravityScale = 4f;
@@ -384,6 +387,11 @@ public class PlayerControllerDNA : MonoBehaviour
         StartCoroutine(Invulnerable());
     }
 
+    public void SetCrushed(bool crushed)
+    {
+        isCrushed = crushed;
+        animator?.SetBool("isCrushed", crushed);
+    }
     private IEnumerator Invulnerable()
     {
         isInvulnerable = true;
