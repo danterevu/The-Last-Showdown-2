@@ -199,6 +199,21 @@ public class PlayerControllerDNA : MonoBehaviour
 
         ApplyBetterGravity();
     }
+    private void LateUpdate()
+    {
+        if (punchHitbox != null)
+        {
+            // posicion
+            Vector3 pos = punchHitbox.transform.localPosition;
+            pos.x = IsFacingRight() ? Mathf.Abs(pos.x) : -Mathf.Abs(pos.x);
+            punchHitbox.transform.localPosition = pos;
+
+            // escala - esto soluciona el estiramiento
+            Vector3 scale = punchHitbox.transform.localScale;
+            scale.x = IsFacingRight() ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
+            punchHitbox.transform.localScale = scale;
+        }
+    }
 
     private Vector2 ReadFilteredMove()
     {
