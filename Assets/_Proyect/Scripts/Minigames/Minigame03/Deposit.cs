@@ -2,24 +2,27 @@ using UnityEngine;
 
 public class Deposit : MonoBehaviour
 {
+    [SerializeField] private int allowedPlayer; // 1 o 2, se setea en el Inspector
+    [SerializeField] private DNA dna; //GameObject del DNA acá
+
+    public static event System.Action OnAnyDeposit;
+
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        PlatformPlayerController controller = collision.GetComponent<PlatformPlayerController>();
+        PlayerControllerDNA controller = collision.GetComponent<PlayerControllerDNA>();
+        if (controller == null || !controller.HasDNA()) return;
 
-        if (controller != null && controller.HasDNA())
-        {
-            if (collision.CompareTag("Player1"))
-            {
-                GameManager.Instance.player1Score += 50; // problemas en el puntaje
-                Debug.Log("Player 1 depositó DNA");
-            }
-            else if (collision.CompareTag("Player2"))
-            {
-                GameManager.Instance.player2Score += 50;
-                Debug.Log("Player 2 depositó DNA");
-            }
+        // Verificar que sea el jugador correcto
+        int playerTag = collision.CompareTag("Player1") ? 1 : collision.CompareTag("Player2") ? 2 : 0;
+        if (playerTag != allowedPlayer) return;
 
-            controller.DropDNA(); // pierde el DNA
-        }
+        // Sumar puntos usando AddPoints para que respete multiplicadores
+        GameManager.Instance.AddPoints(allowedPlayer, 50);
+        OnAnyDeposit?.Invoke(); // avisar a todos los botones 
+        controller.DropDNA();
+
+        Debug.Log($"Jugador {allowedPlayer} depositó DNA");
+        dna.RespawnAfterDelay(); //llama a la funcion de dna
     }
 }

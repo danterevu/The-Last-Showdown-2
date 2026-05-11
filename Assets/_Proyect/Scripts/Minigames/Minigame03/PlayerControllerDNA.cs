@@ -2,11 +2,13 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
 
-public class PlatformPlayerController : MonoBehaviour
+public class PlayerControllerDNA : MonoBehaviour
 {
     [Header("Movimiento")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float gravityScale = 4f;
+    private float baseMoveSpeed;
+
 
     [Header("Salto")]
     [SerializeField] private float jumpForce = 12f;
@@ -20,22 +22,15 @@ public class PlatformPlayerController : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
 
     [Header("Golpe")]
-    [SerializeField] private float knockbackForce = 12f;
-    [SerializeField] private float selfKnockback = 4f; public float SelfKnockback => selfKnockback;
-    [SerializeField] private float knockbackLift = 5f;     //Levantamiento
-    [SerializeField] private float stunDuration = 0.8f;
+    [SerializeField] private float knockbackForce;
+    [SerializeField] private float selfKnockback; public float SelfKnockback => selfKnockback;
     [SerializeField] private float attackCooldown = 0.5f;
 
-    [Header("Crush")]
-    [SerializeField] private bool isCrushed = false;
-
-    [Header("Effects")]
-    [SerializeField] private GameObject hitParticles;
-
     [Header("Hitbox")]
-    [SerializeField] private PunchHitbox punchHitbox;
+    [SerializeField] private PunchHitboxDNA punchHitbox;
 
     [Header("DNA")]
+    private DNA carriedDNA;
     public bool hasDNA = false;
 
     [Header("Respawn")]
@@ -54,45 +49,10 @@ public class PlatformPlayerController : MonoBehaviour
     [SerializeField] private bool canAttack = true;
     [SerializeField] private bool isAttacking = false;
     [SerializeField] private bool isKnockedBack = false;
-    [SerializeField] private bool isStunned = false;
 
     private float coyoteTimeCounter;
     private float jumpBufferCounter;
     private bool jumpHeld = false;
-
-    // shield
-    private bool shieldActive = false;
-    private float shieldMultiplier = 1f;
-
-    // doble salto
-    private bool doubleJumpEnabled = false;
-    private bool usedDoubleJump = true;
-
-    // gravedad pesada
-    private bool heavyGravityActive = false;
-    private float heavyGravityValue = 0f;
-
-    // control espejo
-    private bool mirrorActive = false;
-    private PlatformPlayerController mirrorTarget = null;
-    private bool isForcedMove = false;
-    private Vector2 forcedMoveInput = Vector2.zero;
-
-    // mirror jump
-    private bool mirrorJumpPending = false;
-
-    // controles invertidos
-    private bool invertControls = false;
-
-    // jetpack
-    private bool jetpackActive = false;
-    private float jetpackForce = 0f;
-    private GameObject _jetpackObject;
-    private Animator _jetpackAnimator;
-
-    // hook
-    private bool hasRawVelocityOverride = false;
-    private Vector2 rawVelocityOverride = Vector2.zero;
 
     [Header("PowerUp")]
     [SerializeField] private PowerUpPickup.PowerUpType currentPowerUp;
@@ -108,10 +68,7 @@ public class PlatformPlayerController : MonoBehaviour
     private InputAction interactAction;
     private Vector2 moveInput;
 
-    private PlatformPlayerController otherPlayer;
     private Vector3 spawnPoint;
-    private SpriteRenderer _jetpackSR;
-    private KingOfHill manager;
 
     private void Awake()
     {
@@ -119,9 +76,7 @@ public class PlatformPlayerController : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         col = GetComponent<Collider2D>();
         animator = GetComponent<Animator>();
-
-        // desactivar jetpack al inicio
-        if (_jetpackObject != null) _jetpackObject.SetActive(false);
+        baseMoveSpeed = moveSpeed;
     }
 
     private void OnEnable() { SetupInput(); }
@@ -160,7 +115,6 @@ public class PlatformPlayerController : MonoBehaviour
     {
         if (isDead) return;
         if (moveAction == null) return;
-        CheckWall();
 
         moveInput = ReadFilteredMove();
 
@@ -174,21 +128,14 @@ public class PlatformPlayerController : MonoBehaviour
                 if (isGrounded || coyoteTimeCounter > 0f)
                 {
                     ExecuteJump();
-                    if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
                 }
-                else if (doubleJumpEnabled && !usedDoubleJump)
-                {
-                    ExecuteJump();
-                    usedDoubleJump = true;
-                    if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
-                }
-                else
+                else if (jumpBufferCounter <= 0f)
                 {
                     jumpBufferCounter = jumpBufferTime;
                 }
             }
 
-            if (gp.buttonSouth.wasReleasedThisFrame && !isStunned)
+            if (gp.buttonSouth.wasReleasedThisFrame)
                 jumpHeld = false;
 
             // Ataque
@@ -203,6 +150,13 @@ public class PlatformPlayerController : MonoBehaviour
             }
         }
 
+        // Mover hitbox al lado correcto
+        if (punchHitbox != null)
+        {
+            Vector3 pos = punchHitbox.transform.localPosition;
+            pos.x = IsFacingRight() ? Mathf.Abs(pos.x) : -Mathf.Abs(pos.x);
+            punchHitbox.transform.localPosition = pos;
+        }
 
         CheckGround();
 
@@ -213,12 +167,9 @@ public class PlatformPlayerController : MonoBehaviour
             animator.SetBool("isGrounded", isGrounded);
         }
 
-        if (invertControls) moveInput = -moveInput;
-
         if (isGrounded)
         {
             coyoteTimeCounter = coyoteTime;
-            if (doubleJumpEnabled) usedDoubleJump = false;
         }
         else
         {
@@ -231,53 +182,22 @@ public class PlatformPlayerController : MonoBehaviour
             if (isGrounded || coyoteTimeCounter > 0f) ExecuteJump();
         }
 
-        if (mirrorJumpPending)
-        {
-            mirrorJumpPending = false;
-            StartCoroutine(MirrorJumpCoroutine());
-            if (isGrounded || coyoteTimeCounter > 0f)
-                ExecuteJump();
-        }
-
         if (moveInput.x > 0.01f) sr.flipX = false;
         else if (moveInput.x < -0.01f) sr.flipX = true;
-
-        if (_jetpackSR != null) _jetpackSR.flipX = sr.flipX;
     }
 
     private void FixedUpdate()
     {
         if (isDead) return;
 
-        rb.gravityScale = heavyGravityActive ? heavyGravityValue : gravityScale;
+        rb.gravityScale = gravityScale;
 
-        if (hasRawVelocityOverride)
+        if (!isKnockedBack)
         {
-            rb.linearVelocity = rawVelocityOverride;
-            hasRawVelocityOverride = false;
-            ApplyBetterGravity();
-            return;
-        }
-
-        if (jetpackActive && jumpHeld)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jetpackForce);
-            if (_jetpackAnimator != null) _jetpackAnimator.SetBool("Fire", true);
-        }
-        else if (jetpackActive)
-        {
-            if (_jetpackAnimator != null) _jetpackAnimator.SetBool("Fire", false);
-        }
-
-        if (!isKnockedBack && !isStunned)
-        {
-            Vector2 inputToUse = isForcedMove ? forcedMoveInput : moveInput;
-            rb.linearVelocity = new Vector2(inputToUse.x * moveSpeed, rb.linearVelocity.y);
-            isForcedMove = false;
+            rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
         }
 
         ApplyBetterGravity();
-        ApplyMirrorControl();
     }
 
     private Vector2 ReadFilteredMove()
@@ -325,38 +245,23 @@ public class PlatformPlayerController : MonoBehaviour
     private void OnJumpPerformed(InputAction.CallbackContext context)
     {
         if (!IsCorrectDevice(context.control.device)) return;
-        if (isDead || isStunned) return;
+        if (isDead) return;
         jumpHeld = true;
 
         if (isGrounded || coyoteTimeCounter > 0f)
-        {
             ExecuteJump();
-            if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
-        }
-        else if (doubleJumpEnabled && !usedDoubleJump)
-        {
-            ExecuteJump();
-            usedDoubleJump = true;
-            if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
-        }
         else
-        {
             jumpBufferCounter = jumpBufferTime;
-        }
     }
 
     private void OnJumpCanceled(InputAction.CallbackContext context) { jumpHeld = false; }
 
-   
     private void ExecuteJump()
     {
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         coyoteTimeCounter = 0f;
         jumpBufferCounter = 0f;
         isGrounded = false;
-
-        if (jetpackActive && _jetpackAnimator != null)
-            _jetpackAnimator.SetTrigger("Fire");
     }
 
     private void OnAttack(InputAction.CallbackContext context)
@@ -367,7 +272,7 @@ public class PlatformPlayerController : MonoBehaviour
 
     private void TryAttack()
     {
-        if (isDead || !canAttack || isAttacking) return;
+        if (isDead || !canAttack || isAttacking || hasDNA) return;
         isAttacking = true;
         animator.SetTrigger("Attack");
         StartCoroutine(AttackCooldown());
@@ -389,35 +294,15 @@ public class PlatformPlayerController : MonoBehaviour
     public void ReceiveKnockback(Vector2 direction)
     {
         if (isInvulnerable) return;
-        if (shieldActive) { otherPlayer.ReceiveKnockback(-direction * shieldMultiplier); return; }
-
-        
-        bool wasAttacking = isAttacking;
-        isAttacking = false;           
-        punchHitbox?.Deactivate();     
-
         animator?.SetTrigger("Hurt");
-        Quaternion rotation;
-
-        if (direction.x > 0)
-        {
-            rotation = Quaternion.Euler(0, 0, 180);
-        }
-        else
-        {
-            rotation = Quaternion.identity;
-        }
-
-        Vector3 hitPosition =
-     transform.position + new Vector3(direction.x * 0.5f, 0f, 0f);
-
-        Instantiate(hitParticles, hitPosition, rotation);
-      
-        rb.linearVelocity = new Vector2(direction.x * knockbackForce, knockbackLift); // levantamiento
+        rb.linearVelocity = direction * knockbackForce;
         StartCoroutine(KnockbackDuration());
-
-        if (!wasAttacking)             // solo stunearse si NO era golpe simultáneo
-            StartCoroutine(StunDuration());
+    }
+    public void ApplySelfKnockback(float dirX)
+    {
+        rb.linearVelocity = new Vector2(-dirX * selfKnockback, selfKnockback * 0.3f);
+        //Debug.Log($"SelfKnockback ejecutado | velocidad aplicada: {-dirX * selfKnockback}, {selfKnockback * 0.3f}");
+        StartCoroutine(KnockbackDuration()); // isKnockedBack = true para que FixedUpdate no lo pise
     }
 
     private IEnumerator KnockbackDuration()
@@ -425,13 +310,6 @@ public class PlatformPlayerController : MonoBehaviour
         isKnockedBack = true;
         yield return new WaitForSeconds(0.3f);
         isKnockedBack = false;
-    }
-
-    private IEnumerator StunDuration()
-    {
-        isStunned = true;
-        yield return new WaitForSeconds(stunDuration);
-        isStunned = false;
     }
 
     private IEnumerator AttackCooldown()
@@ -443,14 +321,10 @@ public class PlatformPlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Spike") && !isDead)
+        if (other.CompareTag("Spike") && !isDead && !isInvulnerable)
             StartCoroutine(Die());
     }
-    public void SetCrushed(bool crushed)
-    {
-        isCrushed = crushed;
-        animator?.SetBool("isCrushed", crushed);
-    }
+
     private void CheckGround()
     {
         if (rb.linearVelocity.y > 0.1f)
@@ -474,27 +348,14 @@ public class PlatformPlayerController : MonoBehaviour
                       (headRight.collider != null && headRight.collider.transform.root != transform);
 
         isGrounded = onGround || onHead;
-
-        
-       
-       
     }
-    private void CheckWall()
-    {
-       
-        bool tryingToMove = Mathf.Abs(moveInput.x) > 0.1f;
-        bool blockedByWall = tryingToMove && Mathf.Abs(rb.linearVelocity.x) < 0.1f;
 
-        animator?.SetBool("isAgainstWall", blockedByWall);
-    }
     private IEnumerator Die()
     {
         isDead = true;
         isKnockedBack = false;
-        isStunned = false;
         isAttacking = false;
         punchHitbox?.Deactivate();
-        ClearPowerUpState();
         rb.linearVelocity = Vector2.zero;
         rb.gravityScale = 0f;
         animator.SetTrigger("Die");
@@ -537,19 +398,14 @@ public class PlatformPlayerController : MonoBehaviour
         return false;
     }
 
+    // Power ups — implementar según el nuevo minijuego
     private void UsePowerUp()
     {
-        if (!hasPowerUp || manager == null)
-        {
-            Debug.Log(gameObject.name + " sin powerup o manager nulo");
-            return;
-        }
+        if (!hasPowerUp) return;
         Debug.Log(gameObject.name + " usando: " + currentPowerUp);
-        hasPowerUp = false;
-        manager.ActivatePowerUp(currentPowerUp, this, otherPlayer);
+        // TODO: implementar lógica de power ups del nuevo minijuego
     }
 
-    public bool IsFacingRight() => !sr.flipX;
     public bool HasPowerUp() => hasPowerUp;
     public PowerUpPickup.PowerUpType GetCurrentPowerUp() => currentPowerUp;
 
@@ -560,102 +416,38 @@ public class PlatformPlayerController : MonoBehaviour
         Debug.Log(gameObject.name + " recibio: " + type);
     }
 
-    public void SetShield(bool active, float multiplier) { shieldActive = active; shieldMultiplier = multiplier; }
-
-    public void SetDoubleJump(bool active)
-    {
-        doubleJumpEnabled = active;
-        usedDoubleJump = !active;
-    }
-
-    public void SetHeavyGravity(bool active, float gravityValue) { heavyGravityActive = active; heavyGravityValue = gravityValue; }
-    public void SetMirrorControl(bool active, PlatformPlayerController target) { mirrorActive = active; mirrorTarget = target; }
-    public void TriggerMirrorJump() { mirrorJumpPending = true; }
-
-    private void ApplyMirrorControl()
-    {
-        if (!mirrorActive || mirrorTarget == null) return;
-        mirrorTarget.ForceMove(moveInput);
-    }
-
-    public void ForceMove(Vector2 input) { isForcedMove = true; forcedMoveInput = input; }
-    public void ForceJump() { if (isGrounded) ExecuteJump(); }
-    public void ForceVelocity(Vector2 velocity) { isForcedMove = true; rb.linearVelocity = velocity; }
-    public void ForceVelocityRaw(Vector2 velocity) { hasRawVelocityOverride = true; rawVelocityOverride = velocity; }
-    public void SetInvertControls(bool active) { invertControls = active; }
-    // Reemplazar los dos SetJetpack por uno solo:
-    public void SetJetpack(bool active, float force, GameObject jetpackObject = null, Animator jetpackAnimator = null)
-    {
-        jetpackActive = active;
-        jetpackForce = force;
-
-        if (active)
-        {
-            _jetpackObject = jetpackObject;
-            _jetpackAnimator = jetpackAnimator;
-            _jetpackSR = _jetpackObject != null ? _jetpackObject.GetComponent<SpriteRenderer>() : null;
-            if (_jetpackObject != null) _jetpackObject.SetActive(true);
-        }
-        else
-        {
-            if (_jetpackObject != null) _jetpackObject.SetActive(false);
-            _jetpackSR = null;
-            _jetpackObject = null;
-            _jetpackAnimator = null;
-        }
-    }
-
-    public Collider2D GetCollider() => col;
-    public Rigidbody2D GetRigidbody() => rb;
-
-    public void SetSpawnPoint(Vector3 point) { spawnPoint = point; }
-    public void SetOtherPlayer(PlatformPlayerController other) { otherPlayer = other; }
-    public void SetManager(KingOfHill m) { manager = m; }
-    public void ForceRespawn() { if (!isDead) StartCoroutine(Die()); }
-
-    private IEnumerator MirrorJumpCoroutine()
-    {
-        rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-        coyoteTimeCounter = 0f;
-        jumpBufferCounter = 0f;
-        bool prevJumpHeld = jumpHeld;
-        jumpHeld = true;
-        yield return new WaitForSeconds(0.25f);
-        jumpHeld = prevJumpHeld;
-    }
-
-    // Limpia efectos activos (shield, jetpack, mirror, gravedad)
-    public void ClearActivePowerUpEffects()
-    {
-        SetShield(false, 1f);
-        SetHeavyGravity(false, 0f);
-        SetMirrorControl(false, null);
-        SetJetpack(false, 0f);
-        isStunned = false;
-        isKnockedBack = false;
-        isCrushed = false;
-        animator?.SetBool("isCrushed", false);
-    }
-
-    // Limpia power up en inventario + efectos activos (al morir)
     public void ClearPowerUpState()
     {
         hasPowerUp = false;
         ClearActivePowerUpEffects();
     }
-    private void LateUpdate()
-    {
-        if (punchHitbox != null)
-        {
-            // posicion
-            Vector3 pos = punchHitbox.transform.localPosition;
-            pos.x = IsFacingRight() ? Mathf.Abs(pos.x) : -Mathf.Abs(pos.x);
-            punchHitbox.transform.localPosition = pos;
 
-            // escala - esto soluciona el estiramiento
-            Vector3 scale = punchHitbox.transform.localScale;
-            scale.x = IsFacingRight() ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
-            punchHitbox.transform.localScale = scale;
-        }
+    public void ClearActivePowerUpEffects()
+    {
+        // TODO: limpiar efectos activos del nuevo minijuego
     }
+
+    public bool IsFacingRight() => !sr.flipX;
+    public Collider2D GetCollider() => col;
+    public Rigidbody2D GetRigidbody() => rb;
+    public void SetSpawnPoint(Vector3 point) { spawnPoint = point; }
+
+    // Mutant DNA
+    public bool HasDNA() => hasDNA;
+    public void PickDNA(DNA dna)
+    {
+        hasDNA = true;
+        carriedDNA = dna;
+        moveSpeed = baseMoveSpeed * 0.6f;
+    }
+
+    public void DropDNA()
+    {
+        hasDNA = false;
+        carriedDNA = null;
+        moveSpeed = baseMoveSpeed;
+    }
+
+    public DNA GetCarriedDNA() => carriedDNA;
+
 }

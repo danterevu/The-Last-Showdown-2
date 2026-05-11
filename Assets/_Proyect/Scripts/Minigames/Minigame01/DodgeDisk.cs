@@ -10,8 +10,8 @@
         [SerializeField] private float invulnerableTime = 3f;
 
         [Header("References")]
-    [SerializeField] private HUDManager hudManager;
-    [SerializeField] private DiskMovement diskMovement;
+        [SerializeField] private HUDManager hudManager;
+        [SerializeField] private DiskMovement diskMovement;
         [SerializeField] private Collider2D diskCollider;
         [SerializeField] private Transform diskSpawnPoint;
         [SerializeField] private GameObject player1;
