@@ -12,6 +12,7 @@ public class PunchHitbox : MonoBehaviour
         hitbox.enabled = false; // empieza desactivada
     }
 
+
     public void Activate() => hitbox.enabled = true;
     public void Deactivate() => hitbox.enabled = false;
 
