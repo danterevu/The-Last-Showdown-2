@@ -64,6 +64,8 @@ public class DiskMovement : MonoBehaviour
     {
         bool hitHorizontalWall = Mathf.Abs(impactNormal.x) > Mathf.Abs(impactNormal.y);
 
+      
+            
         Vector3 squashedScale = hitHorizontalWall
             ? new Vector3(originalScale.x * (1 - squashAmount), originalScale.y * (1f + stretchAmount), originalScale.z)
             : new Vector3(originalScale.x * (1f + stretchAmount), originalScale.y * (1f - squashAmount), originalScale.z);
@@ -83,6 +85,8 @@ public class DiskMovement : MonoBehaviour
     {
         Vector2 normal = collision.contacts[0].normal;
         direction = Vector2.Reflect(direction, normal).normalized; //rebota y se normaliza
+
+        AudioManager.Instance?.PlaySFX(SoundID.BounceDisk);
 
         // TRUCO: Si la dirección en algún eje es casi 0, le damos un empujoncito
         // para evitar que se quede pegado o rebote perfectamente recto.

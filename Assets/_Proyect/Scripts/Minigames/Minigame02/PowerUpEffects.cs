@@ -135,7 +135,7 @@ public class PowerUpEffects : MonoBehaviour
 
         cage.SetActive(false);
     }
-
+    
     // ESCUDO
     public IEnumerator ActivateShield(PlatformPlayerController user)
     {
