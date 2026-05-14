@@ -70,11 +70,17 @@ public class SpaceMinigame : MonoBehaviour
         hudRounds?.UpdateKills(0, 0);
         hudRounds?.UpdateRounds(0, 0);
         hudRounds?.UpdateCurrentRound(1);
+        StartCoroutine(InitDelayed());
+    }
+    private IEnumerator InitDelayed()
+    {
+        // esperar un frame para que todo este inicializado
+        yield return null;
+
         ActivateZone(0);
         DoRespawn(player1, player1Spawns[0]);
         DoRespawn(player2, player2Spawns[0]);
     }
-
     public void RegisterKill(int killer, int victim)
     {
         Debug.Log($"RegisterKill killer={killer} victim={victim} p1Inv={p1Invulnerable} p2Inv={p2Invulnerable} roundOver={roundOver}");

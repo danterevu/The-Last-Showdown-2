@@ -209,7 +209,8 @@ public class KingOfHill : MonoBehaviour
                 StartCoroutine(powerUpEffects.ActivateJetpack(user));
                 break;
             case PowerUpPickup.PowerUpType.Cage:
-                StartCoroutine(powerUpEffects.ActivateCage(currentZoneIndex)); 
+                int cageOwner = user.CompareTag("Player1") ? 1 : 2;
+                StartCoroutine(powerUpEffects.ActivateCage(currentZoneIndex, cageOwner));
                 break;
         }
     }

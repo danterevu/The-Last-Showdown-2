@@ -36,6 +36,11 @@ public class PowerUpEffects : MonoBehaviour
     [SerializeField] private Animator jetpackAnimatorPlayer1;
     [SerializeField] private Animator jetpackAnimatorPlayer2;
 
+   
+
+    [Header("Colores jaula")]
+    [SerializeField] private Color cageColorPlayer1 = Color.blue;
+    [SerializeField] private Color cageColorPlayer2 = Color.red;
     private int GetPlayerIndex(PlatformPlayerController player)
         => player.CompareTag("Player1") ? 1 : 2;
 
@@ -55,16 +60,79 @@ public class PowerUpEffects : MonoBehaviour
     }
 
     // JAULA
-    public IEnumerator ActivateCage(int zoneIndex)
+    public IEnumerator ActivateCage(int zoneIndex, int playerIndex)
     {
         if (zoneIndex < 0 || zoneIndex >= cagesByZone.Length)
-        {
-            Debug.LogWarning("ActivateCage: zoneIndex fuera de rango: " + zoneIndex);
             yield break;
-        }
+
         GameObject cage = cagesByZone[zoneIndex];
+
+        SpriteRenderer[] renderers = cage.GetComponentsInChildren<SpriteRenderer>();
+        Animator anim = cage.GetComponent<Animator>();
+
+        Color cageColor = playerIndex == 1 ? cageColorPlayer1 : cageColorPlayer2;
+
+        foreach (SpriteRenderer sr in renderers)
+            sr.color = cageColor;
+
         cage.SetActive(true);
-        yield return new WaitForSeconds(cageDuration);
+
+        if (anim != null)
+            anim.SetBool("Active", true);
+
+        float timeLeft = cageDuration;
+        float warningTime = 0.75f;
+
+        bool visible = true;
+
+        while (timeLeft > 0)
+        {
+            timeLeft -= Time.deltaTime;
+
+            // parpadeo suave en los últimos segundos
+            if (timeLeft <= warningTime)
+            {
+                float blinkSpeed = 6f;
+
+                visible = Mathf.FloorToInt(Time.time * blinkSpeed) % 2 == 0;
+
+                foreach (SpriteRenderer sr in renderers)
+                {
+                    Color c = sr.color;
+                    c.a = visible ? 0.4f : 1f; // leve flicker
+                    sr.color = c;
+                }
+            }
+
+            yield return null;
+        }
+
+        // fade out 
+        float fade = 1f;
+
+        if (anim != null)
+            anim.SetBool("Active", false);
+
+        while (fade > 0)
+        {
+            fade -= Time.deltaTime * 2f;
+
+            foreach (SpriteRenderer sr in renderers)
+            {
+                Color c = sr.color;
+                c.a = fade;
+                sr.color = c;
+            }
+
+            yield return null;
+        }
+
+        // reset 
+        foreach (SpriteRenderer sr in renderers)
+        {
+            sr.color = Color.white;
+        }
+
         cage.SetActive(false);
     }
 
@@ -182,9 +250,59 @@ public class PowerUpEffects : MonoBehaviour
         GameObject jetpackObj = idx == 1 ? jetpackObjectPlayer1 : jetpackObjectPlayer2;
         Animator jetpackAnim = idx == 1 ? jetpackAnimatorPlayer1 : jetpackAnimatorPlayer2;
 
+        SpriteRenderer sr = jetpackObj != null ? jetpackObj.GetComponent<SpriteRenderer>() : null;
+
         user.SetJetpack(true, jetpackForce, jetpackObj, jetpackAnim);
-        yield return new WaitForSeconds(jetpackDuration);
+
+        float timeLeft = jetpackDuration;
+        float blinkStart = 2.0f; // últimos 2 segundos
+
+        bool visible = true;
+        Color originalColor = sr != null ? sr.color : Color.white;
+
+        while (timeLeft > 0)
+        {
+            timeLeft -= Time.deltaTime;
+
+            // parpadeo rojo
+            if (timeLeft <= blinkStart && sr != null)
+            {
+                float blinkSpeed = 10f;
+
+                visible = Mathf.FloorToInt(Time.time * blinkSpeed) % 2 == 0;
+
+                sr.color = visible ? Color.red : originalColor;
+            }
+
+            yield return null;
+        }
+
+        // fade out suave al terminar
+        if (sr != null)
+        {
+            float fade = 1f;
+
+            while (fade > 0)
+            {
+                fade -= Time.deltaTime * 2f;
+
+                Color c = sr.color;
+                c.a = fade;
+                sr.color = c;
+
+                yield return null;
+            }
+
+            // reset visual
+            Color reset = originalColor;
+            reset.a = 1f;
+            sr.color = reset;
+        }
+
         user.SetJetpack(false, 0f, null, null);
+
+        if (jetpackObj != null)
+            jetpackObj.SetActive(false);
     }
 
     // CANCEL ALL

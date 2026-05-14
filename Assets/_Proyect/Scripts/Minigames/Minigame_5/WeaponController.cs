@@ -57,6 +57,7 @@ public class WeaponController : MonoBehaviour
 
     private void Update()
     {
+        Debug.Log($"shootHeld={shootHeld} fireCooldown={fireCooldown} weapon={currentWeapon?.weaponName}");
         if (currentWeapon == null) return;
 
         fireCooldown -= Time.deltaTime;
@@ -189,6 +190,7 @@ public class WeaponController : MonoBehaviour
 
         if (pressedThisFrame && fireCooldown <= 0f)
         {
+            Debug.Log("UpdatePistol: disparando"); 
             FireFromWeaponPoints(
                 currentWeapon.damage,
                 currentWeapon.projectileSpeed,
@@ -307,51 +309,38 @@ public class WeaponController : MonoBehaviour
     }
 
     private void FireSingle(
-        Transform shootPoint,
-        float dmg,
-        float spd,
-        float sizeMultiplier,
-        Vector2? overrideDir = null)
+     Transform shootPoint,
+     float dmg,
+     float spd,
+     float sizeMultiplier,
+     Vector2? overrideDir = null)
     {
-        GameObject prefabToUse =
-        isPlayer1
-        ? currentWeapon.player1ProjectilePrefab
-        : currentWeapon.player2ProjectilePrefab;
+        GameObject prefabToUse = isPlayer1
+            ? currentWeapon.player1ProjectilePrefab
+            : currentWeapon.player2ProjectilePrefab;
 
-        if (prefabToUse == null || shootPoint == null)
+        if (prefabToUse == null)
+        {
+            Debug.LogError($"prefabToUse es null para {(isPlayer1 ? "Player1" : "Player2")}");
             return;
+        }
+
+        if (shootPoint == null) return;
 
         Vector2 dir = overrideDir ?? (Vector2)shootPoint.right;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        Quaternion bulletRot = Quaternion.Euler(0f, 0f, angle);
 
-        float angle =
-            Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-
-        Quaternion bulletRot =
-            Quaternion.Euler(0f, 0f, angle);
-
-        GameObject obj = Instantiate(
-        prefabToUse,
-        shootPoint.position,
-        bulletRot
-        );
+        GameObject obj = Instantiate(prefabToUse, shootPoint.position, bulletRot);
+        Debug.Log($"Bala instanciada en {obj.transform.position} activa={obj.activeSelf}");
 
         if (!Mathf.Approximately(sizeMultiplier, 1f))
             obj.transform.localScale *= sizeMultiplier;
 
         Projectile proj = obj.GetComponent<Projectile>();
-
         if (proj != null)
-        {
-            proj.Init(
-                dir,
-                spd,
-                dmg,
-                currentWeapon.range,
-                isPlayer1 ? 1 : 2
-            );
-        }
+            proj.Init(dir, spd, dmg, currentWeapon.range, isPlayer1 ? 1 : 2);
     }
-
     private void FireShotgun()
     {
         if (currentWeapon.firePointIndexes == null)

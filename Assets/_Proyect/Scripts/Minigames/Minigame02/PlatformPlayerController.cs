@@ -112,7 +112,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     private Vector3 spawnPoint;
     private SpriteRenderer _jetpackSR;
     private KingOfHill manager;
-
+    private bool jetpackFiring = false;
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -160,6 +160,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     {
         if (isDead) return;
         if (moveAction == null) return;
+       
         CheckWall();
 
         moveInput = ReadFilteredMove();
@@ -241,7 +242,17 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
         if (moveInput.x > 0.01f) sr.flipX = false;
         else if (moveInput.x < -0.01f) sr.flipX = true;
+       
+        if (_jetpackSR != null)
+        {
+            _jetpackSR.flipX = sr.flipX;
 
+            Vector3 pos = _jetpackObject.transform.localPosition;
+
+            pos.x = sr.flipX ? 0.5f : -0.5f;
+
+            _jetpackObject.transform.localPosition = pos;
+        }
         if (_jetpackSR != null) _jetpackSR.flipX = sr.flipX;
     }
 
@@ -258,16 +269,27 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             ApplyBetterGravity();
             return;
         }
+        jetpackFiring = false;
 
-        if (jetpackActive && jumpHeld)
+        if (jetpackActive && jumpAction != null && jumpAction.IsPressed())
         {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jetpackForce);
-            if (_jetpackAnimator != null) _jetpackAnimator.SetBool("Fire", true);
+            jetpackFiring = true;
+
+            rb.linearVelocity = new Vector2(
+     rb.linearVelocity.x,
+     Mathf.Lerp(rb.linearVelocity.y, jetpackForce, 0.25f)
+ );
+
+            if (_jetpackAnimator != null)
+                _jetpackAnimator.SetBool("Fire", true);
         }
         else if (jetpackActive)
         {
-            if (_jetpackAnimator != null) _jetpackAnimator.SetBool("Fire", false);
+            if (_jetpackAnimator != null)
+                _jetpackAnimator.SetBool("Fire", false);
         }
+
+        animator.SetBool("JetpackFire", jetpackFiring);
 
         if (!isKnockedBack && !isStunned)
         {
