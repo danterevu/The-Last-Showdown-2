@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 40f75e4bdae379c48845ee52047182fa
+guid: 401bed5f112d41048bf9522188dcac02
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7451426116336585031
-    second: idle_0_0
+      213: 7589813020768579352
+    second: ShotgunICO_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,23 +100,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: idle_0_0
+      name: ShotgunICO_0
       rect:
         serializedVersion: 2
-        x: 7
-        y: 1
-        width: 249
-        height: 465
+        x: 6
+        y: 18
+        width: 241
+        height: 229
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9b670b13d67379890800000000000000
-      internalID: -7451426116336585031
+      spriteID: 81fab86dabe645960800000000000000
+      internalID: 7589813020768579352
       vertices: []
       indices: 
       edges: []
@@ -125,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -134,8 +134,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      idle_0_0: -7451426116336585031
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

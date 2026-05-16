@@ -32,6 +32,10 @@ public class SpacePowerUpManager : MonoBehaviour
     [SerializeField] private SpaceShipController player1Ship;
     [SerializeField] private SpaceShipController player2Ship;
 
+    [Header("Repulsion VFX")]
+    [SerializeField] private GameObject repulsionVfxPrefab;
+    [SerializeField] private float repulsionRadius = 6f;
+    [SerializeField] private float repulsionKnockback = 20f;
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -156,16 +160,53 @@ public class SpacePowerUpManager : MonoBehaviour
     /// Empuja a la nave rival en direccion opuesta al que activo el power up.
     public void ActivateRepulsion(Transform activatorTransform, int activatorPlayer)
     {
+        SpaceShipController activator = activatorTransform.GetComponent<SpaceShipController>();
         SpaceShipController rival = activatorPlayer == 1 ? player2Ship : player1Ship;
 
         if (rival == null)
         {
-            Debug.LogWarning("[SpacePowerUpManager] No se encontro la nave rival para Repulsion. " +
-                             "Asigna player1Ship y player2Ship en el Inspector.");
+            Debug.LogWarning("[SpacePowerUpManager] No se encontro la nave rival para Repulsion.");
             return;
         }
 
-        Vector2 pushDirection = ((Vector2)(rival.transform.position - activatorTransform.position)).normalized;
-        rival.AddImpulse(pushDirection * repulsionForce);
+        Vector2 center = activatorTransform.position;
+
+
+        if (repulsionVfxPrefab != null)
+        {
+            Instantiate(repulsionVfxPrefab, center, Quaternion.Euler(-90f,0f,0f));
+        }
+       
+
+
+        Vector2 rivalPos = rival.transform.position;
+
+        Vector2 pushDir = (rivalPos - center).normalized;
+        rival.AddImpulse(pushDir * repulsionForce);
+
+
+        ApplyAreaRepulsion(center, activatorPlayer); }
+        private void ApplyAreaRepulsion(Vector2 center, int activatorPlayer)
+    {
+        SpaceShipController target1 = player1Ship;
+        SpaceShipController target2 = player2Ship;
+
+        ApplyRepelToShip(target1, center);
+        ApplyRepelToShip(target2, center);
+    }
+
+    private void ApplyRepelToShip(SpaceShipController ship, Vector2 center)
+    {
+        if (ship == null) return;
+
+        Vector2 dir = ((Vector2)ship.transform.position - center);
+        float dist = dir.magnitude;
+
+        if (dist > repulsionRadius) return;
+
+        float falloff = 1f - (dist / repulsionRadius);
+
+        ship.AddImpulse(dir.normalized * repulsionKnockback * falloff);
     }
 }
+

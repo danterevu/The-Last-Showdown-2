@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 40f75e4bdae379c48845ee52047182fa
+guid: f9a6ed81d5d70534cbce98c7de4a7408
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7451426116336585031
-    second: idle_0_0
+      213: 9067875249057166636
+    second: RailgunCharging2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,23 +100,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: idle_0_0
+      name: RailgunCharging2_0
       rect:
         serializedVersion: 2
-        x: 7
-        y: 1
-        width: 249
-        height: 465
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+        x: 0
+        y: 15
+        width: 256
+        height: 464
+      alignment: 9
+      pivot: {x: 0.5, y: 0.45550612}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9b670b13d67379890800000000000000
-      internalID: -7451426116336585031
+      spriteID: c25fb9fce7097dd70800000000000000
+      internalID: 9067875249057166636
       vertices: []
       indices: 
       edges: []
@@ -125,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 033e41a10670ed64d80b14ef931d447f
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      idle_0_0: -7451426116336585031
+      RailgunCharging2_0: 9067875249057166636
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -23,6 +23,12 @@ public class WeaponController : MonoBehaviour
     [Header("Animacion")]
     [SerializeField] private Animator shipAnimator;
 
+    [Header("Railgun VFX")]
+    [SerializeField] private SpriteRenderer shipSprite;
+    [SerializeField] private float blinkSpeed = 0.08f;
+
+    private bool isFullyCharged;
+    private Coroutine blinkRoutine;
     // ─────────────────────────────────────────────────────────
     // PROPIEDADES PÚBLICAS
     // ─────────────────────────────────────────────────────────
@@ -59,11 +65,16 @@ public class WeaponController : MonoBehaviour
 
     private void Awake()
     {
+        shipAnimator = GetComponentInChildren<Animator>();
+
+
         shipController = GetComponent<SpaceShipController>();
         SetupInput();
 
         if (allFirePoints == null || allFirePoints.Length == 0)
             Debug.LogWarning("[WeaponController] No hay FirePoints asignados.");
+        if (shipSprite == null)
+            shipSprite = GetComponentInChildren<SpriteRenderer>();
     }
 
     private void Start()
@@ -171,22 +182,19 @@ public class WeaponController : MonoBehaviour
             _ => 0
         };
 
+      
         shipAnimator.SetInteger("WeaponIndex", index);
-    }
 
+      
+        shipAnimator.SetTrigger("WeaponChanged");
+    }
     private void TriggerShootAnim()
     {
         if (shipAnimator == null) return;
-        shipAnimator.SetBool("Shoot", true);
-        StartCoroutine(ResetShootAnim());
+        shipAnimator.SetTrigger("Shoot");
     }
 
-    private IEnumerator ResetShootAnim()
-    {
-        yield return null;
-        if (shipAnimator != null)
-            shipAnimator.SetBool("Shoot", false);
-    }
+  
 
     // ─────────────────────────────────────────────────────────
     // UPDATE POR TIPO DE ARMA
@@ -204,29 +212,79 @@ public class WeaponController : MonoBehaviour
 
     private void UpdateLaser()
     {
+        // 1. CARGA
         if (shootHeld)
         {
             chargeElapsed += Time.deltaTime;
-            chargeProgress = Mathf.Clamp01(chargeElapsed / currentWeapon.chargeTime);
+
+            chargeProgress = Mathf.Clamp01(
+                chargeElapsed / currentWeapon.chargeTime
+            );
+
             OnChargeChanged?.Invoke(chargeProgress);
+
+            if (shipAnimator != null)
+                shipAnimator.SetFloat("ChargeProgress", chargeProgress);
+
+            // llegó a full charge
+            if (chargeProgress >= 1f && !isFullyCharged)
+            {
+                isFullyCharged = true;
+                StartChargedBlink();
+            }
         }
-        else if (chargeProgress >= 1f)
+
+        // 2. DISPARO (SOLO cuando YA está cargado y suelta el botón)
+        if (isFullyCharged && !shootHeld)
         {
             FireFromWeaponPoints(
                 currentWeapon.damage * currentWeapon.laserDamageMultiplier,
                 currentWeapon.projectileSpeed * 1.5f,
                 currentWeapon.laserSizeMultiplier
             );
+
             TriggerShootAnim();
             SpendAmmo();
+
             ResetCharge();
         }
-        else if (chargeElapsed > 0f)
+
+        // 3. CANCELA SI SUELTA ANTES DE CARGAR
+        if (!shootHeld && !isFullyCharged && chargeElapsed > 0f)
         {
             ResetCharge();
         }
     }
+    private void StartChargedBlink()
+    {
+        if (blinkRoutine != null) return;
 
+        blinkRoutine = StartCoroutine(BlinkCoroutine());
+    }
+
+    private void StopChargedBlink()
+    {
+        if (blinkRoutine != null)
+        {
+            StopCoroutine(blinkRoutine);
+            blinkRoutine = null;
+        }
+
+        if (shipSprite != null)
+            shipSprite.color = Color.white;
+    }
+
+    private IEnumerator BlinkCoroutine()
+    {
+        while (true)
+        {
+            shipSprite.color = Color.white;
+            yield return new WaitForSeconds(blinkSpeed);
+
+            shipSprite.color = Color.cyan;
+            yield return new WaitForSeconds(blinkSpeed);
+        }
+    }
     private void UpdateMinigun()
     {
         if (!shootHeld || fireCooldown > 0f) return;
@@ -251,6 +309,13 @@ public class WeaponController : MonoBehaviour
     {
         chargeElapsed = 0f;
         chargeProgress = 0f;
+        isFullyCharged = false;
+
+        StopChargedBlink();
+
+        if (shipAnimator != null)
+            shipAnimator.SetFloat("ChargeProgress", 0f);
+
         OnChargeChanged?.Invoke(0f);
     }
 
