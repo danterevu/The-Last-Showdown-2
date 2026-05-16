@@ -82,6 +82,6 @@ public class InputAssigner : MonoBehaviour
 
     public void LoadNextScene()
     {
-        SceneLoader.Instance.LoadMinigame(3);
+        SceneLoader.Instance.LoadRuleta();
     }
 }

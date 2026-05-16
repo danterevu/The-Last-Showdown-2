@@ -4,4 +4,5 @@ public enum CommentTrigger // Nombre de eventos del presentador
     PowerUpKill,
     PowerUpUsedNoKill,
     
+    
 }
