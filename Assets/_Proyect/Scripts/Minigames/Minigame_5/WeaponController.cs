@@ -5,11 +5,16 @@ using UnityEngine.InputSystem;
 
 public class WeaponController : MonoBehaviour
 {
+    // ─────────────────────────────────────────────────────────
+    // INSPECTOR
+    // ─────────────────────────────────────────────────────────
+
     [Header("Input")]
     [SerializeField] private InputActionAsset inputActionAsset;
     [SerializeField] private bool isPlayer1 = true;
 
     [Header("Fire Points")]
+    [Tooltip("Arreglo global de puntos de disparo de la nave. WeaponData referencia por índice.")]
     [SerializeField] private Transform[] allFirePoints;
 
     [Header("Arma base (sin pickup)")]
@@ -17,6 +22,10 @@ public class WeaponController : MonoBehaviour
 
     [Header("Animacion")]
     [SerializeField] private Animator shipAnimator;
+
+    // ─────────────────────────────────────────────────────────
+    // PROPIEDADES PÚBLICAS
+    // ─────────────────────────────────────────────────────────
 
     public WeaponData CurrentWeapon => currentWeapon;
     public int CurrentAmmo => currentAmmo;
@@ -26,17 +35,27 @@ public class WeaponController : MonoBehaviour
     public event Action<int> OnAmmoChanged;
     public event Action<float> OnChargeChanged;
 
+    // ─────────────────────────────────────────────────────────
+    // ESTADO INTERNO
+    // ─────────────────────────────────────────────────────────
+
     private WeaponData currentWeapon;
     private int currentAmmo;
     private float fireCooldown;
 
+    // Laser
     private float chargeProgress;
     private float chargeElapsed;
 
+    // Input
     private SpaceShipController shipController;
     private InputAction shootAction;
     private bool shootHeld;
-    private bool wasPressedLastFrame;
+    private bool shootPressedThisFrame; // calculado una sola vez por frame
+
+    // ─────────────────────────────────────────────────────────
+    // UNITY LIFECYCLE
+    // ─────────────────────────────────────────────────────────
 
     private void Awake()
     {
@@ -44,9 +63,7 @@ public class WeaponController : MonoBehaviour
         SetupInput();
 
         if (allFirePoints == null || allFirePoints.Length == 0)
-        {
             Debug.LogWarning("[WeaponController] No hay FirePoints asignados.");
-        }
     }
 
     private void Start()
@@ -57,43 +74,38 @@ public class WeaponController : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log($"shootHeld={shootHeld} fireCooldown={fireCooldown} weapon={currentWeapon?.weaponName}");
         if (currentWeapon == null) return;
 
         fireCooldown -= Time.deltaTime;
+
+        // Input calculado una única vez — evita bugs al cambiar de arma entre frames
+        bool wasHeld = shootHeld;
         shootHeld = shootAction != null && shootAction.IsPressed();
+        shootPressedThisFrame = shootHeld && !wasHeld;
 
         switch (currentWeapon.type)
         {
-            case WeaponData.WeaponType.Pistol:
-                UpdatePistol();
-                break;
-
-            case WeaponData.WeaponType.Laser:
-                UpdateLaser();
-                break;
-
-            case WeaponData.WeaponType.Minigun:
-                UpdateMinigun();
-                break;
-
-            case WeaponData.WeaponType.Shotgun:
-                UpdateShotgun();
-                break;
+            case WeaponData.WeaponType.Pistol: UpdatePistol(); break;
+            case WeaponData.WeaponType.Laser: UpdateLaser(); break;
+            case WeaponData.WeaponType.Minigun: UpdateMinigun(); break;
+            case WeaponData.WeaponType.Shotgun: UpdateShotgun(); break;
         }
     }
+
+    // ─────────────────────────────────────────────────────────
+    // SETUP
+    // ─────────────────────────────────────────────────────────
 
     private void SetupInput()
     {
         if (inputActionAsset == null) return;
 
         string mapName = isPlayer1 ? "Player1_TopDown" : "Player2_TopDown";
-
         var map = inputActionAsset.FindActionMap(mapName);
 
         if (map == null)
         {
-            Debug.LogError($"[WeaponController] No se encontro el mapa '{mapName}'");
+            Debug.LogError($"[WeaponController] No se encontró el mapa '{mapName}'");
             return;
         }
 
@@ -102,29 +114,29 @@ public class WeaponController : MonoBehaviour
     }
 
     // ─────────────────────────────────────────────────────────
-    // ARMAS
+    // EQUIPAR / SOLTAR ARMA
     // ─────────────────────────────────────────────────────────
 
     public void EquipWeapon(WeaponData data)
     {
         currentWeapon = data;
         currentAmmo = data.maxAmmo;
-
         chargeProgress = 0f;
         chargeElapsed = 0f;
         fireCooldown = 0f;
 
-        UpdateWeaponAnimator();
+      
+        shootHeld = false;
+        shootPressedThisFrame = false;
 
+        UpdateWeaponAnimator();
         OnWeaponChanged?.Invoke(currentWeapon, currentAmmo);
     }
 
     private void DropWeapon()
     {
         if (defaultWeapon != null)
-        {
             EquipWeapon(defaultWeapon);
-        }
         else
         {
             currentWeapon = null;
@@ -136,7 +148,6 @@ public class WeaponController : MonoBehaviour
     private void SpendAmmo(int amount = 1)
     {
         currentAmmo = Mathf.Max(0, currentAmmo - amount);
-
         OnAmmoChanged?.Invoke(currentAmmo);
 
         if (currentAmmo <= 0)
@@ -151,22 +162,21 @@ public class WeaponController : MonoBehaviour
     {
         if (shipAnimator == null) return;
 
-        bool isSniperOrLaser =
-            currentWeapon != null &&
-            currentWeapon.type == WeaponData.WeaponType.Laser;
+        int index = currentWeapon == null ? 0 : currentWeapon.type switch
+        {
+            WeaponData.WeaponType.Pistol => 0,
+            WeaponData.WeaponType.Laser => 1,
+            WeaponData.WeaponType.Shotgun => 2,
+            WeaponData.WeaponType.Minigun => 3,
+            _ => 0
+        };
 
-        bool isRailgun =
-            currentWeapon != null &&
-            currentWeapon.type == WeaponData.WeaponType.Minigun;
-
-        shipAnimator.SetBool("SniperWeapon", isSniperOrLaser);
-        shipAnimator.SetBool("RailgunWeapon", isRailgun);
+        shipAnimator.SetInteger("WeaponIndex", index);
     }
 
     private void TriggerShootAnim()
     {
         if (shipAnimator == null) return;
-
         shipAnimator.SetBool("Shoot", true);
         StartCoroutine(ResetShootAnim());
     }
@@ -174,43 +184,22 @@ public class WeaponController : MonoBehaviour
     private IEnumerator ResetShootAnim()
     {
         yield return null;
-
         if (shipAnimator != null)
             shipAnimator.SetBool("Shoot", false);
     }
 
     // ─────────────────────────────────────────────────────────
-    // UPDATE ARMAS
+    // UPDATE POR TIPO DE ARMA
     // ─────────────────────────────────────────────────────────
 
     private void UpdatePistol()
     {
-        bool pressedThisFrame = shootHeld && !wasPressedLastFrame;
-        wasPressedLastFrame = shootHeld;
+        if (!shootPressedThisFrame || fireCooldown > 0f) return;
 
-        if (pressedThisFrame && fireCooldown <= 0f)
-        {
-            Debug.Log("UpdatePistol: disparando"); 
-            FireFromWeaponPoints(
-                currentWeapon.damage,
-                currentWeapon.projectileSpeed,
-                1f
-            );
-
-            TriggerShootAnim();
-
-            fireCooldown = currentWeapon.semiAutoDelay;
-
-            SpendAmmo();
-        }
-    }
-
-    private void ResetCharge()
-    {
-        chargeElapsed = 0f;
-        chargeProgress = 0f;
-
-        OnChargeChanged?.Invoke(0f);
+        FireFromWeaponPoints(currentWeapon.damage, currentWeapon.projectileSpeed, 1f);
+        TriggerShootAnim();
+        fireCooldown = currentWeapon.semiAutoDelay;
+        SpendAmmo();
     }
 
     private void UpdateLaser()
@@ -218,11 +207,7 @@ public class WeaponController : MonoBehaviour
         if (shootHeld)
         {
             chargeElapsed += Time.deltaTime;
-
-            chargeProgress = Mathf.Clamp01(
-                chargeElapsed / currentWeapon.chargeTime
-            );
-
+            chargeProgress = Mathf.Clamp01(chargeElapsed / currentWeapon.chargeTime);
             OnChargeChanged?.Invoke(chargeProgress);
         }
         else if (chargeProgress >= 1f)
@@ -232,11 +217,8 @@ public class WeaponController : MonoBehaviour
                 currentWeapon.projectileSpeed * 1.5f,
                 currentWeapon.laserSizeMultiplier
             );
-
             TriggerShootAnim();
-
             SpendAmmo();
-
             ResetCharge();
         }
         else if (chargeElapsed > 0f)
@@ -247,92 +229,64 @@ public class WeaponController : MonoBehaviour
 
     private void UpdateMinigun()
     {
-        if (shootHeld && fireCooldown <= 0f)
-        {
-            FireFromWeaponPoints(
-                currentWeapon.damage,
-                currentWeapon.projectileSpeed,
-                1f
-            );
+        if (!shootHeld || fireCooldown > 0f) return;
 
-            TriggerShootAnim();
-
-            fireCooldown = 1f / currentWeapon.minigunshotsPerSecond;
-
-            SpendAmmo();
-        }
+        FireFromWeaponPoints(currentWeapon.damage, currentWeapon.projectileSpeed, 1f);
+        TriggerShootAnim();
+        fireCooldown = 1f / currentWeapon.minigunshotsPerSecond;
+        SpendAmmo();
     }
 
     private void UpdateShotgun()
     {
-        bool pressedThisFrame = shootHeld && !wasPressedLastFrame;
-        wasPressedLastFrame = shootHeld;
+        if (!shootPressedThisFrame || fireCooldown > 0f) return;
 
-        if (pressedThisFrame && fireCooldown <= 0f)
-        {
-            FireShotgun();
+        FireShotgun();
+        TriggerShootAnim();
+        fireCooldown = currentWeapon.shotgunFireRate;
+        SpendAmmo();
+    }
 
-            TriggerShootAnim();
-
-            fireCooldown = currentWeapon.shotgunFireRate;
-
-            SpendAmmo();
-        }
+    private void ResetCharge()
+    {
+        chargeElapsed = 0f;
+        chargeProgress = 0f;
+        OnChargeChanged?.Invoke(0f);
     }
 
     // ─────────────────────────────────────────────────────────
     // FIRE
     // ─────────────────────────────────────────────────────────
 
-    private void FireFromWeaponPoints(
-        float dmg,
-        float spd,
-        float sizeMultiplier)
+    private void FireFromWeaponPoints(float dmg, float spd, float sizeMultiplier)
     {
-        if (currentWeapon.firePointIndexes == null)
-            return;
+        if (currentWeapon.firePointIndexes == null) return;
 
         foreach (int index in currentWeapon.firePointIndexes)
         {
-            if (index < 0 || index >= allFirePoints.Length)
-                continue;
-
-            Transform fp = allFirePoints[index];
-
-            FireSingle(
-                fp,
-                dmg,
-                spd,
-                sizeMultiplier
-            );
+            if (index < 0 || index >= allFirePoints.Length) continue;
+            FireSingle(allFirePoints[index], dmg, spd, sizeMultiplier);
         }
     }
 
-    private void FireSingle(
-     Transform shootPoint,
-     float dmg,
-     float spd,
-     float sizeMultiplier,
-     Vector2? overrideDir = null)
+    private void FireSingle(Transform shootPoint, float dmg, float spd, float sizeMultiplier, Vector2? overrideDir = null)
     {
-        GameObject prefabToUse = isPlayer1
+        if (shootPoint == null) return;
+
+        GameObject prefab = isPlayer1
             ? currentWeapon.player1ProjectilePrefab
             : currentWeapon.player2ProjectilePrefab;
 
-        if (prefabToUse == null)
+        if (prefab == null)
         {
-            Debug.LogError($"prefabToUse es null para {(isPlayer1 ? "Player1" : "Player2")}");
+            Debug.LogError($"[WeaponController] Falta el prefab de proyectil para {(isPlayer1 ? "Player1" : "Player2")} en {currentWeapon.weaponName}.");
             return;
         }
 
-        if (shootPoint == null) return;
-
         Vector2 dir = overrideDir ?? (Vector2)shootPoint.right;
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        Quaternion bulletRot = Quaternion.Euler(0f, 0f, angle);
 
-        GameObject obj = Instantiate(prefabToUse, shootPoint.position, bulletRot);
-        Debug.Log($"Bala instanciada en {obj.transform.position} activa={obj.activeSelf}");
+        GameObject obj = Instantiate(prefab, shootPoint.position, Quaternion.Euler(0f, 0f, angle));
 
         if (!Mathf.Approximately(sizeMultiplier, 1f))
             obj.transform.localScale *= sizeMultiplier;
@@ -341,18 +295,16 @@ public class WeaponController : MonoBehaviour
         if (proj != null)
             proj.Init(dir, spd, dmg, currentWeapon.range, isPlayer1 ? 1 : 2);
     }
+
     private void FireShotgun()
     {
-        if (currentWeapon.firePointIndexes == null)
-            return;
+        if (currentWeapon.firePointIndexes == null) return;
 
         foreach (int index in currentWeapon.firePointIndexes)
         {
-            if (index < 0 || index >= allFirePoints.Length)
-                continue;
+            if (index < 0 || index >= allFirePoints.Length) continue;
 
             Transform fp = allFirePoints[index];
-
             Vector2 baseDir = fp.right;
 
             for (int i = 0; i < currentWeapon.shotgunPellets; i++)
@@ -361,55 +313,34 @@ public class WeaponController : MonoBehaviour
                     -currentWeapon.shotgunSpread * 0.5f,
                      currentWeapon.shotgunSpread * 0.5f
                 );
-
-                Vector2 dir =
-                    RotateVector(baseDir, randomAngle);
-
-                FireSingle(
-                    fp,
-                    currentWeapon.damage,
-                    currentWeapon.projectileSpeed,
-                    1f,
-                    dir
-                );
+                Vector2 dir = RotateVector(baseDir, randomAngle);
+                FireSingle(fp, currentWeapon.damage, currentWeapon.projectileSpeed, 1f, dir);
             }
         }
 
+        // Knockback al disparar la escopeta
         if (shipController != null)
-        {
-            shipController.AddImpulse(
-                -(Vector2)transform.right *
-                currentWeapon.shotgunKnockback
-            );
-        }
-    }
-
-    private Vector2 RotateVector(Vector2 v, float angleDeg)
-    {
-        float rad = angleDeg * Mathf.Deg2Rad;
-
-        float cos = Mathf.Cos(rad);
-        float sin = Mathf.Sin(rad);
-
-        return new Vector2(
-            v.x * cos - v.y * sin,
-            v.x * sin + v.y * cos
-        );
+            shipController.AddImpulse(-(Vector2)transform.right * currentWeapon.shotgunKnockback);
     }
 
     // ─────────────────────────────────────────────────────────
     // UTILS
     // ─────────────────────────────────────────────────────────
 
-    public bool HasWeapon => currentWeapon != null;
+    private Vector2 RotateVector(Vector2 v, float angleDeg)
+    {
+        float rad = angleDeg * Mathf.Deg2Rad;
+        float cos = Mathf.Cos(rad);
+        float sin = Mathf.Sin(rad);
+        return new Vector2(v.x * cos - v.y * sin, v.x * sin + v.y * cos);
+    }
 
+    public bool HasWeapon => currentWeapon != null;
     public int PlayerNumber => isPlayer1 ? 1 : 2;
 
     public Transform GetFirePoint(int index)
     {
-        if (index < 0 || index >= allFirePoints.Length)
-            return null;
-
+        if (index < 0 || index >= allFirePoints.Length) return null;
         return allFirePoints[index];
     }
 }
