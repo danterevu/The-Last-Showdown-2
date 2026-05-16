@@ -250,4 +250,23 @@ public class PowerUpManager : MonoBehaviour
 
         invertActive = false;
     }
+
+    // solo se usa en modo debug — da el power up directamente sin pickup
+    public void DebugGivePowerUp(int player, PowerUpType type)
+    {
+        if (!DebugManager.IsDebugMode) return;
+
+        if (player == 1)
+        {
+            player1PowerUp = type;
+            player1HasPowerUp = true;
+            player1HUD?.ShowIcon(1, type);
+        }
+        else
+        {
+            player2PowerUp = type;
+            player2HasPowerUp = true;
+            player2HUD?.ShowIcon(2, type);
+        }
+    }
 }
