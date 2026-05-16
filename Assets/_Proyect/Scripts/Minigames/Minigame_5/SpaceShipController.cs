@@ -32,6 +32,7 @@ public class SpaceShipController : MonoBehaviour
     [Header("Input")]
     [Tooltip("Arrastrar aquí el asset PlayerInputActions_1 o _2")]
     [SerializeField] private InputActionAsset inputActionAsset;
+    [SerializeField] int playerIndex;
 
     [SerializeField] private bool isPlayer1 = true;
 
@@ -118,7 +119,22 @@ public class SpaceShipController : MonoBehaviour
     {
         if (moveAction == null) return;
 
-        Vector2 raw = moveAction.ReadValue<Vector2>();
+        Vector2 raw = Vector2.zero;
+
+        // Leer gamepad asignado a este jugador
+        //playerIndex = isPlayer1 ? 0 : 1;
+        Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
+        if (gp != null)
+        {
+            Vector2 stick = gp.leftStick.ReadValue();
+            Vector2 dpad = gp.dpad.ReadValue();
+            raw = stick.sqrMagnitude > dpad.sqrMagnitude ? stick : dpad;
+        }
+
+        // Fallback teclado si no hay input de gamepad
+        if (raw.sqrMagnitude < 0.15f)
+            raw = moveAction.ReadValue<Vector2>();
+
         hasInput = raw.magnitude > 0.15f;
 
         if (hasInput)

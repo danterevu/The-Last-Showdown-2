@@ -7,6 +7,7 @@ public class PowerUpHolder : MonoBehaviour
     [Header("Input")]
     [SerializeField] private InputActionAsset inputActionAsset;
     [SerializeField] private bool isPlayer1 = true;
+    [SerializeField] private int playerIndex = 0; // 0 = P1, 1 = P2
 
     [Header("Referencia a la nave rival")]
     [SerializeField] private Transform rivalTransform;
@@ -59,11 +60,17 @@ public class PowerUpHolder : MonoBehaviour
     {
         if (interactAction == null) return;
 
-        // Debug: mostrar cuando se presiona Interact aunque no haya power up
-        if (interactAction.WasPressedThisFrame())
+        bool keyboardPressed = interactAction.WasPressedThisFrame();
+        bool gamepadPressed = false;
+
+        Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
+        if (gp != null)
+            gamepadPressed = gp.buttonEast.wasPressedThisFrame; // círculo en PlayStation
+
+        if (keyboardPressed || gamepadPressed)
         {
             if (!hasPowerUp)
-                Debug.Log($"[PowerUpHolder] {gameObject.name}: Se presiono Interact pero NO hay power up guardado.");
+                Debug.Log($"[PowerUpHolder] {gameObject.name}: Se presiono Interact pero NO hay power up.");
             else
                 ActivatePowerUp();
         }

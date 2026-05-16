@@ -59,12 +59,18 @@ public class SpaceMinigame : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+
         weaponSpawner = FindFirstObjectByType<WeaponSpawner>();
         powerUpSpawner = FindFirstObjectByType<SpacePowerUpSpawner>();
+
+        Debug.Log($"SpaceMinigame Awake | weaponSpawner: {weaponSpawner} | powerUpSpawner: {powerUpSpawner}");
     }
 
     private void Start()
     {
+        Debug.Log($"SpaceMinigame Start | ModifierManager: {ModifierManager.Instance} | GameManager: {GameManager.Instance}");
+
+        ModifierManager.Instance?.ResetGoldenKill();
         // GOLDEN KILL: habilitar el flag para la primera kill del primer round
         ModifierManager.Instance?.ResetGoldenKill();
         hudRounds?.UpdateKills(0, 0);
@@ -83,7 +89,7 @@ public class SpaceMinigame : MonoBehaviour
     }
     public void RegisterKill(int killer, int victim)
     {
-        Debug.Log($"RegisterKill killer={killer} victim={victim} p1Inv={p1Invulnerable} p2Inv={p2Invulnerable} roundOver={roundOver}");
+        Debug.Log($"RegisterKill llamado | killer:{killer} victim:{victim} | roundOver:{roundOver} | gameOver:{gameOver} | p1Inv:{p1Invulnerable} | p2Inv:{p2Invulnerable}");
         if (roundOver || gameOver) return;
         if (victim == 1 && p1Invulnerable) return;
         if (victim == 2 && p2Invulnerable) return;
@@ -91,7 +97,6 @@ public class SpaceMinigame : MonoBehaviour
         if (victim == 1) p1Invulnerable = true;
         else p2Invulnerable = true;
 
-        // Explotar la nave
         Transform victimTransform = victim == 1 ? player1 : player2;
         victimTransform?.GetComponent<Explodable>()?.Explode();
 
@@ -111,8 +116,16 @@ public class SpaceMinigame : MonoBehaviour
         }
         else
         {
-            StartCoroutine(RespawnBothDelayed());
+            // Verificar que el objeto existe antes de iniciar el coroutine
+            if (this != null && gameObject != null && gameObject.activeInHierarchy)
+                StartCoroutine(RespawnBothDelayed());
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     private IEnumerator HandleRoundWon(int winner)

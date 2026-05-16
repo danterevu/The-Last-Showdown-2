@@ -58,11 +58,16 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log($"Impacto: {other.gameObject.name} tag={other.tag}");
+        Debug.Log($"Colisión con: {other.gameObject.name} | tag: {other.tag} | layer: {LayerMask.LayerToName(other.gameObject.layer)}");
         // Determinar si impactó a un jugador
         int hitPlayer = 0;
-        if (other.CompareTag("Player1")) hitPlayer = 1;
-        else if (other.CompareTag("Player2")) hitPlayer = 2;
+        Debug.Log($"Impacto: {other.gameObject.name} tag={other.tag}");
+        Debug.Log($"hitPlayer: {hitPlayer} | ownerPlayer: {ownerPlayer}");
+        Debug.Log($"SpaceMinigame.Instance: {SpaceMinigame.Instance}");
+        Debug.Log($"Tag length: {other.tag.Length} | bytes: {string.Join(",", System.Text.Encoding.UTF8.GetBytes(other.tag))}");
+        string tag = other.tag.Trim();
+        if (tag == "Player1") hitPlayer = 1;
+        else if (tag == "Player2") hitPlayer = 2;
         else
         {
             if (other.gameObject.layer == LayerMask.NameToLayer("InteractiveAsteroid"))

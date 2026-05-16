@@ -8,11 +8,6 @@ public class SceneLoader : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this) //se crea si no esta o se deja como esta
-        {
-            Destroy(gameObject);
-            return;
-        }
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
@@ -23,7 +18,7 @@ public class SceneLoader : MonoBehaviour
     {
         string sceneName = minigameId switch
         {
-            3 => "Minigame_5",
+            3 => "Minigame_4",
             _ => "Minigame_" + minigameId
         };
         SceneManager.LoadScene(sceneName);

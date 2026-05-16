@@ -12,6 +12,7 @@ public class WeaponController : MonoBehaviour
     [Header("Input")]
     [SerializeField] private InputActionAsset inputActionAsset;
     [SerializeField] private bool isPlayer1 = true;
+    [SerializeField] private int playerIndex = 0; // 0 = P1, 1 = P2 para mando
 
     [Header("Fire Points")]
     [Tooltip("Arreglo global de puntos de disparo de la nave. WeaponData referencia por índice.")]
@@ -90,8 +91,20 @@ public class WeaponController : MonoBehaviour
         fireCooldown -= Time.deltaTime;
 
         // Input calculado una única vez — evita bugs al cambiar de arma entre frames
-        bool wasHeld = shootHeld;
+        /*bool wasHeld = shootHeld;
         shootHeld = shootAction != null && shootAction.IsPressed();
+        shootPressedThisFrame = shootHeld && !wasHeld;*/
+
+        // Leer disparo desde teclado (asset) o gamepad (R2)
+        bool wasHeld = shootHeld;
+        bool keyboardShoot = shootAction != null && shootAction.IsPressed();
+        bool gamepadShoot = false;
+
+        Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
+        if (gp != null)
+            gamepadShoot = gp.rightTrigger.isPressed;
+
+        shootHeld = keyboardShoot || gamepadShoot;
         shootPressedThisFrame = shootHeld && !wasHeld;
 
         switch (currentWeapon.type)
@@ -111,7 +124,7 @@ public class WeaponController : MonoBehaviour
     {
         if (inputActionAsset == null) return;
 
-        string mapName = isPlayer1 ? "Player1_TopDown" : "Player2_TopDown";
+        string mapName = playerIndex == 0 ? "Player1_TopDown" : "Player2_TopDown";
         var map = inputActionAsset.FindActionMap(mapName);
 
         if (map == null)
