@@ -1,13 +1,19 @@
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class PowerUpMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 3f;
+    [SerializeField] private float speedAnim = 4.7f;
 
     [Header("Spawn Bounds")]
     [SerializeField] private float boundsX = 4f;
     [SerializeField] private float boundsY = 2.5f;
+
+    [Header("Interrogation anim")]
+    [SerializeField] private GameObject interrogation;
+    [SerializeField] private GameObject point;
 
     private Rigidbody2D rb;
     private Vector2 direction;
@@ -24,6 +30,11 @@ public class PowerUpMovement : MonoBehaviour
         Launch();
     }
 
+    private void Update()
+    {
+        InterrogationAnim();
+    }
+
     //MOVEMENT 
     private void Launch()
     {
@@ -35,6 +46,12 @@ public class PowerUpMovement : MonoBehaviour
         }
 
         rb.linearVelocity = direction * moveSpeed;
+    }
+
+    private void InterrogationAnim()
+    { 
+        interrogation.transform.Rotate(0, speedAnim, 0);
+        point.transform.Rotate(0, speedAnim, 0);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
