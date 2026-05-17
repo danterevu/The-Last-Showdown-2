@@ -1,9 +1,13 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class RepulsionField : MonoBehaviour
 {
     [Header("FX")]
     public ParticleSystem fx;
+
+    [Header("Editor")]
+    [SerializeField] private bool showRadiusGizmo = true;
+    [SerializeField] private Color radiusGizmoColor = new Color(0.2f, 0.9f, 1f, 0.9f);
 
     [Header("Force")]
     public float radius = 5f;
@@ -33,6 +37,13 @@ public class RepulsionField : MonoBehaviour
             time += Time.deltaTime;
             yield return null;
         }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (!showRadiusGizmo) return;
+        Gizmos.color = radiusGizmoColor;
+        Gizmos.DrawWireSphere(transform.position, radius);
     }
 
     void ApplyRepulsion()

@@ -13,8 +13,8 @@ GameObject:
   - component: {fileID: 5884439014384109503}
   - component: {fileID: 4444074166485533034}
   - component: {fileID: 4559974807770644993}
-  m_Layer: 13
-  m_Name: 'Bullet '
+  m_Layer: 14
+  m_Name: EnemyLaser
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -186,7 +186,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1490383583953777909}
   - component: {fileID: 2566334090812458068}
-  m_Layer: 13
+  m_Layer: 14
   m_Name: Light 2D
   m_TagString: Untagged
   m_Icon: {fileID: 0}

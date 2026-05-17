@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// Singleton que ejecuta los efectos de los power ups.
@@ -15,6 +17,13 @@ public class SpacePowerUpManager : MonoBehaviour
 
     [Tooltip("Prefab del meteoro (puede ser un simple proyectil rapido con mucho daño)")]
     [SerializeField] private GameObject meteorPrefab;
+
+    [Header("Meteor Strike")]
+    [SerializeField] private GameObject meteorWarningPrefab;
+    [SerializeField] private float meteorWarningDuration = 2f;
+    [SerializeField] private float meteorWarningBlinkSpeed = 2f;
+    [SerializeField, Range(0f, 1f)] private float meteorWarningMinAlpha = 0.2f;
+    [SerializeField, Range(0f, 1f)] private float meteorWarningMaxAlpha = 1f;
 
     [Tooltip("Prefab del misil teledirigido")]
     [SerializeField] private GameObject homingMissilePrefab;
@@ -36,6 +45,7 @@ public class SpacePowerUpManager : MonoBehaviour
     [SerializeField] private GameObject repulsionVfxPrefab;
     [SerializeField] private float repulsionRadius = 6f;
     [SerializeField] private float repulsionKnockback = 20f;
+    [SerializeField] private float repulsionWaveDuration = 0.25f;
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -44,6 +54,8 @@ public class SpacePowerUpManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        EnsureShipReferences();
     }
 
     // ── Slow Grande ──────────────────────────────────────────────────────────
@@ -88,37 +100,73 @@ public class SpacePowerUpManager : MonoBehaviour
             return;
         }
 
-        // Spawnear el meteoro desde fuera de la pantalla, apuntando al rival
+        StartCoroutine(MeteorStrikeRoutine(rivalPosition, ownerPlayer));
+    }
+
+    private IEnumerator MeteorStrikeRoutine(Vector2 targetPosition, int ownerPlayer)
+    {
+        GameObject warning = null;
+        if (meteorWarningPrefab != null)
+            warning = Instantiate(meteorWarningPrefab, targetPosition, Quaternion.identity);
+
+        if (meteorWarningDuration > 0f)
+        {
+            CanvasGroup canvasGroup = warning != null ? warning.GetComponent<CanvasGroup>() : null;
+            SpriteRenderer[] renderers = warning != null ? warning.GetComponentsInChildren<SpriteRenderer>(true) : null;
+            Color[] originalColors = null;
+            if (canvasGroup == null && renderers != null && renderers.Length > 0)
+            {
+                originalColors = new Color[renderers.Length];
+                for (int i = 0; i < renderers.Length; i++)
+                    originalColors[i] = renderers[i] != null ? renderers[i].color : Color.white;
+            }
+
+            float elapsed = 0f;
+            while (elapsed < meteorWarningDuration)
+            {
+                float speed = Mathf.Max(0.01f, meteorWarningBlinkSpeed);
+                float wave = Mathf.Sin(elapsed * speed * Mathf.PI * 2f);
+                float t = (wave + 1f) * 0.5f;
+                t = t * t * (3f - 2f * t);
+                float a = Mathf.Lerp(meteorWarningMinAlpha, meteorWarningMaxAlpha, t);
+
+                if (canvasGroup != null)
+                {
+                    canvasGroup.alpha = a;
+                }
+                else if (renderers != null && renderers.Length > 0)
+                {
+                    for (int i = 0; i < renderers.Length; i++)
+                    {
+                        if (renderers[i] == null) continue;
+                        Color c = originalColors != null ? originalColors[i] : renderers[i].color;
+                        c.a = a;
+                        renderers[i].color = c;
+                    }
+                }
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        if (warning != null)
+            Destroy(warning);
+
         Vector2 spawnOffset = new Vector2(
             Random.Range(-1f, 1f),
             Random.Range(-1f, 1f)
         ).normalized * 20f;
 
-        Vector2 origin = rivalPosition + spawnOffset;
-        Vector2 direction = (rivalPosition - origin).normalized;
+        Vector2 origin = targetPosition + spawnOffset;
 
-        GameObject obj = Instantiate(meteorPrefab, origin, Quaternion.identity);
+        GameObject meteor = Instantiate(meteorPrefab, origin, Quaternion.identity);
 
-        // Rotar el meteoro hacia su destino
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        obj.transform.rotation = Quaternion.Euler(0f, 0f, angle);
-
-        // Si tiene un Projectile, inicializarlo
-        Projectile proj = obj.GetComponent<Projectile>();
-        if (proj != null)
-            proj.Init(direction, 18f, 20f, 40f, ownerPlayer);
+        MeteorMovement movement = meteor.GetComponent<MeteorMovement>();
+        if (movement != null)
+            movement.Initialize(targetPosition, ownerPlayer);
         else
-        {
-            // Si tiene Rigidbody2D sin Projectile, moverlo manualmente
-            Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
-            if (rb != null)
-            {
-                rb.gravityScale = 0f;
-                rb.linearVelocity = direction * 18f;
-            }
-            // Destruir automaticamente si no tiene logica propia
-            Destroy(obj, 5f);
-        }
+            Destroy(meteor);
     }
 
     // ── Homing Missile ───────────────────────────────────────────────────────
@@ -160,53 +208,131 @@ public class SpacePowerUpManager : MonoBehaviour
     /// Empuja a la nave rival en direccion opuesta al que activo el power up.
     public void ActivateRepulsion(Transform activatorTransform, int activatorPlayer)
     {
-        SpaceShipController activator = activatorTransform.GetComponent<SpaceShipController>();
-        SpaceShipController rival = activatorPlayer == 1 ? player2Ship : player1Ship;
-
-        if (rival == null)
-        {
-            Debug.LogWarning("[SpacePowerUpManager] No se encontro la nave rival para Repulsion.");
-            return;
-        }
+        EnsureShipReferences();
 
         Vector2 center = activatorTransform.position;
-
 
         if (repulsionVfxPrefab != null)
         {
             Instantiate(repulsionVfxPrefab, center, Quaternion.Euler(-90f,0f,0f));
         }
-       
 
-
-        Vector2 rivalPos = rival.transform.position;
-
-        Vector2 pushDir = (rivalPos - center).normalized;
-        rival.AddImpulse(pushDir * repulsionForce);
-
-
-        ApplyAreaRepulsion(center, activatorPlayer); }
-        private void ApplyAreaRepulsion(Vector2 center, int activatorPlayer)
-    {
-        SpaceShipController target1 = player1Ship;
-        SpaceShipController target2 = player2Ship;
-
-        ApplyRepelToShip(target1, center);
-        ApplyRepelToShip(target2, center);
+        StartCoroutine(RepulsionWaveRoutine(center, activatorPlayer));
     }
 
-    private void ApplyRepelToShip(SpaceShipController ship, Vector2 center)
+    private IEnumerator RepulsionWaveRoutine(Vector2 center, int activatorPlayer)
+    {
+        float duration = Mathf.Max(0.01f, repulsionWaveDuration);
+        float elapsed = 0f;
+        bool hitP1 = false;
+        bool hitP2 = false;
+        HashSet<int> affectedObjects = new HashSet<int>();
+
+        int projectileLayer = LayerMask.NameToLayer("Projectile");
+        int projectileEnemyLayer = LayerMask.NameToLayer("ProjectileEnemy");
+        int interactiveAsteroidLayer = LayerMask.NameToLayer("InteractiveAsteroid");
+
+        int mask = 0;
+        if (projectileLayer != -1) mask |= 1 << projectileLayer;
+        if (projectileEnemyLayer != -1) mask |= 1 << projectileEnemyLayer;
+        if (interactiveAsteroidLayer != -1) mask |= 1 << interactiveAsteroidLayer;
+        if (mask == 0) mask = Physics2D.AllLayers;
+
+        while (elapsed < duration)
+        {
+            float t = elapsed / duration;
+            float currentRadius = Mathf.Lerp(0f, repulsionRadius, t);
+
+            ApplyWaveToShip(player1Ship, center, activatorPlayer, currentRadius, ref hitP1);
+            ApplyWaveToShip(player2Ship, center, activatorPlayer, currentRadius, ref hitP2);
+            ApplyWaveToObjects(center, currentRadius, mask, projectileLayer, projectileEnemyLayer, affectedObjects);
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        ApplyWaveToShip(player1Ship, center, activatorPlayer, repulsionRadius, ref hitP1);
+        ApplyWaveToShip(player2Ship, center, activatorPlayer, repulsionRadius, ref hitP2);
+        ApplyWaveToObjects(center, repulsionRadius, mask, projectileLayer, projectileEnemyLayer, affectedObjects);
+    }
+
+    private void ApplyWaveToObjects(
+        Vector2 center,
+        float currentRadius,
+        int mask,
+        int projectileLayer,
+        int projectileEnemyLayer,
+        HashSet<int> affectedObjects
+    )
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(center, currentRadius, mask);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider2D hit = hits[i];
+            if (hit == null) continue;
+
+            GameObject root = hit.attachedRigidbody != null ? hit.attachedRigidbody.gameObject : hit.transform.root.gameObject;
+            int id = root.GetInstanceID();
+            if (affectedObjects.Contains(id)) continue;
+            affectedObjects.Add(id);
+
+            int layer = root.layer;
+            if ((projectileLayer != -1 && layer == projectileLayer) || (projectileEnemyLayer != -1 && layer == projectileEnemyLayer))
+            {
+                Destroy(root);
+                continue;
+            }
+
+            InteractiveAsteroid asteroid = root.GetComponent<InteractiveAsteroid>();
+            if (asteroid == null)
+                asteroid = hit.GetComponentInParent<InteractiveAsteroid>();
+            if (asteroid == null) continue;
+
+            Rigidbody2D rb = asteroid.GetComponent<Rigidbody2D>();
+            if (rb == null) continue;
+
+            Vector2 dir = (rb.position - center);
+            if (dir.sqrMagnitude < 0.0001f)
+                dir = Random.insideUnitCircle;
+
+            float dist = dir.magnitude;
+            float falloff = 1f - Mathf.Clamp01(dist / repulsionRadius);
+            rb.AddForce(dir.normalized * repulsionKnockback * falloff, ForceMode2D.Impulse);
+        }
+    }
+
+    private void ApplyWaveToShip(SpaceShipController ship, Vector2 center, int activatorPlayer, float currentRadius, ref bool alreadyHit)
     {
         if (ship == null) return;
+        if (alreadyHit) return;
 
         Vector2 dir = ((Vector2)ship.transform.position - center);
         float dist = dir.magnitude;
 
-        if (dist > repulsionRadius) return;
+        if (dist > currentRadius) return;
+
+        if (ship == player1Ship && activatorPlayer == 1) return;
+        if (ship == player2Ship && activatorPlayer == 2) return;
 
         float falloff = 1f - (dist / repulsionRadius);
 
         ship.AddImpulse(dir.normalized * repulsionKnockback * falloff);
+        alreadyHit = true;
+    }
+
+    private void EnsureShipReferences()
+    {
+        if (player1Ship == null)
+        {
+            GameObject p1 = GameObject.FindGameObjectWithTag("Player1");
+            if (p1 != null) player1Ship = p1.GetComponent<SpaceShipController>();
+        }
+
+        if (player2Ship == null)
+        {
+            GameObject p2 = GameObject.FindGameObjectWithTag("Player2");
+            if (p2 != null) player2Ship = p2.GetComponent<SpaceShipController>();
+        }
     }
 }
 

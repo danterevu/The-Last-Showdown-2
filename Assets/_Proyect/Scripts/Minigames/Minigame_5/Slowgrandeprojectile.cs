@@ -9,12 +9,15 @@ public class SlowGrandeProjectile : MonoBehaviour
 
     [Header("Explosion")]
     [SerializeField] private GameObject slowFieldPrefab;
-    [Tooltip("Cuánto más grande que el SlowField normal es la explosión")]
+    [Tooltip("Cuï¿½nto mï¿½s grande que el SlowField normal es la explosiï¿½n")]
     [SerializeField] private float explosionScale = 3f;
+    [SerializeField] private bool hideFieldVisual = true;
 
     private float traveledDistance;
     private int ownerPlayer;
     private Rigidbody2D rb;
+    private Vector2 lastPosition;
+    private bool deployed;
 
     private void Awake()
     {
@@ -35,17 +38,25 @@ public class SlowGrandeProjectile : MonoBehaviour
 
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
+
+        lastPosition = rb.position;
     }
 
     private void Update()
     {
-        traveledDistance += speed * Time.deltaTime;
+        if (deployed) return;
+
+        Vector2 currentPosition = rb != null ? rb.position : (Vector2)transform.position;
+        traveledDistance += Vector2.Distance(currentPosition, lastPosition);
+        lastPosition = currentPosition;
+
         if (traveledDistance >= range)
-            Explode();
+            Deploy();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (deployed) return;
         if (other.CompareTag("Player1") && ownerPlayer == 1) return;
         if (other.CompareTag("Player2") && ownerPlayer == 2) return;
         if (other.GetComponent<SpaceZoneBoundary>() != null) return;
@@ -54,16 +65,31 @@ public class SlowGrandeProjectile : MonoBehaviour
         if (other.GetComponent<SpacePowerUpPickup>() != null) return;
         if (other.GetComponent<HomingMissile>() != null) return;
 
-        Explode();
+        Deploy();
     }
 
-    private void Explode()
+    private void Deploy()
     {
+        if (deployed) return;
+        deployed = true;
+
+        if (rb != null)
+            rb.linearVelocity = Vector2.zero;
+
         if (slowFieldPrefab != null)
         {
             GameObject field = Instantiate(slowFieldPrefab, transform.position, Quaternion.identity);
             // Agrandar el radio de la explosion respecto al SlowField normal
             field.transform.localScale *= explosionScale;
+
+            if (hideFieldVisual)
+            {
+                foreach (SpriteRenderer sr in field.GetComponentsInChildren<SpriteRenderer>(true))
+                    sr.enabled = false;
+            }
+
+            foreach (ParticleSystem ps in field.GetComponentsInChildren<ParticleSystem>(true))
+                ps.Play(true);
         }
 
         Destroy(gameObject);

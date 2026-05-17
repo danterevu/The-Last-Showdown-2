@@ -1,13 +1,10 @@
 fileFormatVersion: 2
-guid: 0e2394da02b102243bff84dbe502673a
+guid: 8695e9d902774c748bfc42bbb3c6cd32
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7525283143048614834
-    second: Interrogacion M1_0
-  - first:
-      213: 605198745317408474
-    second: Interrogacion M1_1
+      213: 2633698501268138323
+    second: MALDITA BALA ENEMY_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -103,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Interrogacion M1_0
+      name: MALDITA BALA ENEMY_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 108
-        width: 395
-        height: 472
+        x: 63
+        y: 66
+        width: 77
+        height: 18
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -118,30 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e4c2a502ad2d09790800000000000000
-      internalID: -7525283143048614834
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Interrogacion M1_1
-      rect:
-        serializedVersion: 2
-        x: 167
-        y: 0
-        width: 81
-        height: 105
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: adef7296d09166800800000000000000
-      internalID: 605198745317408474
+      spriteID: 359e09d35d6cc8420800000000000000
+      internalID: 2633698501268138323
       vertices: []
       indices: 
       edges: []
@@ -159,9 +134,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      Interrogacion M1_0: -7525283143048614834
-      Interrogacion M1_1: 605198745317408474
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

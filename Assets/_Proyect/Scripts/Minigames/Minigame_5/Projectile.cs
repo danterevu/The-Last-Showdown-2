@@ -6,6 +6,9 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
+    [Header("VFX")]
+    [SerializeField] private ParticleSystem hitParticles;
+
     // -----------------------------------------------------------------------
     //  ESTADO (seteado por WeaponController al instanciar)
     // -----------------------------------------------------------------------
@@ -13,13 +16,15 @@ public class Projectile : MonoBehaviour
     private float speed;
     private float damage;
     private float range;
-    private int ownerPlayer;   // 1 o 2, para no dañarse a sí mismo
+    private int ownerPlayer;   // 1 o 2, para no daï¿½arse a sï¿½ mismo
     private float traveledDistance;
 
     private Rigidbody2D rb;
+    private bool hitVfxSpawned;
+    private Vector2 lastMoveDir = Vector2.right;
 
     // -----------------------------------------------------------------------
-    //  INICIALIZACIÓN
+    //  INICIALIZACIï¿½N
     // -----------------------------------------------------------------------
 
     private void Awake()
@@ -30,7 +35,7 @@ public class Projectile : MonoBehaviour
     }
 
     /// <summary>
-    /// Llamado por WeaponController justo después de Instantiate.
+    /// Llamado por WeaponController justo despuï¿½s de Instantiate.
     /// </summary>
     public void Init(Vector2 direction, float speed, float damage, float range, int ownerPlayer)
     {
@@ -38,6 +43,8 @@ public class Projectile : MonoBehaviour
         this.damage = damage;
         this.range = range;
         this.ownerPlayer = ownerPlayer;
+        if (direction.sqrMagnitude > 0.0001f)
+            lastMoveDir = direction.normalized;
         rb.linearVelocity = direction.normalized * speed;
     }
 
@@ -47,9 +54,15 @@ public class Projectile : MonoBehaviour
 
     private void Update()
     {
+        if (rb != null && rb.linearVelocity.sqrMagnitude > 0.0001f)
+            lastMoveDir = rb.linearVelocity.normalized;
+
         traveledDistance += speed * Time.deltaTime;
         if (traveledDistance >= range)
+        {
+            SpawnHitVfx();
             Destroy(gameObject);
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -58,8 +71,8 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log($"Colisión con: {other.gameObject.name} | tag: {other.tag} | layer: {LayerMask.LayerToName(other.gameObject.layer)}");
-        // Determinar si impactó a un jugador
+        Debug.Log($"Colisiï¿½n con: {other.gameObject.name} | tag: {other.tag} | layer: {LayerMask.LayerToName(other.gameObject.layer)}");
+        // Determinar si impactï¿½ a un jugador
         int hitPlayer = 0;
         Debug.Log($"Impacto: {other.gameObject.name} tag={other.tag}");
         Debug.Log($"hitPlayer: {hitPlayer} | ownerPlayer: {ownerPlayer}");
@@ -85,12 +98,13 @@ public class Projectile : MonoBehaviour
                     );
                 }
             }
-            // Impactó contra una pared u otro objeto
+            // Impactï¿½ contra una pared u otro objeto
+            SpawnHitVfx();
             Destroy(gameObject);
             return;
         }
 
-        // No dañarse a sí mismo
+        // No daï¿½arse a sï¿½ mismo
         if (hitPlayer == ownerPlayer) return;
 
         // --- MODIFICADOR: Golden Kill ---
@@ -104,19 +118,38 @@ public class Projectile : MonoBehaviour
         {
             killPointsMultiplier = ModifierManager.Instance.goldenKillMultiplier;
             ModifierManager.Instance.ConsumeGoldenKill();
-            Debug.Log($"[GoldenKill] ¡Primera kill! Los puntos del jugador {ownerPlayer} son x{killPointsMultiplier}");
+            Debug.Log($"[GoldenKill] ï¿½Primera kill! Los puntos del jugador {ownerPlayer} son x{killPointsMultiplier}");
         }
 
-        // Restar puntos al jugador impactado (daño directo, sin modificador)
+        // Restar puntos al jugador impactado (daï¿½o directo, sin modificador)
         SpaceMinigame.Instance?.RegisterKill(ownerPlayer, hitPlayer);
 
-        // Sumar puntos al dueño del proyectil (kill bonus con posible multiplicador)
+        // Sumar puntos al dueï¿½o del proyectil (kill bonus con posible multiplicador)
         int killBonus = Mathf.RoundToInt((damage / 2f) * killPointsMultiplier);
         GameManager.Instance?.AddPoints(ownerPlayer, killBonus);
 
         // CameraShake al impacto
         CameraShake.Instance?.Shake(0.1f, 0.08f);
         GetComponent<Collider2D>().enabled = false;
+        SpawnHitVfx();
         Destroy(gameObject);
+    }
+
+    private void SpawnHitVfx()
+    {
+        if (hitVfxSpawned) return;
+        hitVfxSpawned = true;
+
+        if (hitParticles == null) return;
+
+        Vector2 dir = lastMoveDir.sqrMagnitude > 0.0001f ? lastMoveDir : Vector2.up;
+        Quaternion rotation = Quaternion.FromToRotation(Vector3.up, new Vector3(dir.x, dir.y, 0f));
+
+        ParticleSystem instance = Instantiate(hitParticles, transform.position, rotation);
+        float lifetime = instance.main.duration;
+        var startLifetime = instance.main.startLifetime;
+        lifetime += startLifetime.constantMax;
+        if (lifetime > 0f)
+            Destroy(instance.gameObject, lifetime);
     }
 }
