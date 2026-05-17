@@ -19,6 +19,11 @@ public class PowerUpPickup : MonoBehaviour
     
     }
 
+    private void Start()
+    {
+        transform.rotation = Quaternion.identity; //  rotación siempre en 0
+    }
+
     public void Initialize(PowerUpSpawner spawner, Transform spawnPoint)
     {
         this.spawner = spawner;

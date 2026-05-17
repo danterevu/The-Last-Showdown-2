@@ -2675,7 +2675,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player1: {fileID: 1553776877}
   player2: {fileID: 538370194}
-  diskMovement: {fileID: 0}
+  diskMovement: {fileID: 181162187}
   wallPrefab: {fileID: 7966696002276527167, guid: 255399bb0ca740241a30d64fa21fe6d3, type: 3}
   powerUpPickup: {fileID: 1312090746}
   freezeDuration: 3
@@ -2697,7 +2697,7 @@ MonoBehaviour:
   invertActive: 0
   player1HUD: {fileID: 1579041067}
   player2HUD: {fileID: 1579041067}
-  Disk: {fileID: 0}
+  Disk: {fileID: 181162185}
 --- !u!4 &477330314
 Transform:
   m_ObjectHideFlags: 0

@@ -45,6 +45,9 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [SerializeField] private string actionMapName = "Player1_Platform";
     [SerializeField] private int playerIndex = 0;
 
+    [Header("RemoteControl")]
+    [SerializeField] RemoteControl rc; 
+
     [Header("Debug")]
     [SerializeField] private bool isGrounded;
     [SerializeField] private bool isInvulnerable;
@@ -52,6 +55,17 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [SerializeField] private bool canAttack = true;
     [SerializeField] private bool isAttacking = false;
     [SerializeField] private bool isKnockedBack = false;
+
+    [Header("PowerUp DNA")]
+    [SerializeField] private DNAPowerUpPickup.DNAPowerUpType currentDNAPowerUp;
+    [SerializeField] private bool hasDNAPowerUp = false;
+
+    [Header("Shrink")]
+    private float shrinkScale = 0.7f;      // tamaño al que se achica
+    private float shrinkSpeedMult = 1.2f;  // multiplicador de velocidad
+    private float shrinkDuration = 2f;     // duración en segundos
+
+    private Vector3 originalScale;
 
     private float coyoteTimeCounter;
     private float jumpBufferCounter;
@@ -66,6 +80,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     private SpriteRenderer sr;
     private Collider2D col;
     private InputAction moveAction;
+    private InputAction remoteControl;
     private InputAction jumpAction;
     private InputAction attackAction;
     private InputAction interactAction;
@@ -79,7 +94,9 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         sr = GetComponent<SpriteRenderer>();
         col = GetComponent<Collider2D>();
         animator = GetComponent<Animator>();
+        rc = GetComponent<RemoteControl>();
         baseMoveSpeed = moveSpeed;
+        originalScale = transform.localScale;
     }
 
     private void OnEnable() { SetupInput(); }
@@ -107,6 +124,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         jumpAction = map.FindAction("Jump");
         attackAction = map.FindAction("Attack");
         interactAction = map.FindAction("Interact");
+        remoteControl = map.FindAction("RemoteControl");
 
         moveAction?.Enable();
         if (jumpAction != null) { jumpAction.Enable(); jumpAction.performed += OnJumpPerformed; jumpAction.canceled += OnJumpCanceled; }
@@ -150,6 +168,12 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             {
                 Debug.Log(gameObject.name + " presiono interact (gamepad)");
                 UsePowerUp();
+            }
+            // activar paredes / RemoteControl
+            if (gp.buttonNorth.wasPressedThisFrame)
+            {
+                Debug.Log(gameObject.name + " presiono triangulo (gamepad)");
+                rc.ActivateWall();
             }
         }
 
@@ -424,19 +448,25 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     // Power ups — implementar según el nuevo minijuego
     private void UsePowerUp()
     {
-        if (!hasPowerUp) return;
-        Debug.Log(gameObject.name + " usando: " + currentPowerUp);
-        // TODO: implementar lógica de power ups del nuevo minijuego
+        if (!hasDNAPowerUp) return;
+        hasDNAPowerUp = false;
+
+        switch (currentDNAPowerUp)
+        {
+            case DNAPowerUpPickup.DNAPowerUpType.Shrink:
+                StartCoroutine(ShrinkEffect());
+                break;
+        }
     }
 
     public bool HasPowerUp() => hasPowerUp;
     public PowerUpPickup.PowerUpType GetCurrentPowerUp() => currentPowerUp;
 
-    public void ReceivePowerUp(PowerUpPickup.PowerUpType type)
+    public void ReceiveDNAPowerUp(DNAPowerUpPickup.DNAPowerUpType type)
     {
-        currentPowerUp = type;
-        hasPowerUp = true;
-        Debug.Log(gameObject.name + " recibio: " + type);
+        currentDNAPowerUp = type;
+        hasDNAPowerUp = true;
+        Debug.Log(gameObject.name + " recibio DNA powerup: " + type);
     }
 
     public void ClearPowerUpState()
@@ -447,7 +477,27 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     public void ClearActivePowerUpEffects()
     {
-        // TODO: limpiar efectos activos del nuevo minijuego
+        StopAllCoroutines(); // para el shrink si está activo
+        transform.localScale = originalScale;
+        moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
+        hasDNAPowerUp = false;
+    }
+
+    //POWER UPS EFFECTS
+
+    private IEnumerator ShrinkEffect()
+    {
+        // Achicarse
+        transform.localScale = originalScale * shrinkScale;
+        float speedBoost = baseMoveSpeed * shrinkSpeedMult;
+        float previousSpeed = moveSpeed;
+        moveSpeed = speedBoost;
+
+        yield return new WaitForSeconds(shrinkDuration);
+
+        // Volver al tamaño original
+        transform.localScale = originalScale;
+        moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
     }
 
     public bool IsFacingRight() => !sr.flipX;

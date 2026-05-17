@@ -43,6 +43,7 @@ public class MutantDNAManager : MonoBehaviour
 
         dnaPickup.SpawnDNA();
         UpdateUI();
+
     }
 
     private void Update()
