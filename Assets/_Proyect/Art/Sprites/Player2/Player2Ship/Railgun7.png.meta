@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 18d3e0d3b7763774b91bc5c67df4330d
+guid: 628b5cae56b609c49955850ac4270cc1
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3543088061399363285
-    second: MALDITA BALA_0
+      213: 8903224319692462258
+    second: Railgun7_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -75,7 +75,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 2
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -100,23 +100,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: MALDITA BALA_0
+      name: Railgun7_0
       rect:
         serializedVersion: 2
-        x: 4
-        y: 47
-        width: 146
-        height: 48
+        x: 0
+        y: 9
+        width: 256
+        height: 436
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b211d542e2c64dec0800000000000000
-      internalID: -3543088061399363285
+      spriteID: 2b853e2f85b9e8b70800000000000000
+      internalID: 8903224319692462258
       vertices: []
       indices: 
       edges: []
@@ -125,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -134,8 +134,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      MALDITA BALA_0: -3543088061399363285
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
