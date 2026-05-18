@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 309667455681415519}
   - component: {fileID: 7106076964169960845}
   - component: {fileID: 7056276833330696033}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: dark
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -89,7 +89,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 1.0646e-41, y: 2.524355e-29, z: 0, w: NaN}
+  m_BoundingSphereOverride: {x: 5.523e-42, y: 2.524355e-29, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -133,7 +133,7 @@ GameObject:
   - component: {fileID: 7568660364171656825}
   - component: {fileID: 4425342506346721988}
   - component: {fileID: 3445041594209287539}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Slowfield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -281,6 +281,10 @@ PrefabInstance:
     - target: {fileID: 6576161889340641389, guid: 4db42fa8300430348b886ed45f847e78, type: 3}
       propertyPath: m_Name
       value: SLOW GRANADE! Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 6576161889340641389, guid: 4db42fa8300430348b886ed45f847e78, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 7239929885960452834, guid: 4db42fa8300430348b886ed45f847e78, type: 3}
       propertyPath: LightsModule.light

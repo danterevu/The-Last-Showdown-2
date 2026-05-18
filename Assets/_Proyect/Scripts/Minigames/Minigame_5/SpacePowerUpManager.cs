@@ -34,7 +34,7 @@ public class SpacePowerUpManager : MonoBehaviour
 
     [Header("Configuracion Repulsion")]
     [Tooltip("Fuerza del impulso de repulsion aplicado a la nave rival")]
-    [SerializeField] private float repulsionForce = 20f;
+    //[SerializeField] private float repulsionForce = 20f;
 
     // Referencia a las naves para la repulsion
     [Header("Referencias a las naves")]

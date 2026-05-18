@@ -318,15 +318,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2820d2c951f0ba741bc1e6c8e7b0aa16, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acceleration: 14
-  maxSpeed: 9
+  acceleration: 15
+  maxSpeed: 15
   dragWhileMoving: 1.2
   dragWhenIdle: 3.5
-  rotationSpeed: 540
+  rotationSpeed: 250
   rotationOffset: 0
   inputActionAsset: {fileID: -944628639613478452, guid: e3270181fb3993c478a2ddab4e8b288a, type: 3}
   playerIndex: 0
   isPlayer1: 1
+  rocketParticles: {fileID: 0}
+  lethalSpeed: 15
+  explosionVfxPrefab: {fileID: 0}
 --- !u!114 &7417864839006377122
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -378,6 +381,7 @@ MonoBehaviour:
   shipAnimator: {fileID: 0}
   shipSprite: {fileID: 0}
   blinkSpeed: 0.08
+  slowFieldBulletSpeedMultiplier: 0.4
 --- !u!114 &5622894836061713576
 MonoBehaviour:
   m_ObjectHideFlags: 0

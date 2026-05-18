@@ -103,7 +103,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 2
+  m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 0
@@ -131,7 +131,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hitParticles: {fileID: 3802835220281206473, guid: a63094f47fbf85841930899285826f6c, type: 3}
-  asteroidPushForce: 500
+  asteroidPushForce: 4
 --- !u!61 &4559974807770644993
 BoxCollider2D:
   m_ObjectHideFlags: 0
