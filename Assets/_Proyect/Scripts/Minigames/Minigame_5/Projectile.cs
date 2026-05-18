@@ -172,8 +172,6 @@ public class Projectile : MonoBehaviour
         int killBonus = Mathf.RoundToInt((damage / 2f) * killPointsMultiplier);
         GameManager.Instance?.AddPoints(ownerPlayer, killBonus);
 
-        // CameraShake al impacto
-        CameraShake.Instance?.Shake(0.1f, 0.08f);
         GetComponent<Collider2D>().enabled = false;
         SpawnHitVfx();
         Destroy(gameObject);
