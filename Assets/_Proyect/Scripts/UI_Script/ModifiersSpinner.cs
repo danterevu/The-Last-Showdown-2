@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class ModifiersSpinner : MonoBehaviour
 {
-    [Header("Configuración Visual")]
+    [Header("Configuraciï¿½n Visual")]
     [SerializeField] private float minSpinPower = 40f;
     [SerializeField] private float maxSpinPower = 80f;
     [SerializeField] private float stopPower = 2f;
@@ -16,7 +16,7 @@ public class ModifiersSpinner : MonoBehaviour
     [SerializeField] private Sprite spriteDodgeDisk;
     [SerializeField] private Sprite spriteSpace; // sprite para el Minigame_5
 
-    // Índice del array = sección de la ruleta (0, 1, 2)
+    // ï¿½ndice del array = secciï¿½n de la ruleta (0, 1, 2)
     // El texto "Sin Modificador" en el slot 2 de Space mapea al enum None
     private static readonly Dictionary<int, string[]> modifierNames = new()
     {
@@ -50,7 +50,7 @@ public class ModifiersSpinner : MonoBehaviour
             sr.sprite = spriteDodgeDisk;
         else if (targetMinigame == 2 && spriteKOH != null)
             sr.sprite = spriteKOH;
-        else if (targetMinigame == 5 && spriteSpace != null)
+        else if (targetMinigame == 4 && spriteSpace != null)
             sr.sprite = spriteSpace;
     }
 
@@ -127,7 +127,7 @@ public class ModifiersSpinner : MonoBehaviour
                 ModifierManager.Instance.SetKOHModifier(
                     (ModifierManager.KOHModifier)(modIndex + 1));
             }
-            else if (targetMinigame == 5)
+            else if (targetMinigame == 4)
             {
                 // Space: None=0, GoldenKill=1, ComboRounds=2
                 // slot 0  GoldenKill (1)

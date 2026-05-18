@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 public class MinigameSpinner : MonoBehaviour
 {
-    [Header("Configuración de Minijuegos")]
+    [Header("Configuraciï¿½n de Minijuegos")]
     [SerializeField] private int totalMinigames = 4;
 
-    [Header("Configuración Visual")]
+    [Header("Configuraciï¿½n Visual")]
     [SerializeField] private float minSpinPower = 40f;
     [SerializeField] private float maxSpinPower = 80f;
     [SerializeField] private float stopPower = 2f;
@@ -17,8 +17,8 @@ public class MinigameSpinner : MonoBehaviour
     [Header("Referencias")]
     [SerializeField] private ModifiersSpinner modifiersSpinner;
 
-    // Offset centralizado — cambiá solo este valor si ajustás la ruleta
-    private const float ANGLE_OFFSET = 270f;
+    // Offset centralizado ï¿½ cambiï¿½ solo este valor si ajustï¿½s la ruleta
+    private const float ANGLE_OFFSET = 180f;
 
     private Rigidbody2D rb;
     private bool hasSpun = false;
@@ -88,9 +88,14 @@ public class MinigameSpinner : MonoBehaviour
     private int GetWinnerIdFromAngle(float rawAngle)
     {
         float normalizedAngle = (rawAngle + ANGLE_OFFSET) % 360f;
+        if (normalizedAngle < 0) normalizedAngle += 360f;
+        
         float degreesPerSlice = 360f / totalMinigames;
         int sectionIndex = Mathf.FloorToInt(normalizedAngle / degreesPerSlice);
         sectionIndex = Mathf.Clamp(sectionIndex, 0, totalMinigames - 1);
+        
+        Debug.Log($"=== DEBUG RULETA ===\nRaw Angle: {rawAngle:F1}Â°\nANGLE_OFFSET: {ANGLE_OFFSET}Â°\nNormalized Angle: {normalizedAngle:F1}Â°\nDegrees per slice: {degreesPerSlice}Â°\nSection Index: {sectionIndex}\nWinner ID: {sectionIndex + 1}");
+        
         return sectionIndex + 1;
     }
 
@@ -102,7 +107,7 @@ public class MinigameSpinner : MonoBehaviour
         float rawAngle = transform.rotation.eulerAngles.z;
         int winnerId = GetWinnerIdFromAngle(rawAngle);
 
-        Debug.Log($"Angulo raw: {rawAngle:F1}° | Minijuego: {winnerId}");
+        Debug.Log($"Angulo raw: {rawAngle:F1}ï¿½ | Minijuego: {winnerId}");
 
         if (GameManager.Instance.IsMinigameAvailable(winnerId))
             ConfirmSelection();
