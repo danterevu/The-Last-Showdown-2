@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 35110d3d534de5e428f1aa5eca2d7e97
+guid: 61aa581448356004ba1de127669ff7c9
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 6215738102652811927
-    second: COHETEMASIVO_0
+      213: 7484309899564263625
+    second: Cara_Normal_0
+  - first:
+      213: -6660932131068580311
+    second: Cara_Normal_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +49,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -100,13 +103,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: COHETEMASIVO_0
+      name: Cara_Normal_0
       rect:
         serializedVersion: 2
-        x: 16
-        y: 13
-        width: 223
-        height: 224
+        x: 17
+        y: 113
+        width: 546
+        height: 256
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +118,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 79a3b793fdcb24650800000000000000
-      internalID: 6215738102652811927
+      spriteID: 9c8a778333c9dd760800000000000000
+      internalID: 7484309899564263625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cara_Normal_1
+      rect:
+        serializedVersion: 2
+        x: 222
+        y: 353
+        width: 168
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92eeba6948d9f83a0800000000000000
+      internalID: -6660932131068580311
       vertices: []
       indices: 
       edges: []
@@ -125,7 +150,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +160,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      COHETEMASIVO_0: 6215738102652811927
+      Cara_Normal_0: 7484309899564263625
+      Cara_Normal_1: -6660932131068580311
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,10 +1,19 @@
 fileFormatVersion: 2
-guid: 35110d3d534de5e428f1aa5eca2d7e97
+guid: cab324bdeb9b3d748b099d01242ccfdd
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 6215738102652811927
-    second: COHETEMASIVO_0
+      213: -5883201895693957049
+    second: Cara_enojo_0
+  - first:
+      213: -5094005998521268810
+    second: Cara_enojo_1
+  - first:
+      213: -1312189711863025787
+    second: Cara_enojo_2
+  - first:
+      213: -3216154508680302762
+    second: Cara_enojo_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +55,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -100,13 +109,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: COHETEMASIVO_0
+      name: Cara_enojo_0
       rect:
         serializedVersion: 2
-        x: 16
-        y: 13
-        width: 223
-        height: 224
+        x: 24
+        y: 135
+        width: 546
+        height: 256
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +124,74 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 79a3b793fdcb24650800000000000000
-      internalID: 6215738102652811927
+      spriteID: 748c141eb0baa5ea0800000000000000
+      internalID: -5883201895693957049
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cara_enojo_1
+      rect:
+        serializedVersion: 2
+        x: 121
+        y: 373
+        width: 96
+        height: 121
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b54e6698847e49b0800000000000000
+      internalID: -5094005998521268810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cara_enojo_2
+      rect:
+        serializedVersion: 2
+        x: 242
+        y: 382
+        width: 67
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58f6b7ac86a2acde0800000000000000
+      internalID: -1312189711863025787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cara_enojo_3
+      rect:
+        serializedVersion: 2
+        x: 348
+        y: 376
+        width: 83
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65fe657a38ced53d0800000000000000
+      internalID: -3216154508680302762
       vertices: []
       indices: 
       edges: []
@@ -125,7 +200,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +210,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      COHETEMASIVO_0: 6215738102652811927
+      Cara_enojo_0: -5883201895693957049
+      Cara_enojo_1: -5094005998521268810
+      Cara_enojo_2: -1312189711863025787
+      Cara_enojo_3: -3216154508680302762
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
