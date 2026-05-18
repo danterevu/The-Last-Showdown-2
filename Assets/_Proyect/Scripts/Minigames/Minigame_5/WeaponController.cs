@@ -28,6 +28,9 @@ public class WeaponController : MonoBehaviour
     [SerializeField] private SpriteRenderer shipSprite;
     [SerializeField] private float blinkSpeed = 0.08f;
 
+    [Header("Slow Field Effect")]
+    [SerializeField] private float slowFieldBulletSpeedMultiplier = 0.4f;
+
     private bool isFullyCharged;
     private Coroutine blinkRoutine;
     // ─────────────────────────────────────────────────────────
@@ -365,6 +368,12 @@ public class WeaponController : MonoBehaviour
         Vector2 dir = overrideDir ?? (Vector2)shootPoint.right;
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
+        float finalSpeed = spd;
+        if (shipController != null && shipController.isInSlowField)
+        {
+            finalSpeed *= slowFieldBulletSpeedMultiplier;
+        }
+
         GameObject obj = Instantiate(prefab, shootPoint.position, Quaternion.Euler(0f, 0f, angle));
 
         if (!Mathf.Approximately(sizeMultiplier, 1f))
@@ -372,7 +381,7 @@ public class WeaponController : MonoBehaviour
 
         Projectile proj = obj.GetComponent<Projectile>();
         if (proj != null)
-            proj.Init(dir, spd, dmg, currentWeapon.range, isPlayer1 ? 1 : 2, currentWeapon.type);
+            proj.Init(dir, finalSpeed, dmg, currentWeapon.range, isPlayer1 ? 1 : 2, currentWeapon.type);
     }
 
     private void FireShotgun()

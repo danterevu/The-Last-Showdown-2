@@ -57,6 +57,7 @@ public class SpaceShipController : MonoBehaviour
     private bool hasInput;
 
     private bool isRocketSabotageActive;
+    public bool isInSlowField { get; private set; }
 
     //  UNITY LIFECYCLE
 
@@ -299,4 +300,9 @@ public class SpaceShipController : MonoBehaviour
     public Vector2 InputDirection => inputDirection;
 
     public bool IsPlayer1 => isPlayer1;
+
+    public void SetInSlowField(bool value)
+    {
+        isInSlowField = value;
+    }
 }

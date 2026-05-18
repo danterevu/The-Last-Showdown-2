@@ -15,7 +15,7 @@ public class PowerUpHolder : MonoBehaviour
     [Header("Fire point (para proyectiles)")]
     [SerializeField] private Transform firePoint;
 
-    private SpacePowerUpType? heldPowerUp = null;
+    public SpacePowerUpType? heldPowerUp = null;
     private bool hasPowerUp = false;
 
     private InputAction interactAction;
@@ -40,7 +40,7 @@ public class PowerUpHolder : MonoBehaviour
 
         if (map == null)
         {
-            Debug.LogError($"[PowerUpHolder] {gameObject.name}: No se encontro el mapa '{mapName}'. Verificá que el nombre sea exacto en el InputActionAsset.");
+            Debug.LogError($"[PowerUpHolder] {gameObject.name}: No se encontro el mapa '{mapName}'. Verificï¿½ que el nombre sea exacto en el InputActionAsset.");
             return;
         }
 
@@ -48,7 +48,7 @@ public class PowerUpHolder : MonoBehaviour
 
         if (interactAction == null)
         {
-            Debug.LogError($"[PowerUpHolder] {gameObject.name}: No se encontro la accion 'Interact' en el mapa '{mapName}'. Verificá que exista y se llame exactamente 'Interact'.");
+            Debug.LogError($"[PowerUpHolder] {gameObject.name}: No se encontro la accion 'Interact' en el mapa '{mapName}'. Verificï¿½ que exista y se llame exactamente 'Interact'.");
             return;
         }
 
@@ -65,7 +65,7 @@ public class PowerUpHolder : MonoBehaviour
 
         Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
         if (gp != null)
-            gamepadPressed = gp.buttonEast.wasPressedThisFrame; // círculo en PlayStation
+            gamepadPressed = gp.buttonEast.wasPressedThisFrame; // cï¿½rculo en PlayStation
 
         if (keyboardPressed || gamepadPressed)
         {
@@ -134,7 +134,7 @@ public class PowerUpHolder : MonoBehaviour
         }
 
         Vector2 origin = firePoint != null ? (Vector2)firePoint.position : (Vector2)transform.position;
-        Vector2 shootDir = transform.right; // la dirección en que mira la nave
+        Vector2 shootDir = transform.right; // la direcciï¿½n en que mira la nave
         int player = isPlayer1 ? 1 : 2;
 
         Debug.Log($"[PowerUpHolder] SlowGrande: origin={origin}, direction={shootDir}, ownerPlayer={player}");

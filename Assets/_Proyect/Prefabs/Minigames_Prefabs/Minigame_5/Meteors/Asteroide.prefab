@@ -186,7 +186,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 6
+  m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 0
@@ -214,9 +214,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lethalSpeed: 10
-  bounceBreakSpeed: 15
-  debrisPrefabs: []
-  debrisLaunchForce: 8
+  bounceBreakSpeed: 10
+  debrisPrefabs:
+  - {fileID: 1617699241901906700, guid: 139464b520f205c46982e197b43bfc24, type: 3}
+  - {fileID: 6311095535035465875, guid: d741e1b56e1b80e468aa79096e71aa84, type: 3}
+  - {fileID: 3270998208332740354, guid: fb480f66a5ef4954b974f8d1ace264ea, type: 3}
+  - {fileID: 3802107128134296560, guid: c28607c67a104604b98d43f9eafe4f90, type: 3}
+  - {fileID: 1830645856965919889, guid: 2a96ac13a9b46f74e85e4d0264dab90f, type: 3}
+  - {fileID: 2237308058046483406, guid: 86c4875fd71308e4cb04650e52b070c1, type: 3}
+  - {fileID: 7013591282443573666, guid: 585be43e7de16ea438c02cb3506a3595, type: 3}
+  - {fileID: 7666041433389100928, guid: f1a86f63b41a9d249a943f39ee4ea7fd, type: 3}
+  - {fileID: 979445267739499189, guid: 34246ee33e1785245a237e1f383204d8, type: 3}
+  debrisLaunchForce: 15
   currentSpeed: 0
 --- !u!114 &2420686960058533466
 MonoBehaviour:
@@ -230,7 +239,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de13cde13c652eb4d87e582c979ae566, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 5
+  health: 1
   onlyLaserCanBreak: 1
   interactiveAsteroidPrefab: {fileID: 2182635671732875495}
   debrisPrefabs:
@@ -243,5 +252,5 @@ MonoBehaviour:
   - {fileID: 7013591282443573666, guid: 585be43e7de16ea438c02cb3506a3595, type: 3}
   - {fileID: 7666041433389100928, guid: f1a86f63b41a9d249a943f39ee4ea7fd, type: 3}
   - {fileID: 979445267739499189, guid: 34246ee33e1785245a237e1f383204d8, type: 3}
-  debrisLaunchForce: 8
+  debrisLaunchForce: 25
   laserForceMultiplier: 15

@@ -225,6 +225,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hitParticles: {fileID: 4586674879877846580, guid: cf9610ff7b6bb304aa630240e1a02405, type: 3}
+  asteroidPushForce: 15
 --- !u!61 &8344127734147757355
 BoxCollider2D:
   m_ObjectHideFlags: 0

@@ -6,6 +6,9 @@ public class Projectile : MonoBehaviour
     [Header("VFX")]
     [SerializeField] private ParticleSystem hitParticles;
 
+    [Header("Asteroid Push")]
+    [SerializeField] private float asteroidPushForce = 25f;
+
     // -----------------------------------------------------------------------
     //  ESTADO (seteado por WeaponController al instanciar)
     // -----------------------------------------------------------------------
@@ -71,7 +74,17 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log($"Colisión con: {other.gameObject.name} | tag: {other.tag} | layer: {LayerMask.LayerToName(other.gameObject.layer)}");
+        HandleCollision(other.gameObject);
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        HandleCollision(collision.gameObject);
+    }
+
+    private void HandleCollision(GameObject other)
+    {
+        Debug.Log($"Colisión con: {other.name} | tag: {other.tag} | layer: {LayerMask.LayerToName(other.layer)}");
 
         // Verificar si es un HomingMissile
         HomingMissile homingMissile = other.GetComponent<HomingMissile>();
@@ -96,7 +109,7 @@ public class Projectile : MonoBehaviour
 
         // Determinar si impactó a un jugador
         int hitPlayer = 0;
-        Debug.Log($"Impacto: {other.gameObject.name} tag={other.tag}");
+        Debug.Log($"Impacto: {other.name} tag={other.tag}");
         Debug.Log($"hitPlayer: {hitPlayer} | ownerPlayer: {ownerPlayer}");
         Debug.Log($"SpaceMinigame.Instance: {SpaceMinigame.Instance}");
         Debug.Log($"Tag length: {other.tag.Length} | bytes: {string.Join(",", System.Text.Encoding.UTF8.GetBytes(other.tag))}");
@@ -105,21 +118,30 @@ public class Projectile : MonoBehaviour
         else if (tag == "Player2") hitPlayer = 2;
         else
         {
-            if (other.gameObject.layer == LayerMask.NameToLayer("InteractiveAsteroid"))
+            // Buscar InteractiveAsteroid por componente (más fiable que layer)
+            InteractiveAsteroid asteroid = other.GetComponent<InteractiveAsteroid>();
+            if (asteroid == null)
             {
-                Rigidbody2D asteroidRb = other.attachedRigidbody;
+                asteroid = other.GetComponentInParent<InteractiveAsteroid>();
+            }
 
+            if (asteroid != null)
+            {
+                Rigidbody2D asteroidRb = asteroid.GetComponent<Rigidbody2D>();
                 if (asteroidRb != null)
                 {
-                    Vector2 pushDir =
-                        ((Vector2)other.transform.position - (Vector2)transform.position).normalized;
+                    Vector2 pushDir = ((Vector2)other.transform.position - (Vector2)transform.position).normalized;
+                    if (pushDir.sqrMagnitude < 0.0001f)
+                    {
+                        pushDir = lastMoveDir;
+                    }
 
-                    asteroidRb.AddForce(
-                        pushDir * 5f,
-                        ForceMode2D.Impulse
-                    );
+                    // Empuje base + bonus por velocidad de la bala
+                    float finalPushForce = asteroidPushForce + (speed * 0.5f);
+                    asteroidRb.AddForce(pushDir * finalPushForce, ForceMode2D.Impulse);
                 }
             }
+
             // Impactó contra una pared u otro objeto
             SpawnHitVfx();
             Destroy(gameObject);

@@ -106,6 +106,7 @@ public class SlowField : MonoBehaviour
         // Aplicar slow
         ship.SetMaxSpeed(ship.MaxSpeed * speedMultiplier);
         ship.SetAcceleration(ship.Acceleration * speedMultiplier);
+        ship.SetInSlowField(true);
 
         // Frenar la velocidad actual inmediatamente
         ship.SetVelocity(ship.GetVelocity() * speedMultiplier);
@@ -117,6 +118,7 @@ public class SlowField : MonoBehaviour
 
         ship.SetMaxSpeed(originalMaxSpeeds[ship]);
         ship.SetAcceleration(originalAccelerations[ship]);
+        ship.SetInSlowField(false);
 
         originalMaxSpeeds.Remove(ship);
         originalAccelerations.Remove(ship);

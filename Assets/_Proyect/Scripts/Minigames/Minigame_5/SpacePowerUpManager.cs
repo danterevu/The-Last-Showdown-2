@@ -41,6 +41,12 @@ public class SpacePowerUpManager : MonoBehaviour
     [SerializeField] private SpaceShipController player1Ship;
     [SerializeField] private SpaceShipController player2Ship;
 
+    [Header("Power Up HUD")]
+    [SerializeField] private SpacePowerUpHUD hudPlayer1;
+    [SerializeField] private SpacePowerUpHUD hudPlayer2;
+    [SerializeField] private PowerUpHolder holderPlayer1;
+    [SerializeField] private PowerUpHolder holderPlayer2;
+
     [Header("Repulsion VFX")]
     [SerializeField] private GameObject repulsionVfxPrefab;
     [SerializeField] private float repulsionRadius = 6f;
@@ -425,6 +431,48 @@ public class SpacePowerUpManager : MonoBehaviour
         {
             GameObject p2 = GameObject.FindGameObjectWithTag("Player2");
             if (p2 != null) player2Ship = p2.GetComponent<SpaceShipController>();
+        }
+    }
+
+    private void Start()
+    {
+        InitializeHUDs();
+    }
+
+    private void InitializeHUDs()
+    {
+        // Buscar Holders automáticamente si no están asignados
+        if (holderPlayer1 == null)
+        {
+            GameObject p1 = GameObject.FindGameObjectWithTag("Player1");
+            if (p1 != null) holderPlayer1 = p1.GetComponent<PowerUpHolder>();
+        }
+
+        if (holderPlayer2 == null)
+        {
+            GameObject p2 = GameObject.FindGameObjectWithTag("Player2");
+            if (p2 != null) holderPlayer2 = p2.GetComponent<PowerUpHolder>();
+        }
+
+        // Trackear los Holders con los HUDs
+        if (hudPlayer1 != null && holderPlayer1 != null)
+        {
+            hudPlayer1.TrackHolder(holderPlayer1);
+            Debug.Log("[SpacePowerUpManager] HUD Player 1 inicializado");
+        }
+        else if (hudPlayer1 != null)
+        {
+            Debug.LogWarning("[SpacePowerUpManager] No se encontró PowerUpHolder para Player 1");
+        }
+
+        if (hudPlayer2 != null && holderPlayer2 != null)
+        {
+            hudPlayer2.TrackHolder(holderPlayer2);
+            Debug.Log("[SpacePowerUpManager] HUD Player 2 inicializado");
+        }
+        else if (hudPlayer2 != null)
+        {
+            Debug.LogWarning("[SpacePowerUpManager] No se encontró PowerUpHolder para Player 2");
         }
     }
 }
