@@ -21,7 +21,13 @@ public enum SoundID //Esto simplemente es una lista de nombres que vos aca vas a
 
     // Gamepplay M1
     PlayerDiskDeath,
+    PUPickup,
     BounceDisk,
+    PUPared,
+    PUHielo,
+    PUConfusion,
+    PUMagneto,
+    PUTp,
    
     
 }

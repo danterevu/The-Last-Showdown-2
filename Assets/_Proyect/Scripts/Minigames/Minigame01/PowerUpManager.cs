@@ -85,6 +85,7 @@ public class PowerUpManager : MonoBehaviour
             player1HUD?.ShowIcon(1, player1PowerUp);
             powerUpPickup.gameObject.SetActive(false);
             Invoke(nameof(RespawnPickup), 2f);
+            AudioManager.Instance?.PlaySFX(SoundID.PUPickup);
         }
         else if (player == 2 && !player2HasPowerUp)
         {
@@ -93,6 +94,7 @@ public class PowerUpManager : MonoBehaviour
             player2HUD?.ShowIcon(2, player2PowerUp);
             powerUpPickup.gameObject.SetActive(false);
             Invoke(nameof(RespawnPickup), 2f);
+            AudioManager.Instance?.PlaySFX(SoundID.PUPickup);
         }
     }
 
@@ -130,6 +132,7 @@ public class PowerUpManager : MonoBehaviour
                 userAnim?.SetTrigger("Swap");
                 opponentAnim?.SetTrigger("Swap");
                 ActivateSwap(player, opponent);
+                AudioManager.Instance?.PlaySFX(SoundID.PUTp);
                 break;
 
             case PowerUpType.Freeze:
@@ -137,6 +140,7 @@ public class PowerUpManager : MonoBehaviour
                 {
                     opponentAnim?.SetTrigger("Frozen");
                     StartCoroutine(ActivateFreeze(opponent));
+                    AudioManager.Instance?.PlaySFX(SoundID.PUHielo);
                 }
                 break;
 
@@ -145,6 +149,7 @@ public class PowerUpManager : MonoBehaviour
                 {
                     userAnim?.SetTrigger("Wall");
                     StartCoroutine(ActivateWall());
+                    AudioManager.Instance?.PlaySFX(SoundID.PUPared);
                 }
                 break;
 
@@ -153,6 +158,7 @@ public class PowerUpManager : MonoBehaviour
                 {
                     userAnim?.SetTrigger("Magnet");
                     StartCoroutine(ActivateMagnet(opponent));
+
                 }
                 break;
 
@@ -161,6 +167,7 @@ public class PowerUpManager : MonoBehaviour
                 {
                     opponentAnim?.SetTrigger("Inverted");
                     StartCoroutine(ActivateInvertControls(opponent));
+                    AudioManager.Instance?.PlaySFX(SoundID.PUConfusion);
                 }
                 break;
         }
