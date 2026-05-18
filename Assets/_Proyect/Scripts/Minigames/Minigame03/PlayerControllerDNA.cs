@@ -65,6 +65,9 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     private float shrinkSpeedMult = 1.2f;  // multiplicador de velocidad
     private float shrinkDuration = 2f;     // duración en segundos
 
+    [Header("Mine")]
+    [SerializeField] private GameObject minePrefab;
+
     private Vector3 originalScale;
 
     private float coyoteTimeCounter;
@@ -456,6 +459,9 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             case DNAPowerUpPickup.DNAPowerUpType.Shrink:
                 StartCoroutine(ShrinkEffect());
                 break;
+            case DNAPowerUpPickup.DNAPowerUpType.Mine:
+                PlaceMine();
+                break;
         }
     }
 
@@ -498,6 +504,34 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         // Volver al tamaño original
         transform.localScale = originalScale;
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
+    }
+
+    private void PlaceMine()
+    {
+        if (minePrefab == null) return;
+        GameObject mine = Instantiate(minePrefab, transform.position, Quaternion.identity);
+        mine.GetComponent<Mine>().Init(playerIndex + 1); // 1 o 2
+    }
+
+    public void ReceiveMineHit(Vector2 direction, float force, float stunDuration)
+    {
+        if (isInvulnerable) return;
+        animator?.SetTrigger("Hurt");
+        rb.linearVelocity = direction * force;
+        StartCoroutine(MineKnockback(stunDuration));
+    }
+
+    private IEnumerator MineKnockback(float stunDuration)
+    {
+        isKnockedBack = true;
+        // bloquear input durante el stun
+        float elapsed = 0f;
+        while (elapsed < stunDuration)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        isKnockedBack = false;
     }
 
     public bool IsFacingRight() => !sr.flipX;

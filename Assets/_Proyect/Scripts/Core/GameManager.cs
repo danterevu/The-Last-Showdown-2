@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
 
         [Header("Estado del juego")]
         public int currentRound = 1;
-        public const int TOTAL_ROUNDS = 3;
+        public const int TOTAL_ROUNDS = 4;
 
 
 

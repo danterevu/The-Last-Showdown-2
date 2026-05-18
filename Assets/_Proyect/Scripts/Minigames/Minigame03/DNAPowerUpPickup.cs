@@ -4,8 +4,8 @@ public class DNAPowerUpPickup : MonoBehaviour
 {
     public enum DNAPowerUpType
     {
-        Shrink  // se vuelve más chiquito y rápido
-        // aquí agregás más en el futuro
+        Shrink,  // se vuelve más chiquito y rápido
+        Mine
     }
 
     [SerializeField] private DNAPowerUpType type;
