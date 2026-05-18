@@ -138,6 +138,8 @@ public class ModifiersSpinner : MonoBehaviour
                     (ModifierManager.SpaceModifier)spaceEnumIndex);
             }
         }
+        PlayerPrefs.SetInt("SelectedModifier", modIndex); // 0, 1 o 2
+        PlayerPrefs.SetInt("SelectedModifierMinigame", targetMinigame);
 
         SceneLoader.Instance.LoadMinigame(targetMinigame);
     }
