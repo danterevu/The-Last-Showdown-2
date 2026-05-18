@@ -57087,8 +57087,20 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 74449296643626116, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
+      propertyPath: maxSpeed
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 74449296643626116, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
       propertyPath: lethalSpeed
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 74449296643626116, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
+      propertyPath: acceleration
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 74449296643626116, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
+      propertyPath: rotationSpeed
+      value: 250
       objectReference: {fileID: 0}
     - target: {fileID: 74449296643626116, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
       propertyPath: rocketParticles
