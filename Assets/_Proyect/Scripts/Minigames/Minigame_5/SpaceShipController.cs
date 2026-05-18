@@ -152,7 +152,6 @@ public class SpaceShipController : MonoBehaviour
         int hitPlayer = isPlayer1 ? 1 : 2;
         int killerPlayer = isPlayer1 ? 2 : 1;
         SpaceMinigame.Instance?.RegisterKill(killerPlayer, hitPlayer);
-        CameraShake.Instance?.Shake(0.2f, 0.15f);
 
         // Opcionalmente: destruir nave o reiniciar
         // Por ahora solo desactivamos y luego el SpaceMinigame se encarga

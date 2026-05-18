@@ -121,7 +121,6 @@ public class HomingMissile : MonoBehaviour
         GameManager.Instance?.RemovePoints(hitPlayer, 5);
         GameManager.Instance?.AddPoints(ownerPlayer, 5);
         SpaceMinigame.Instance?.RegisterKill(ownerPlayer, hitPlayer);
-        CameraShake.Instance?.Shake(0.15f, 0.1f);
 
         Explode();
     }
@@ -159,7 +158,6 @@ public class HomingMissile : MonoBehaviour
             }
         }
 
-        CameraShake.Instance?.Shake(0.2f, 0.15f);
         Destroy(gameObject);
     }
 }
