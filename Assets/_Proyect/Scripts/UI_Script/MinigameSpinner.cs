@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class MinigameSpinner : MonoBehaviour
 {
     [Header("Configuración de Minijuegos")]
-    [SerializeField] private int totalMinigames = 3;
+    [SerializeField] private int totalMinigames = 4;
 
     [Header("Configuración Visual")]
     [SerializeField] private float minSpinPower = 40f;
@@ -18,7 +18,7 @@ public class MinigameSpinner : MonoBehaviour
     [SerializeField] private ModifiersSpinner modifiersSpinner;
 
     // Offset centralizado — cambiá solo este valor si ajustás la ruleta
-    private const float ANGLE_OFFSET = 300f;
+    private const float ANGLE_OFFSET = 270f;
 
     private Rigidbody2D rb;
     private bool hasSpun = false;
