@@ -50,6 +50,7 @@ public class DebugModifierSelector : MonoBehaviour
     public void SelectModifier(int index)
     {
         int mg = DebugManager.SelectedMinigame;
+        Debug.Log($"[Debug] SelectedMinigame = {mg}, index = {index}");
         ApplyModifier(mg, index);
         SceneLoader.Instance.LoadMinigame(mg);
     }

@@ -1,5 +1,6 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Results : MonoBehaviour
 {
@@ -35,5 +36,10 @@ public class Results : MonoBehaviour
     public void OnSalirButton()
     {
         Application.Quit();
+    }
+
+    public void LoadMenu()
+    {
+        SceneManager.LoadScene("Menu");
     }
 }
