@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -66,7 +66,8 @@ public class WeaponController : MonoBehaviour
 
     private void Awake()
     {
-        shipAnimator = GetComponentInChildren<Animator>();
+        if (shipAnimator == null)
+            shipAnimator = GetComponentInChildren<Animator>();
 
 
         shipController = GetComponent<SpaceShipController>();
@@ -371,7 +372,7 @@ public class WeaponController : MonoBehaviour
 
         Projectile proj = obj.GetComponent<Projectile>();
         if (proj != null)
-            proj.Init(dir, spd, dmg, currentWeapon.range, isPlayer1 ? 1 : 2);
+            proj.Init(dir, spd, dmg, currentWeapon.range, isPlayer1 ? 1 : 2, currentWeapon.type);
     }
 
     private void FireShotgun()

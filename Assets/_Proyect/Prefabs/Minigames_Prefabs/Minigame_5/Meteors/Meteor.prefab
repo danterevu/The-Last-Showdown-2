@@ -99,7 +99,7 @@ TrailRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3735003575855985645}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
@@ -113,8 +113,7 @@ TrailRenderer:
   m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 0}
+  m_Materials: []
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -195,8 +194,8 @@ TrailRenderer:
   m_MinVertexDistance: 0.1
   m_MaskInteraction: 0
   m_Autodestruct: 0
-  m_Emitting: 1
-  m_ApplyActiveColorSpace: 1
+  m_Emitting: 0
+  m_ApplyActiveColorSpace: 0
 --- !u!114 &1115437681109894203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -212,9 +211,9 @@ MonoBehaviour:
   fallDuration: 1.5
   startScale: 20
   endScale: 2
-  rotateSpeed: 750
+  rotateSpeed: 1250
   impactRadius: 15.2
-  impactForce: 35
+  impactForce: 80
   impactVfx: {fileID: 360075095733458844, guid: b35eba73aa65044488ac2a6dc48935ba, type: 3}
   showImpactRadiusGizmo: 1
   impactRadiusGizmoColor: {r: 1, g: 0.6, b: 0.1, a: 0.9}

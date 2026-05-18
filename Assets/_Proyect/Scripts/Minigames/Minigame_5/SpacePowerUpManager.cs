@@ -46,6 +46,10 @@ public class SpacePowerUpManager : MonoBehaviour
     [SerializeField] private float repulsionRadius = 6f;
     [SerializeField] private float repulsionKnockback = 20f;
     [SerializeField] private float repulsionWaveDuration = 0.25f;
+    [SerializeField] private bool showRepulsionWaveCircle = true;
+    [SerializeField] private int repulsionWaveCircleSegments = 64;
+    [SerializeField] private float repulsionWaveCircleLineWidth = 0.06f;
+    [SerializeField] private Color repulsionWaveCircleColor = new Color(0.2f, 0.9f, 1f, 0.9f);
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -71,8 +75,17 @@ public class SpacePowerUpManager : MonoBehaviour
 
         GameObject obj = Instantiate(slowGrandeProjectilePrefab, origin, Quaternion.identity);
         SlowGrandeProjectile proj = obj.GetComponent<SlowGrandeProjectile>();
-        if (proj != null)
-            proj.Init(direction, ownerPlayer);
+        if (proj == null)
+            proj = obj.GetComponentInChildren<SlowGrandeProjectile>(true);
+
+        if (proj == null)
+        {
+            Debug.LogError($"[SpacePowerUpManager] '{slowGrandeProjectilePrefab.name}' no tiene SlowGrandeProjectile, no se puede lanzar la granada.");
+            Destroy(obj);
+            return;
+        }
+
+        proj.Init(direction, ownerPlayer);
     }
 
     // ── Rocket Sabotage ──────────────────────────────────────────────────────
@@ -163,10 +176,12 @@ public class SpacePowerUpManager : MonoBehaviour
         GameObject meteor = Instantiate(meteorPrefab, origin, Quaternion.identity);
 
         MeteorMovement movement = meteor.GetComponent<MeteorMovement>();
-        if (movement != null)
-            movement.Initialize(targetPosition, ownerPlayer);
-        else
-            Destroy(meteor);
+        if (movement == null)
+            movement = meteor.GetComponentInChildren<MeteorMovement>(true);
+        if (movement == null)
+            movement = meteor.AddComponent<MeteorMovement>();
+
+        movement.Initialize(targetPosition, ownerPlayer);
     }
 
     // ── Homing Missile ───────────────────────────────────────────────────────
@@ -217,7 +232,62 @@ public class SpacePowerUpManager : MonoBehaviour
             Instantiate(repulsionVfxPrefab, center, Quaternion.Euler(-90f,0f,0f));
         }
 
+        if (showRepulsionWaveCircle)
+            SpawnRepulsionWaveCircle(center);
+
         StartCoroutine(RepulsionWaveRoutine(center, activatorPlayer));
+    }
+
+    private void SpawnRepulsionWaveCircle(Vector2 center)
+    {
+        int segments = Mathf.Max(8, repulsionWaveCircleSegments);
+        GameObject circleObj = new GameObject("RepulsionWaveCircle");
+        circleObj.transform.position = center;
+
+        LineRenderer lr = circleObj.AddComponent<LineRenderer>();
+        lr.useWorldSpace = false;
+        lr.loop = true;
+        lr.positionCount = segments;
+        lr.startWidth = repulsionWaveCircleLineWidth;
+        lr.endWidth = repulsionWaveCircleLineWidth;
+        lr.startColor = repulsionWaveCircleColor;
+        lr.endColor = repulsionWaveCircleColor;
+        lr.numCapVertices = 2;
+
+        Shader shader = Shader.Find("Sprites/Default");
+        if (shader != null)
+            lr.material = new Material(shader);
+
+        float step = (Mathf.PI * 2f) / segments;
+        for (int i = 0; i < segments; i++)
+        {
+            float angle = step * i;
+            lr.SetPosition(i, new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f));
+        }
+
+        circleObj.transform.localScale = Vector3.zero;
+        StartCoroutine(ScaleAndDestroyRoutine(circleObj.transform, repulsionWaveDuration, repulsionRadius));
+    }
+
+    private IEnumerator ScaleAndDestroyRoutine(Transform target, float duration, float radius)
+    {
+        float t = 0f;
+        float d = Mathf.Max(0.01f, duration);
+        Vector3 endScale = Vector3.one * radius;
+        while (t < d)
+        {
+            float a = t / d;
+            a = a * a * (3f - 2f * a);
+            if (target != null)
+                target.localScale = Vector3.LerpUnclamped(Vector3.zero, endScale, a);
+            t += Time.deltaTime;
+            yield return null;
+        }
+        if (target != null)
+            target.localScale = endScale;
+
+        if (target != null)
+            Destroy(target.gameObject);
     }
 
     private IEnumerator RepulsionWaveRoutine(Vector2 center, int activatorPlayer)
@@ -276,6 +346,29 @@ public class SpacePowerUpManager : MonoBehaviour
             if (affectedObjects.Contains(id)) continue;
             affectedObjects.Add(id);
 
+            // Verificar si es un proyectil (por componente, más fiable que solo por layer)
+            Projectile projectile = root.GetComponentInChildren<Projectile>(true);
+            if (projectile != null)
+            {
+                Destroy(projectile.gameObject);
+                continue;
+            }
+
+            SlowGrandeProjectile slowGrande = root.GetComponentInChildren<SlowGrandeProjectile>(true);
+            if (slowGrande != null)
+            {
+                Destroy(slowGrande.gameObject);
+                continue;
+            }
+
+            HomingMissile homingMissile = root.GetComponentInChildren<HomingMissile>(true);
+            if (homingMissile != null)
+            {
+                Destroy(homingMissile.gameObject);
+                continue;
+            }
+
+            // También verificar por layer, por si acaso
             int layer = root.layer;
             if ((projectileLayer != -1 && layer == projectileLayer) || (projectileEnemyLayer != -1 && layer == projectileEnemyLayer))
             {

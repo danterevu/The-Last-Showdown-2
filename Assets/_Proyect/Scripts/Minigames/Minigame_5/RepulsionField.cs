@@ -5,9 +5,11 @@ public class RepulsionField : MonoBehaviour
     [Header("FX")]
     public ParticleSystem fx;
 
-    [Header("Editor")]
-    [SerializeField] private bool showRadiusGizmo = true;
-    [SerializeField] private Color radiusGizmoColor = new Color(0.2f, 0.9f, 1f, 0.9f);
+    [Header("Radius Visual")]
+    [SerializeField] private bool showRadius = true;
+    [SerializeField] private LineRenderer circleRenderer;
+    [SerializeField] private int circleSegments = 64;
+    [SerializeField] private float circleLineWidth = 0.05f;
 
     [Header("Force")]
     public float radius = 5f;
@@ -15,6 +17,12 @@ public class RepulsionField : MonoBehaviour
     public float duration = 0.5f;
 
     private ParticleSystem.Particle[] particles;
+
+    private void Awake()
+    {
+        if (circleRenderer == null)
+            circleRenderer = GetComponent<LineRenderer>();
+    }
 
     void Start()
     {
@@ -24,6 +32,7 @@ public class RepulsionField : MonoBehaviour
     public void Activate()
     {
         fx.Play();
+        SetupCircle();
         StartCoroutine(RepelRoutine());
     }
 
@@ -37,13 +46,37 @@ public class RepulsionField : MonoBehaviour
             time += Time.deltaTime;
             yield return null;
         }
+
+        if (circleRenderer != null)
+            circleRenderer.enabled = false;
     }
 
-    private void OnDrawGizmosSelected()
+    private void SetupCircle()
     {
-        if (!showRadiusGizmo) return;
-        Gizmos.color = radiusGizmoColor;
-        Gizmos.DrawWireSphere(transform.position, radius);
+        if (!showRadius || circleRenderer == null) return;
+
+        int segments = Mathf.Max(8, circleSegments);
+        circleRenderer.useWorldSpace = false;
+        circleRenderer.loop = true;
+        circleRenderer.positionCount = segments;
+        circleRenderer.startWidth = circleLineWidth;
+        circleRenderer.endWidth = circleLineWidth;
+        circleRenderer.enabled = true;
+
+        float step = (Mathf.PI * 2f) / segments;
+        for (int i = 0; i < segments; i++)
+        {
+            float angle = step * i;
+            float x = Mathf.Cos(angle) * radius;
+            float y = Mathf.Sin(angle) * radius;
+            circleRenderer.SetPosition(i, new Vector3(x, y, 0f));
+        }
+    }
+
+    private void OnValidate()
+    {
+        if (!Application.isPlaying)
+            SetupCircle();
     }
 
     void ApplyRepulsion()
@@ -75,5 +108,38 @@ public class RepulsionField : MonoBehaviour
         }
 
         fx.SetParticles(particles, count);
+
+        // Destruir proyectiles dentro del radio de repulsión
+        DestroyProjectilesInRadius(center);
+    }
+
+    private void DestroyProjectilesInRadius(Vector3 center)
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(center, radius);
+        
+        foreach (Collider2D hit in hits)
+        {
+            if (hit == null) continue;
+
+            Projectile projectile = hit.GetComponent<Projectile>();
+            if (projectile != null)
+            {
+                Destroy(projectile.gameObject);
+                continue;
+            }
+
+            SlowGrandeProjectile slowGrande = hit.GetComponent<SlowGrandeProjectile>();
+            if (slowGrande != null)
+            {
+                Destroy(slowGrande.gameObject);
+                continue;
+            }
+
+            HomingMissile homingMissile = hit.GetComponent<HomingMissile>();
+            if (homingMissile != null)
+            {
+                Destroy(homingMissile.gameObject);
+            }
+        }
     }
 }

@@ -27,6 +27,14 @@ public class RocketSabotageEffect : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
     }
 
+    private void Start()
+    {
+        if (ship != null)
+        {
+            ship.ActivateRocketSabotage();
+        }
+    }
+
     private void FixedUpdate()
     {
         elapsed += Time.fixedDeltaTime;
@@ -39,5 +47,13 @@ public class RocketSabotageEffect : MonoBehaviour
         // Empujar la nave en la direccion en que mira (transform.right con rotationOffset=0)
         if (rb != null)
             rb.AddForce(transform.right * extraAcceleration, ForceMode2D.Force);
+    }
+
+    private void OnDestroy()
+    {
+        if (ship != null)
+        {
+            ship.DeactivateRocketSabotage();
+        }
     }
 }

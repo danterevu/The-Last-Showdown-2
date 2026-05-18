@@ -78,9 +78,9 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 6937817954938267909, guid: 78fa1f1393084da42aa1c3aac8e42797, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -132,6 +132,10 @@ MonoBehaviour:
   speed: 8
   range: 12
   slowFieldPrefab: {fileID: 8045770357265927284, guid: 03e5fed4f1622374a82e73fe776946ca, type: 3}
+  explosionScale: 5
+  hideFieldVisual: 0
+  collisionDisableTime: 0.5
+  voidObject: {fileID: 1468216634819621848, guid: 508656f0377cbc64ba22ac34d9cc32e6, type: 3}
 --- !u!58 &5071435338533684693
 CircleCollider2D:
   m_ObjectHideFlags: 0

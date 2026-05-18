@@ -27,6 +27,7 @@ public class MeteorMovement : MonoBehaviour
 
     private float timer;
     private int ownerPlayer;
+    private Rigidbody2D rb;
 
     public void Initialize(Vector2 target, int ownerPlayer = 0)
     {
@@ -48,6 +49,11 @@ public class MeteorMovement : MonoBehaviour
             Vector3.one * startScale;
     }
 
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+    }
+
     private void Update()
     {
         timer += Time.deltaTime;
@@ -55,12 +61,11 @@ public class MeteorMovement : MonoBehaviour
         float t = timer / fallDuration;
 
         // Movimiento
-        transform.position =
-            Vector2.Lerp(
-                startPosition,
-                targetPosition,
-                t
-            );
+        Vector2 newPos = Vector2.Lerp(startPosition, targetPosition, t);
+        if (rb != null)
+            rb.MovePosition(newPos);
+        else
+            transform.position = newPos;
 
         // Escala
         float scale =
@@ -94,6 +99,18 @@ public class MeteorMovement : MonoBehaviour
 
         foreach (var hit in hits)
         {
+            // Verificar si es un BreakableAsteroid y destruirlo de una vez
+            BreakableAsteroid breakableAsteroid = hit.GetComponent<BreakableAsteroid>();
+            if (breakableAsteroid == null)
+                breakableAsteroid = hit.GetComponentInParent<BreakableAsteroid>();
+
+            if (breakableAsteroid != null)
+            {
+                Vector2 direction = (hit.transform.position - (Vector3)targetPosition).normalized;
+                breakableAsteroid.TakeDamage(999, false, direction);
+                continue;
+            }
+
             Transform root = hit.transform.root;
             int hitPlayer = 0;
             if (root.CompareTag("Player1")) hitPlayer = 1;

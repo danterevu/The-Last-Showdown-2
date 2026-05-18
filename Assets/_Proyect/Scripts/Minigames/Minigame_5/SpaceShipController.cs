@@ -4,37 +4,43 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody2D))]
 public class SpaceShipController : MonoBehaviour
 {
-
     //  INSPECTOR
 
-    [Header("Aceleración")]
+    [Header("Aceleraciï¿½n")]
     [Tooltip("Fuerza de empuje por segundo mientras hay input")]
     [SerializeField] private float acceleration = 14f;
 
     [Header("Velocidad")]
-    [Tooltip("Velocidad máxima que la nave puede alcanzar")]
+    [Tooltip("Velocidad mï¿½xima que la nave puede alcanzar")]
     [SerializeField] private float maxSpeed = 9f;
 
     [Header("Inercia / Damping")]
-    [Tooltip("Coeficiente de damping mientras hay input (valor bajo = más deslizamiento)")]
+    [Tooltip("Coeficiente de damping mientras hay input (valor bajo = mï¿½s deslizamiento)")]
     [SerializeField] private float dragWhileMoving = 1.2f;
 
-    [Tooltip("Coeficiente de damping al soltar el joystick (valor alto = frena más rápido)")]
+    [Tooltip("Coeficiente de damping al soltar el joystick (valor alto = frena mï¿½s rï¿½pido)")]
     [SerializeField] private float dragWhenIdle = 3.5f;
 
-    [Header("Rotación")]
-    [Tooltip("Velocidad de rotación del sprite en grados/segundo")]
+    [Header("Rotaciï¿½n")]
+    [Tooltip("Velocidad de rotaciï¿½n del sprite en grados/segundo")]
     [SerializeField] private float rotationSpeed = 540f;
 
     [Tooltip("Offset del sprite: -90 si apunta ARRIBA, 0 si apunta a la DERECHA")]
     [SerializeField] private float rotationOffset = -90f;
 
     [Header("Input")]
-    [Tooltip("Arrastrar aquí el asset PlayerInputActions_1 o _2")]
+    [Tooltip("Arrastrar aquï¿½ el asset PlayerInputActions_1 o _2")]
     [SerializeField] private InputActionAsset inputActionAsset;
     [SerializeField] int playerIndex;
 
     [SerializeField] private bool isPlayer1 = true;
+
+    [Header("Visuales - Rocket Sabotage")]
+    [SerializeField] private ParticleSystem rocketParticles;
+
+    [Header("Rocket Sabotage - Muerte por velocidad")]
+    [SerializeField] private float lethalSpeed = 15f;
+    [SerializeField] private GameObject explosionVfxPrefab;
 
     //  ESTADO INTERNO
 
@@ -44,11 +50,13 @@ public class SpaceShipController : MonoBehaviour
     // Vector de velocidad que mantenemos manualmente (no usamos rb.linearDamping)
     private Vector2 velocity;
 
-    // Dirección snapeada a 8 angulos discretos
+    // Direcciï¿½n snapeada a 8 angulos discretos
     private Vector2 inputDirection;
 
-    // ¿Hay input este frame?
+    // ï¿½Hay input este frame?
     private bool hasInput;
+
+    private bool isRocketSabotageActive;
 
     //  UNITY LIFECYCLE
 
@@ -62,6 +70,7 @@ public class SpaceShipController : MonoBehaviour
     {
         ReadInput();
         UpdateRotation();
+        CheckRocketSabotageCollision();
     }
 
     private void FixedUpdate()
@@ -85,6 +94,69 @@ public class SpaceShipController : MonoBehaviour
         rb.freezeRotation = true;
     }
 
+    //  ROCKET SABOTAGE
+
+    public void ActivateRocketSabotage()
+    {
+        if (isRocketSabotageActive) return;
+        isRocketSabotageActive = true;
+
+        if (rocketParticles != null)
+        {
+            rocketParticles.Play();
+        }
+    }
+
+    public void DeactivateRocketSabotage()
+    {
+        if (!isRocketSabotageActive) return;
+        isRocketSabotageActive = false;
+
+        if (rocketParticles != null)
+        {
+            rocketParticles.Stop();
+        }
+    }
+
+    private void CheckRocketSabotageCollision()
+    {
+        if (!isRocketSabotageActive) return;
+
+        float currentSpeed = velocity.magnitude;
+        if (currentSpeed >= lethalSpeed)
+        {
+            // Check collision with anything (asteroides, bordes, etc.)
+            // Por ahora, se muere si choca con algo con esa velocidad
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (!isRocketSabotageActive) return;
+
+        float currentSpeed = velocity.magnitude;
+        if (currentSpeed >= lethalSpeed)
+        {
+            DieFromRocketSabotage();
+        }
+    }
+
+    private void DieFromRocketSabotage()
+    {
+        if (explosionVfxPrefab != null)
+        {
+            Instantiate(explosionVfxPrefab, transform.position, Quaternion.identity);
+        }
+
+        int hitPlayer = isPlayer1 ? 1 : 2;
+        int killerPlayer = isPlayer1 ? 2 : 1;
+        SpaceMinigame.Instance?.RegisterKill(killerPlayer, hitPlayer);
+        CameraShake.Instance?.Shake(0.2f, 0.15f);
+
+        // Opcionalmente: destruir nave o reiniciar
+        // Por ahora solo desactivamos y luego el SpaceMinigame se encarga
+    }
+
     private void SetupInput()
     {
         if (inputActionAsset == null)
@@ -98,7 +170,7 @@ public class SpaceShipController : MonoBehaviour
 
         if (map == null)
         {
-            Debug.LogError($"[SpaceShipController] No se encontró el ActionMap '{mapName}'.");
+            Debug.LogError($"[SpaceShipController] No se encontrï¿½ el ActionMap '{mapName}'.");
             return;
         }
 
@@ -106,7 +178,7 @@ public class SpaceShipController : MonoBehaviour
 
         if (moveAction == null)
         {
-            Debug.LogError($"[SpaceShipController] No se encontró la acción 'Move' en '{mapName}'.");
+            Debug.LogError($"[SpaceShipController] No se encontrï¿½ la acciï¿½n 'Move' en '{mapName}'.");
             return;
         }
 
@@ -166,7 +238,7 @@ public class SpaceShipController : MonoBehaviour
         rb.linearVelocity = velocity;
     }
 
-    //  ROTACIÓN
+    //  ROTACIï¿½N
 
     private void UpdateRotation()
     {
@@ -186,7 +258,7 @@ public class SpaceShipController : MonoBehaviour
     /// Velocidad actual de la nave.
     public Vector2 GetVelocity() => velocity;
 
-    /// Fuerza una velocidad específica.
+    /// Fuerza una velocidad especï¿½fica.
     public void SetVelocity(Vector2 v)
     {
         velocity = v;
@@ -200,7 +272,7 @@ public class SpaceShipController : MonoBehaviour
         rb.linearVelocity = Vector2.zero;
     }
 
-    /// Aplica un impulso instantáneo sin reemplazar la velocidad actual.
+    /// Aplica un impulso instantï¿½neo sin reemplazar la velocidad actual.
     public void AddImpulse(Vector2 impulse)
     {
         velocity += impulse;
@@ -208,22 +280,22 @@ public class SpaceShipController : MonoBehaviour
 
    
 
-    /// Velocidad máxima actual (puede ser modificada por efectos externos).
+    /// Velocidad mï¿½xima actual (puede ser modificada por efectos externos).
     public float MaxSpeed => maxSpeed;
 
-    /// Aceleración actual (puede ser modificada por efectos externos).
+    /// Aceleraciï¿½n actual (puede ser modificada por efectos externos).
     public float Acceleration => acceleration;
 
-    /// Permite a efectos externos (SlowField, etc.) cambiar la velocidad máxima en runtime.
+    /// Permite a efectos externos (SlowField, etc.) cambiar la velocidad mï¿½xima en runtime.
     public void SetMaxSpeed(float value) => maxSpeed = value;
 
-    /// Permite a efectos externos (SlowField, etc.) cambiar la aceleración en runtime.
+    /// Permite a efectos externos (SlowField, etc.) cambiar la aceleraciï¿½n en runtime.
     public void SetAcceleration(float value) => acceleration = value;
 
-    /// ¿El jugador está presionando alguna dirección este frame?
+    /// ï¿½El jugador estï¿½ presionando alguna direcciï¿½n este frame?
     public bool IsMoving => hasInput;
 
-    /// Dirección snapeada actual.
+    /// Direcciï¿½n snapeada actual.
     public Vector2 InputDirection => inputDirection;
 
     public bool IsPlayer1 => isPlayer1;

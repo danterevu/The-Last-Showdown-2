@@ -11,18 +11,39 @@ public class HomingMissile : MonoBehaviour
 {
     [Header("Movimiento")]
     [SerializeField] private float speed = 10f;
-    [SerializeField] private float turnSpeed = 120f;   // grados por segundo
+    [SerializeField] private float turnSpeed = 180f;   // grados por segundo
     [SerializeField] private float range = 30f;        // distancia maxima antes de destruirse
+    [SerializeField] private float predictionTime = 0.5f;  // para IA mejorada
+
+    [Header("Vida")]
+    [SerializeField] private int health = 3;
+
+    [Header("Explosión")]
+    [SerializeField] private float explosionRadius = 3f;
+    [SerializeField] private float explosionDamage = 10f;
+    [SerializeField] private GameObject explosionVfxPrefab;
 
     private Transform target;
     private int ownerPlayer;
     private float traveledDistance;
     private Rigidbody2D rb;
+    private Vector2 lastTargetPosition;
 
     public void Init(Transform target, int ownerPlayer)
     {
         this.target = target;
         this.ownerPlayer = ownerPlayer;
+        if (target != null)
+            lastTargetPosition = target.position;
+    }
+
+    public void TakeDamage(int amount)
+    {
+        health -= amount;
+        if (health <= 0)
+        {
+            Explode();
+        }
     }
 
     private void Awake()
@@ -38,19 +59,34 @@ public class HomingMissile : MonoBehaviour
         traveledDistance += speed * Time.fixedDeltaTime;
         if (traveledDistance >= range)
         {
-            Destroy(gameObject);
+            Explode();
             return;
         }
 
         if (target == null)
         {
-            // El target fue destruido; seguir recto
+            // Si no hay target, seguir en la última dirección conocida
             rb.linearVelocity = transform.right * speed;
             return;
         }
 
-        // Calcular angulo hacia el objetivo
-        Vector2 toTarget = ((Vector2)target.position - (Vector2)transform.position).normalized;
+        // IA Mejorada: Predicción de movimiento del target
+        Vector2 targetVelocity = Vector2.zero;
+        Rigidbody2D targetRb = target.GetComponent<Rigidbody2D>();
+        if (targetRb != null)
+        {
+            targetVelocity = targetRb.linearVelocity;
+        }
+        else
+        {
+            targetVelocity = ((Vector2)target.position - lastTargetPosition) / Time.fixedDeltaTime;
+        }
+        lastTargetPosition = target.position;
+
+        Vector2 predictedPosition = (Vector2)target.position + targetVelocity * predictionTime;
+
+        // Calcular angulo hacia la posición predicha
+        Vector2 toTarget = (predictedPosition - (Vector2)transform.position).normalized;
         float targetAngle = Mathf.Atan2(toTarget.y, toTarget.x) * Mathf.Rad2Deg;
         float currentAngle = transform.eulerAngles.z;
 
@@ -71,7 +107,12 @@ public class HomingMissile : MonoBehaviour
             if (other.GetComponent<WeaponPickup>() != null) return;
             if (other.GetComponent<SpacePowerUpPickup>() != null) return;
             if (other.GetComponent<SlowField>() != null) return;
-            Destroy(gameObject);
+
+            // Si choca con un asteroide, explotar
+            if (other.GetComponent<InteractiveAsteroid>() != null || other.GetComponent<BreakableAsteroid>() != null)
+            {
+                Explode();
+            }
             return;
         }
 
@@ -82,6 +123,43 @@ public class HomingMissile : MonoBehaviour
         SpaceMinigame.Instance?.RegisterKill(ownerPlayer, hitPlayer);
         CameraShake.Instance?.Shake(0.15f, 0.1f);
 
+        Explode();
+    }
+
+    private void Explode()
+    {
+        // Spawn VFX de explosión
+        if (explosionVfxPrefab != null)
+        {
+            Instantiate(explosionVfxPrefab, transform.position, Quaternion.identity);
+        }
+
+        // Daño en área
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
+        foreach (Collider2D hit in hits)
+        {
+            if (hit == null) continue;
+
+            // Dañar jugadores enemigos
+            int hitPlayer = 0;
+            if (hit.CompareTag("Player1")) hitPlayer = 1;
+            else if (hit.CompareTag("Player2")) hitPlayer = 2;
+
+            if (hitPlayer != 0 && hitPlayer != ownerPlayer)
+            {
+                GameManager.Instance?.RemovePoints(hitPlayer, Mathf.RoundToInt(explosionDamage));
+                SpaceMinigame.Instance?.RegisterKill(ownerPlayer, hitPlayer);
+            }
+
+            // Dañar asteroides
+            HomingMissile otherMissile = hit.GetComponent<HomingMissile>();
+            if (otherMissile != null && otherMissile != this)
+            {
+                otherMissile.TakeDamage(999);
+            }
+        }
+
+        CameraShake.Instance?.Shake(0.2f, 0.15f);
         Destroy(gameObject);
     }
 }
