@@ -173,6 +173,12 @@ public class WeaponController : MonoBehaviour
         }
     }
 
+    public void ResetToDefault()
+    {
+        ResetCharge();
+        DropWeapon();
+    }
+
     private void SpendAmmo(int amount = 1)
     {
         currentAmmo = Mathf.Max(0, currentAmmo - amount);

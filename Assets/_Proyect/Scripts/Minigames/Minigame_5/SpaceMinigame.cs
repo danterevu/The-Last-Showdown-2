@@ -52,6 +52,11 @@ public class SpaceMinigame : MonoBehaviour
     private bool p1Invulnerable = false;
     private bool p2Invulnerable = false;
 
+    // Flags: qué jugador debe perder su loadout en el próximo respawn
+    // Usando bools en lugar de lastVictim para soportar kills simultáneos correctamente
+    private bool p1LosesLoadout = false;
+    private bool p2LosesLoadout = false;
+
     private WeaponSpawner weaponSpawner;
     private SpacePowerUpSpawner powerUpSpawner;
 
@@ -96,6 +101,10 @@ public class SpaceMinigame : MonoBehaviour
 
         if (victim == 1) p1Invulnerable = true;
         else p2Invulnerable = true;
+
+        // Marcar que la víctima debe perder su loadout al respawnear
+        if (victim == 1) p1LosesLoadout = true;
+        else p2LosesLoadout = true;
 
         Transform victimTransform = victim == 1 ? player1 : player2;
         victimTransform?.GetComponent<Explodable>()?.Explode();
@@ -164,6 +173,12 @@ public class SpaceMinigame : MonoBehaviour
         DoRespawn(player1, player1Spawns[currentZoneIndex]);
         DoRespawn(player2, player2Spawns[currentZoneIndex]);
 
+        // Cambio de zona: ambos pierden arma y power up
+        ClearPlayerLoadout(player1);
+        ClearPlayerLoadout(player2);
+        p1LosesLoadout = false;
+        p2LosesLoadout = false;
+
         p1Invulnerable = false;
         p2Invulnerable = false;
         roundOver = false;
@@ -177,6 +192,13 @@ public class SpaceMinigame : MonoBehaviour
 
         DoRespawn(player1, player1Spawns[currentZoneIndex]);
         DoRespawn(player2, player2Spawns[currentZoneIndex]);
+
+        // La víctima pierde arma y power up; el killer conserva todo.
+        // Los flags pueden ser ambos true si hubo kills simultáneos.
+        if (p1LosesLoadout) ClearPlayerLoadout(player1);
+        if (p2LosesLoadout) ClearPlayerLoadout(player2);
+        p1LosesLoadout = false;
+        p2LosesLoadout = false;
 
         p1Invulnerable = false;
         p2Invulnerable = false;
@@ -224,6 +246,20 @@ public class SpaceMinigame : MonoBehaviour
 
         // GOLDEN KILL: la primera kill del nuevo round vuelve a ser elegible
         ModifierManager.Instance?.ResetGoldenKill();
+    }
+
+    /// Quita arma y power up a un jugador. Se llama DESPUÉS de DoRespawn para
+    /// evitar que la re-inicialización del respawn pise el clear.
+    /// Usa GetComponentInChildren para funcionar sin importar la jerarquía del prefab.
+    private void ClearPlayerLoadout(Transform player)
+    {
+        if (player == null) return;
+
+        WeaponController wc = player.GetComponentInChildren<WeaponController>(true);
+        wc?.ResetToDefault();
+
+        PowerUpHolder holder = player.GetComponentInChildren<PowerUpHolder>(true);
+        holder?.ClearPowerUp();
     }
 
     // gameWinner: 1 o 2 (qui�n gan� el minijuego completo)

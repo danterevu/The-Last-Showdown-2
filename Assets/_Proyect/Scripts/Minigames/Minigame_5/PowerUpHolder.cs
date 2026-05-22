@@ -65,7 +65,7 @@ public class PowerUpHolder : MonoBehaviour
 
         Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
         if (gp != null)
-            gamepadPressed = gp.buttonEast.wasPressedThisFrame; // c�rculo en PlayStation
+            gamepadPressed = gp.buttonEast.wasPressedThisFrame; // circulo en PlayStation
 
         if (keyboardPressed || gamepadPressed)
         {
@@ -85,6 +85,13 @@ public class PowerUpHolder : MonoBehaviour
     }
 
     public bool HasPowerUp => hasPowerUp;
+
+    public void ClearPowerUp()
+    {
+        heldPowerUp = null;
+        hasPowerUp = false;
+        OnPowerUpChanged?.Invoke(null);
+    }
 
     private void ActivatePowerUp()
     {
@@ -134,7 +141,7 @@ public class PowerUpHolder : MonoBehaviour
         }
 
         Vector2 origin = firePoint != null ? (Vector2)firePoint.position : (Vector2)transform.position;
-        Vector2 shootDir = transform.right; // la direcci�n en que mira la nave
+        Vector2 shootDir = transform.right; // la direccion en que mira la nave
         int player = isPlayer1 ? 1 : 2;
 
         Debug.Log($"[PowerUpHolder] SlowGrande: origin={origin}, direction={shootDir}, ownerPlayer={player}");

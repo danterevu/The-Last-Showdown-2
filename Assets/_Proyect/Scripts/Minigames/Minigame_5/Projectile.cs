@@ -35,9 +35,7 @@ public class Projectile : MonoBehaviour
         rb.linearDamping = 0f;
     }
 
-    /// <summary>
-    /// Llamado por WeaponController justo después de Instantiate.
-    /// </summary>
+   
     public void Init(Vector2 direction, float speed, float damage, float range, int ownerPlayer, WeaponData.WeaponType weaponType = WeaponData.WeaponType.Pistol)
     {
         this.speed = speed;
@@ -86,6 +84,9 @@ public class Projectile : MonoBehaviour
     {
         Debug.Log($"Colisión con: {other.name} | tag: {other.tag} | layer: {LayerMask.LayerToName(other.layer)}");
 
+        //Ignorar el space poronga ese asi no se autodestruyen las balas
+        if (other.GetComponent<SpaceZoneBoundary>() != null) return;
+
         // Verificar si es un HomingMissile
         HomingMissile homingMissile = other.GetComponent<HomingMissile>();
         if (homingMissile != null)
@@ -112,7 +113,7 @@ public class Projectile : MonoBehaviour
         Debug.Log($"Impacto: {other.name} tag={other.tag}");
         Debug.Log($"hitPlayer: {hitPlayer} | ownerPlayer: {ownerPlayer}");
         Debug.Log($"SpaceMinigame.Instance: {SpaceMinigame.Instance}");
-        Debug.Log($"Tag length: {other.tag.Length} | bytes: {string.Join(",", System.Text.Encoding.UTF8.GetBytes(other.tag))}");
+        
         string tag = other.tag.Trim();
         if (tag == "Player1") hitPlayer = 1;
         else if (tag == "Player2") hitPlayer = 2;
