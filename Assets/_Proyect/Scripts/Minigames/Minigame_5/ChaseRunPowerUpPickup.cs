@@ -81,7 +81,7 @@ public class ChaseRunPowerUpPickup : MonoBehaviour
         rb.linearVelocity = Vector2.left * horizontalSpeed;
     }
 
-    //  Destruir si sale de cámara (seguridad) 
+    //  Destruir si sale de camara (seguridad) 
 
     private void Update()
     {
