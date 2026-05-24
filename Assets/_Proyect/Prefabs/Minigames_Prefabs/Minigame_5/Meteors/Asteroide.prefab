@@ -213,6 +213,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lethalSpeed: 10
+  safetyTime: 1
   bounceBreakSpeed: 10
   debrisPrefabs:
   - {fileID: 1617699241901906700, guid: 139464b520f205c46982e197b43bfc24, type: 3}
@@ -224,5 +225,5 @@ MonoBehaviour:
   - {fileID: 7013591282443573666, guid: 585be43e7de16ea438c02cb3506a3595, type: 3}
   - {fileID: 7666041433389100928, guid: f1a86f63b41a9d249a943f39ee4ea7fd, type: 3}
   - {fileID: 979445267739499189, guid: 34246ee33e1785245a237e1f383204d8, type: 3}
-  debrisLaunchForce: 15
+  debrisLaunchForce: 9
   currentSpeed: 0

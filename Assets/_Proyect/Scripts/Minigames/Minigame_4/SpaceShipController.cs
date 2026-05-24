@@ -4,32 +4,32 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody2D))]
 public class SpaceShipController : MonoBehaviour
 {
-    //  INSPECTOR
-
-    [Header("Aceleraci�n")]
+    [Header("Aceleracion")]
     [Tooltip("Fuerza de empuje por segundo mientras hay input")]
     [SerializeField] private float acceleration = 14f;
+    private float originalAcceleration;
 
     [Header("Velocidad")]
-    [Tooltip("Velocidad m�xima que la nave puede alcanzar")]
+    [Tooltip("Velocidad maxima que la nave puede alcanzar")]
     [SerializeField] private float maxSpeed = 9f;
+    private float originalMaxSpeed;
 
     [Header("Inercia / Damping")]
-    [Tooltip("Coeficiente de damping mientras hay input (valor bajo = m�s deslizamiento)")]
+    [Tooltip("Coeficiente de damping mientras hay input (valor bajo = mas deslizamiento)")]
     [SerializeField] private float dragWhileMoving = 1.2f;
 
-    [Tooltip("Coeficiente de damping al soltar el joystick (valor alto = frena m�s r�pido)")]
+    [Tooltip("Coeficiente de damping al soltar el joystick (valor alto = frena mas rapido)")]
     [SerializeField] private float dragWhenIdle = 3.5f;
 
-    [Header("Rotaci�n")]
-    [Tooltip("Velocidad de rotaci�n del sprite en grados/segundo")]
+    [Header("Rotacion")]
+    [Tooltip("Velocidad de rotacion del sprite en grados/segundo")]
     [SerializeField] private float rotationSpeed = 540f;
 
     [Tooltip("Offset del sprite: -90 si apunta ARRIBA, 0 si apunta a la DERECHA")]
     [SerializeField] private float rotationOffset = -90f;
 
     [Header("Input")]
-    [Tooltip("Arrastrar aqu� el asset PlayerInputActions_1 o _2")]
+    [Tooltip("Arrastrar aqui el asset PlayerInputActions_1 o _2")]
     [SerializeField] private InputActionAsset inputActionAsset;
     [SerializeField] int playerIndex;
 
@@ -37,41 +37,34 @@ public class SpaceShipController : MonoBehaviour
 
     [Header("Visuales - Rocket Sabotage")]
     [SerializeField] private ParticleSystem rocketParticles;
-
-    [Header("Rocket Sabotage - Muerte por velocidad")]
-    [SerializeField] private float lethalSpeed = 15f;
     [SerializeField] private GameObject explosionVfxPrefab;
 
-    //  ESTADO INTERNO
+    [Header("Visuales - Propulsion Normal")]
+    [SerializeField] private ParticleSystem propulsionParticles;
+    [SerializeField] private float minSpeedForParticles = 2f;
+    [SerializeField] private float maxEmissionRate = 50f;
 
     private Rigidbody2D rb;
     private InputAction moveAction;
-
-    // Vector de velocidad que mantenemos manualmente (no usamos rb.linearDamping)
     private Vector2 velocity;
-
-    // Direcci�n snapeada a 8 angulos discretos
     private Vector2 inputDirection;
-
-    // �Hay input este frame?
     private bool hasInput;
-
     private bool isRocketSabotageActive;
     public bool isInSlowField { get; private set; }
-
-    //  UNITY LIFECYCLE
 
     private void Awake()
     {
         SetupRigidbody();
         SetupInput();
+        originalMaxSpeed = maxSpeed;
+        originalAcceleration = acceleration;
     }
 
     private void Update()
     {
         ReadInput();
         UpdateRotation();
-        CheckRocketSabotageCollision();
+        UpdatePropulsionParticles();
     }
 
     private void FixedUpdate()
@@ -79,12 +72,32 @@ public class SpaceShipController : MonoBehaviour
         ApplyMovement();
     }
 
+    private void UpdatePropulsionParticles()
+    {
+        if (propulsionParticles == null) return;
+
+        float speed = velocity.magnitude;
+        var emission = propulsionParticles.emission;
+
+        if (speed > minSpeedForParticles && hasInput)
+        {
+            if (!propulsionParticles.isPlaying)
+                propulsionParticles.Play();
+
+            float emissionRate = Mathf.Lerp(0f, maxEmissionRate, (speed - minSpeedForParticles) / (maxSpeed - minSpeedForParticles));
+            emission.rateOverTime = emissionRate;
+        }
+        else
+        {
+            if (propulsionParticles.isPlaying)
+                propulsionParticles.Stop();
+        }
+    }
+
     private void OnDestroy()
     {
         moveAction?.actionMap?.Disable();
     }
-
-    //  SETUP
 
     private void SetupRigidbody()
     {
@@ -94,8 +107,6 @@ public class SpaceShipController : MonoBehaviour
         rb.angularDamping = 0f;
         rb.freezeRotation = true;
     }
-
-    //  ROCKET SABOTAGE
 
     public void ActivateRocketSabotage()
     {
@@ -119,31 +130,41 @@ public class SpaceShipController : MonoBehaviour
         }
     }
 
-    private void CheckRocketSabotageCollision()
-    {
-        if (!isRocketSabotageActive) return;
-
-        float currentSpeed = velocity.magnitude;
-        if (currentSpeed >= lethalSpeed)
-        {
-            // Check collision with anything (asteroides, bordes, etc.)
-            // Por ahora, se muere si choca con algo con esa velocidad
-        }
-    }
-
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (!isRocketSabotageActive) return;
 
-        float currentSpeed = velocity.magnitude;
-        if (currentSpeed >= lethalSpeed)
+        GameObject other = collision.gameObject;
+        BreakableAsteroid breakableAsteroid = other.GetComponent<BreakableAsteroid>();
+        if (breakableAsteroid != null)
         {
-            DieFromRocketSabotage();
+            Destroy(other);
         }
+
+        InteractiveAsteroid interactiveAsteroid = other.GetComponent<InteractiveAsteroid>();
+        if (interactiveAsteroid != null)
+        {
+            Destroy(other);
+        }
+
+        SplittableObject splittable = other.GetComponent<SplittableObject>();
+        if (splittable != null)
+        {
+            Vector2 hitDir = (other.transform.position - transform.position).normalized;
+            splittable.Split(hitDir);
+        }
+
+        DieFromRocketSabotage();
     }
 
     private void DieFromRocketSabotage()
     {
+        // Resetear velocidad antes de morir
+        SlowField.RemoveShipFromAllSlowFields(this);
+        ResetSpeedToOriginal();
+        
+        GetComponent<Explodable>()?.Explode();
+
         if (explosionVfxPrefab != null)
         {
             Instantiate(explosionVfxPrefab, transform.position, Quaternion.identity);
@@ -152,9 +173,6 @@ public class SpaceShipController : MonoBehaviour
         int hitPlayer = isPlayer1 ? 1 : 2;
         int killerPlayer = isPlayer1 ? 2 : 1;
         SpaceMinigame.Instance?.RegisterKill(killerPlayer, hitPlayer);
-
-        // Opcionalmente: destruir nave o reiniciar
-        // Por ahora solo desactivamos y luego el SpaceMinigame se encarga
     }
 
     private void SetupInput()
@@ -170,7 +188,7 @@ public class SpaceShipController : MonoBehaviour
 
         if (map == null)
         {
-            Debug.LogError($"[SpaceShipController] No se encontr� el ActionMap '{mapName}'.");
+            Debug.LogError($"[SpaceShipController] No se encontro el ActionMap '{mapName}'.");
             return;
         }
 
@@ -178,14 +196,12 @@ public class SpaceShipController : MonoBehaviour
 
         if (moveAction == null)
         {
-            Debug.LogError($"[SpaceShipController] No se encontr� la acci�n 'Move' en '{mapName}'.");
+            Debug.LogError($"[SpaceShipController] No se encontro la accion 'Move' en '{mapName}'.");
             return;
         }
 
         map.Enable();
     }
-
-    //  INPUT
 
     private void ReadInput()
     {
@@ -193,8 +209,6 @@ public class SpaceShipController : MonoBehaviour
 
         Vector2 raw = Vector2.zero;
 
-        // Leer gamepad asignado a este jugador
-        //playerIndex = isPlayer1 ? 0 : 1;
         Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
         if (gp != null)
         {
@@ -203,7 +217,6 @@ public class SpaceShipController : MonoBehaviour
             raw = stick.sqrMagnitude > dpad.sqrMagnitude ? stick : dpad;
         }
 
-        // Fallback teclado si no hay input de gamepad
         if (raw.sqrMagnitude < 0.15f)
             raw = moveAction.ReadValue<Vector2>();
 
@@ -221,8 +234,6 @@ public class SpaceShipController : MonoBehaviour
         return new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
     }
 
-    //  MOVIMIENTO
-
     private void ApplyMovement()
     {
         if (hasInput)
@@ -238,70 +249,67 @@ public class SpaceShipController : MonoBehaviour
         rb.linearVelocity = velocity;
     }
 
-    //  ROTACI�N
-
     private void UpdateRotation()
     {
         if (!hasInput) return;
 
-        float targetAngle = Mathf.Atan2(inputDirection.y, inputDirection.x) * Mathf.Rad2Deg
-                           + rotationOffset;
+        float targetAngle = Mathf.Atan2(inputDirection.y, inputDirection.x) * Mathf.Rad2Deg + rotationOffset;
         float currentAngle = transform.eulerAngles.z;
-
-        float newAngle = Mathf.MoveTowardsAngle(currentAngle, targetAngle,
-                                                rotationSpeed * Time.deltaTime);
+        float newAngle = Mathf.MoveTowardsAngle(currentAngle, targetAngle, rotationSpeed * Time.deltaTime);
         transform.rotation = Quaternion.Euler(0f, 0f, newAngle);
     }
 
-   
-
-    /// Velocidad actual de la nave.
     public Vector2 GetVelocity() => velocity;
 
-    /// Fuerza una velocidad espec�fica.
     public void SetVelocity(Vector2 v)
     {
         velocity = v;
         rb.linearVelocity = v;
     }
 
-    /// Detiene la nave completamente.
     public void ForceStop()
     {
         velocity = Vector2.zero;
         rb.linearVelocity = Vector2.zero;
     }
 
-    /// Aplica un impulso instant�neo sin reemplazar la velocidad actual.
+    public void HideAllParticles()
+    {
+        if (propulsionParticles != null)
+        {
+            propulsionParticles.Stop();
+            propulsionParticles.Clear();
+        }
+
+        if (rocketParticles != null)
+        {
+            rocketParticles.Stop();
+            rocketParticles.Clear();
+        }
+    }
+
     public void AddImpulse(Vector2 impulse)
     {
         velocity += impulse;
     }
 
-   
-
-    /// Velocidad m�xima actual (puede ser modificada por efectos externos).
     public float MaxSpeed => maxSpeed;
-
-    /// Aceleraci�n actual (puede ser modificada por efectos externos).
     public float Acceleration => acceleration;
-
-    /// Permite a efectos externos (SlowField, etc.) cambiar la velocidad m�xima en runtime.
     public void SetMaxSpeed(float value) => maxSpeed = value;
-
-    /// Permite a efectos externos (SlowField, etc.) cambiar la aceleraci�n en runtime.
     public void SetAcceleration(float value) => acceleration = value;
-
-    /// �El jugador est� presionando alguna direcci�n este frame?
     public bool IsMoving => hasInput;
-
-    /// Direcci�n snapeada actual.
     public Vector2 InputDirection => inputDirection;
-
     public bool IsPlayer1 => isPlayer1;
 
     public void SetInSlowField(bool value)
     {
         isInSlowField = value;
+    }
+
+    public void ResetSpeedToOriginal()
+    {
+        maxSpeed = originalMaxSpeed;
+        acceleration = originalAcceleration;
+        isInSlowField = false;
     }
 }

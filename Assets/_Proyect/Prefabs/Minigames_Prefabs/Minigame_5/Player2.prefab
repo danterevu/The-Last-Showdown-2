@@ -282,15 +282,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2820d2c951f0ba741bc1e6c8e7b0aa16, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acceleration: 14
-  maxSpeed: 9
+  acceleration: 15
+  maxSpeed: 15
   dragWhileMoving: 1.2
   dragWhenIdle: 3.5
-  rotationSpeed: 540
+  rotationSpeed: 250
   rotationOffset: 0
   inputActionAsset: {fileID: -944628639613478452, guid: 2eefc3655699b6b4c94338e68a1d94bb, type: 3}
   playerIndex: 1
   isPlayer1: 0
+  rocketParticles: {fileID: 582124230564520445, guid: 3406d020ea333524190601ab2d74ec61, type: 3}
+  propulsionParticles: {fileID: 0}
+  minSpeedForParticles: 2
+  maxEmissionRate: 50
+  lethalSpeed: 5
+  explosionVfxPrefab: {fileID: 7298288805043694994, guid: d55748e8395e90c47b0d094778876503, type: 3}
 --- !u!114 &329191533805698590
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -342,6 +348,7 @@ MonoBehaviour:
   shipAnimator: {fileID: 2458920878987608210}
   shipSprite: {fileID: 3748047315866801193}
   blinkSpeed: 0.08
+  slowFieldBulletSpeedMultiplier: 0.4
 --- !u!114 &1583068847820849429
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -448,7 +455,7 @@ Transform:
   m_GameObject: {fileID: 4869360334214476004}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.4579926, y: 0.04, z: 0}
+  m_LocalPosition: {x: 2.54, y: 0.04, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

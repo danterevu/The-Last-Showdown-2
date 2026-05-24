@@ -108,8 +108,10 @@ public class HomingMissile : MonoBehaviour
             if (other.GetComponent<SpacePowerUpPickup>() != null) return;
             if (other.GetComponent<SlowField>() != null) return;
 
-            // Si choca con un asteroide, explotar
-            if (other.GetComponent<InteractiveAsteroid>() != null || other.GetComponent<BreakableAsteroid>() != null)
+            // Si choca con un asteroide o SplittableObject, explotar
+            if (other.GetComponent<InteractiveAsteroid>() != null || 
+                other.GetComponent<BreakableAsteroid>() != null ||
+                other.GetComponent<SplittableObject>() != null)
             {
                 Explode();
             }
@@ -150,11 +152,34 @@ public class HomingMissile : MonoBehaviour
                 SpaceMinigame.Instance?.RegisterKill(ownerPlayer, hitPlayer);
             }
 
-            // Dañar asteroides
+            // Dañar/partir asteroides
             HomingMissile otherMissile = hit.GetComponent<HomingMissile>();
             if (otherMissile != null && otherMissile != this)
             {
                 otherMissile.TakeDamage(999);
+                continue;
+            }
+
+            BreakableAsteroid breakable = hit.GetComponent<BreakableAsteroid>();
+            if (breakable != null)
+            {
+                Vector2 hitDir = (hit.transform.position - transform.position).normalized;
+                breakable.TakeDamage(999, true, hitDir);
+                continue;
+            }
+
+            InteractiveAsteroid interactive = hit.GetComponent<InteractiveAsteroid>();
+            if (interactive != null)
+            {
+                Destroy(interactive.gameObject);
+                continue;
+            }
+
+            SplittableObject splittable = hit.GetComponent<SplittableObject>();
+            if (splittable != null)
+            {
+                Vector2 hitDir = (hit.transform.position - transform.position).normalized;
+                splittable.Split(hitDir);
             }
         }
 

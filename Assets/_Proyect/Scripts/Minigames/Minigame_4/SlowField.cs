@@ -124,6 +124,19 @@ public class SlowField : MonoBehaviour
         originalAccelerations.Remove(ship);
     }
 
+    public static void RemoveShipFromAllSlowFields(SpaceShipController ship)
+    {
+        SlowField[] allSlowFields = FindObjectsOfType<SlowField>();
+        foreach (SlowField field in allSlowFields)
+        {
+            if (field.shipsInside.Contains(ship))
+            {
+                field.shipsInside.Remove(ship);
+                field.RestoreShip(ship);
+            }
+        }
+    }
+
     private IEnumerator LifetimeRoutine()
     {
         yield return new WaitForSeconds(duration);

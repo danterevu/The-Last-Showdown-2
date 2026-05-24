@@ -130,12 +130,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 8
-  range: 12
+  range: 15
   slowFieldPrefab: {fileID: 8045770357265927284, guid: 03e5fed4f1622374a82e73fe776946ca, type: 3}
   explosionScale: 5
   hideFieldVisual: 0
   collisionDisableTime: 0.5
-  voidObject: {fileID: 1468216634819621848, guid: 508656f0377cbc64ba22ac34d9cc32e6, type: 3}
+  voidPrefab: {fileID: 0}
 --- !u!58 &5071435338533684693
 CircleCollider2D:
   m_ObjectHideFlags: 0

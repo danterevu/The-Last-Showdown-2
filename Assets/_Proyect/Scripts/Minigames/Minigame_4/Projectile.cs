@@ -108,6 +108,17 @@ public class Projectile : MonoBehaviour
             return;
         }
 
+        // Verificar si es un SplittableObject
+        SplittableObject splittableObject = other.GetComponent<SplittableObject>();
+        if (splittableObject != null)
+        {
+            Vector2 hitDirection = (other.transform.position - transform.position).normalized;
+            splittableObject.Split(hitDirection);
+            SpawnHitVfx();
+            Destroy(gameObject);
+            return;
+        }
+
         // Determinar si impactó a un jugador
         int hitPlayer = 0;
         Debug.Log($"Impacto: {other.name} tag={other.tag}");

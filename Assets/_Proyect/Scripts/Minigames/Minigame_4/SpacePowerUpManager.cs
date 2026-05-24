@@ -56,6 +56,10 @@ public class SpacePowerUpManager : MonoBehaviour
     [SerializeField] private int repulsionWaveCircleSegments = 64;
     [SerializeField] private float repulsionWaveCircleLineWidth = 0.06f;
     [SerializeField] private Color repulsionWaveCircleColor = new Color(0.2f, 0.9f, 1f, 0.9f);
+    [Header("Repulsion Collider Circle")]
+    [SerializeField] private Sprite repulsionCircleSprite;
+    [SerializeField] private Color repulsionCircleColor = new Color(0.2f, 0.9f, 1f, 0.5f);
+    [SerializeField] private float repulsionCircleFadeInTime = 0.1f;
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -241,7 +245,30 @@ public class SpacePowerUpManager : MonoBehaviour
         if (showRepulsionWaveCircle)
             SpawnRepulsionWaveCircle(center);
 
+        SpawnRepulsionColliderCircle(center, activatorPlayer);
+
         StartCoroutine(RepulsionWaveRoutine(center, activatorPlayer));
+    }
+
+    private void SpawnRepulsionColliderCircle(Vector2 center, int activatorPlayer)
+    {
+        GameObject circleObj = new GameObject("RepulsionColliderCircle");
+        circleObj.transform.position = center;
+
+        if (repulsionCircleSprite != null)
+        {
+            SpriteRenderer sr = circleObj.AddComponent<SpriteRenderer>();
+            sr.sprite = repulsionCircleSprite;
+            sr.color = new Color(repulsionCircleColor.r, repulsionCircleColor.g, repulsionCircleColor.b, 0f);
+            sr.sortingOrder = 100;
+        }
+
+        CircleCollider2D collider = circleObj.AddComponent<CircleCollider2D>();
+        collider.isTrigger = true;
+        collider.radius = repulsionRadius;
+
+        RepulsionCircleHandler handler = circleObj.AddComponent<RepulsionCircleHandler>();
+        handler.Init(activatorPlayer, repulsionRadius, repulsionCircleColor, repulsionCircleFadeInTime, repulsionWaveDuration, repulsionCircleSprite != null);
     }
 
     private void SpawnRepulsionWaveCircle(Vector2 center)
@@ -300,8 +327,6 @@ public class SpacePowerUpManager : MonoBehaviour
     {
         float duration = Mathf.Max(0.01f, repulsionWaveDuration);
         float elapsed = 0f;
-        bool hitP1 = false;
-        bool hitP2 = false;
         HashSet<int> affectedObjects = new HashSet<int>();
 
         int projectileLayer = LayerMask.NameToLayer("Projectile");
@@ -319,16 +344,16 @@ public class SpacePowerUpManager : MonoBehaviour
             float t = elapsed / duration;
             float currentRadius = Mathf.Lerp(0f, repulsionRadius, t);
 
-            ApplyWaveToShip(player1Ship, center, activatorPlayer, currentRadius, ref hitP1);
-            ApplyWaveToShip(player2Ship, center, activatorPlayer, currentRadius, ref hitP2);
+            ApplyWaveToShip(player1Ship, center, activatorPlayer, currentRadius);
+            ApplyWaveToShip(player2Ship, center, activatorPlayer, currentRadius);
             ApplyWaveToObjects(center, currentRadius, mask, projectileLayer, projectileEnemyLayer, affectedObjects);
 
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        ApplyWaveToShip(player1Ship, center, activatorPlayer, repulsionRadius, ref hitP1);
-        ApplyWaveToShip(player2Ship, center, activatorPlayer, repulsionRadius, ref hitP2);
+        ApplyWaveToShip(player1Ship, center, activatorPlayer, repulsionRadius);
+        ApplyWaveToShip(player2Ship, center, activatorPlayer, repulsionRadius);
         ApplyWaveToObjects(center, repulsionRadius, mask, projectileLayer, projectileEnemyLayer, affectedObjects);
     }
 
@@ -349,28 +374,50 @@ public class SpacePowerUpManager : MonoBehaviour
 
             GameObject root = hit.attachedRigidbody != null ? hit.attachedRigidbody.gameObject : hit.transform.root.gameObject;
             int id = root.GetInstanceID();
-            if (affectedObjects.Contains(id)) continue;
-            affectedObjects.Add(id);
 
             // Verificar si es un proyectil (por componente, más fiable que solo por layer)
             Projectile projectile = root.GetComponentInChildren<Projectile>(true);
             if (projectile != null)
             {
-                Destroy(projectile.gameObject);
+                if (!affectedObjects.Contains(id))
+                {
+                    affectedObjects.Add(id);
+                    Destroy(projectile.gameObject);
+                }
                 continue;
             }
 
             SlowGrandeProjectile slowGrande = root.GetComponentInChildren<SlowGrandeProjectile>(true);
             if (slowGrande != null)
             {
-                Destroy(slowGrande.gameObject);
+                if (!affectedObjects.Contains(id))
+                {
+                    affectedObjects.Add(id);
+                    Destroy(slowGrande.gameObject);
+                }
                 continue;
             }
 
             HomingMissile homingMissile = root.GetComponentInChildren<HomingMissile>(true);
             if (homingMissile != null)
             {
-                Destroy(homingMissile.gameObject);
+                if (!affectedObjects.Contains(id))
+                {
+                    affectedObjects.Add(id);
+                    Destroy(homingMissile.gameObject);
+                }
+                continue;
+            }
+
+            SplittableObject splittable = root.GetComponentInChildren<SplittableObject>(true);
+            if (splittable != null)
+            {
+                if (!affectedObjects.Contains(id))
+                {
+                    affectedObjects.Add(id);
+                    Vector2 hitDir = (root.transform.position - (Vector3)center).normalized;
+                    splittable.Split(hitDir);
+                }
                 continue;
             }
 
@@ -378,7 +425,11 @@ public class SpacePowerUpManager : MonoBehaviour
             int layer = root.layer;
             if ((projectileLayer != -1 && layer == projectileLayer) || (projectileEnemyLayer != -1 && layer == projectileEnemyLayer))
             {
-                Destroy(root);
+                if (!affectedObjects.Contains(id))
+                {
+                    affectedObjects.Add(id);
+                    Destroy(root);
+                }
                 continue;
             }
 
@@ -395,15 +446,16 @@ public class SpacePowerUpManager : MonoBehaviour
                 dir = Random.insideUnitCircle;
 
             float dist = dir.magnitude;
+            if (dist > currentRadius) continue;
+
             float falloff = 1f - Mathf.Clamp01(dist / repulsionRadius);
-            rb.AddForce(dir.normalized * repulsionKnockback * falloff, ForceMode2D.Impulse);
+            rb.AddForce(dir.normalized * repulsionKnockback * falloff * Time.deltaTime * 60f, ForceMode2D.Force);
         }
     }
 
-    private void ApplyWaveToShip(SpaceShipController ship, Vector2 center, int activatorPlayer, float currentRadius, ref bool alreadyHit)
+    private void ApplyWaveToShip(SpaceShipController ship, Vector2 center, int activatorPlayer, float currentRadius)
     {
         if (ship == null) return;
-        if (alreadyHit) return;
 
         Vector2 dir = ((Vector2)ship.transform.position - center);
         float dist = dir.magnitude;
@@ -413,10 +465,8 @@ public class SpacePowerUpManager : MonoBehaviour
         if (ship == player1Ship && activatorPlayer == 1) return;
         if (ship == player2Ship && activatorPlayer == 2) return;
 
-        float falloff = 1f - (dist / repulsionRadius);
-
-        ship.AddImpulse(dir.normalized * repulsionKnockback * falloff);
-        alreadyHit = true;
+        float falloff = 1f - Mathf.Clamp01(dist / repulsionRadius);
+        ship.AddImpulse(dir.normalized * repulsionKnockback * falloff * Time.deltaTime * 60f);
     }
 
     private void EnsureShipReferences()

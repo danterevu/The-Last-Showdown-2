@@ -94,7 +94,7 @@ public class SpaceMinigame : MonoBehaviour
     }
     public void RegisterKill(int killer, int victim)
     {
-        Debug.Log($"RegisterKill llamado | killer:{killer} victim:{victim} | roundOver:{roundOver} | gameOver:{gameOver} | p1Inv:{p1Invulnerable} | p2Inv:{p2Invulnerable}");
+        Debug.LogWarning($"[SPACEMINIGAME] RegisterKill llamado | Killer: {killer} | Victim: {victim} | RoundOver: {roundOver} | GameOver: {gameOver} | P1Invulnerable: {p1Invulnerable} | P2Invulnerable: {p2Invulnerable}");
         if (roundOver || gameOver) return;
         if (victim == 1 && p1Invulnerable) return;
         if (victim == 2 && p2Invulnerable) return;
@@ -107,7 +107,15 @@ public class SpaceMinigame : MonoBehaviour
         else p2LosesLoadout = true;
 
         Transform victimTransform = victim == 1 ? player1 : player2;
+        SpaceShipController victimShip = victimTransform?.GetComponent<SpaceShipController>();
+        
+        Debug.Log($"[SPACEMINIGAME] Resetando velocidad de jugador {victim}");
+        // Resetear velocidad del jugador al morir
+        SlowField.RemoveShipFromAllSlowFields(victimShip);
+        victimShip?.ResetSpeedToOriginal();
+        
         victimTransform?.GetComponent<Explodable>()?.Explode();
+        victimShip?.HideAllParticles();
 
         if (killer == 1) kills1++;
         else kills2++;
@@ -262,7 +270,7 @@ public class SpaceMinigame : MonoBehaviour
         holder?.ClearPowerUp();
     }
 
-    // gameWinner: 1 o 2 (quién ganó el minijuego completo)
+    // gameWinner: 1 o 2 (quiï¿½n ganï¿½ el minijuego completo)
     private void EndGame(int gameWinner)
     {
         // COMBO ROUNDS: registrar el ganador del minijuego para acumular racha.
