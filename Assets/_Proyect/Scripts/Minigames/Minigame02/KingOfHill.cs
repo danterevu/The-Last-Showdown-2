@@ -3,6 +3,13 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 
+[System.Serializable]
+public class ZoneHandSpawns
+{
+    public Transform handLeftSpawn;
+    public Transform handRightSpawn;
+}
+
 public class KingOfHill : MonoBehaviour
 {
     [Header("Configuracion")]
@@ -37,6 +44,19 @@ public class KingOfHill : MonoBehaviour
     [SerializeField] private Image flashImage;
     [SerializeField] private PowerUpHUD hudPlayer1;
     [SerializeField] private PowerUpHUD hudPlayer2;
+
+    [Header("Transicion de Zona")]
+    [SerializeField] private float handMoveSpeed = 5f;
+    [SerializeField] private float fadeDuration = 1f;
+
+    [Header("UI de Transicion")]
+    [SerializeField] private Image fadeImage;
+    [SerializeField] private TextMeshProUGUI countdownText;
+
+    [Header("Manos")]
+    [SerializeField] private HandController handLeft;
+    [SerializeField] private HandController handRight;
+    [SerializeField] private ZoneHandSpawns[] handSpawnsByZone;
 
     [Header("Debug")]
     [SerializeField] private int currentZoneIndex = 0;
@@ -112,6 +132,7 @@ public class KingOfHill : MonoBehaviour
 
         if (zoneTimer <= 0f)
         {
+            Debug.Log("¡Cambio de zona iniciado!");
             StartCoroutine(ChangeZone());
             zoneTimer = zoneChangeDuration;
         }
@@ -127,20 +148,418 @@ public class KingOfHill : MonoBehaviour
 
     private IEnumerator ChangeZone()
     {
+        Debug.Log("ChangeZone() iniciado");
         gameRunning = false;
 
-        yield return StartCoroutine(Flash());
+        int oldZoneIndex = currentZoneIndex;
+        int newZoneIndex;
+        do { newZoneIndex = Random.Range(0, zones.Length); }
+        while (newZoneIndex == oldZoneIndex && zones.Length > 1);
+
+        Debug.Log("Zona vieja: " + oldZoneIndex + ", Zona nueva: " + newZoneIndex);
+        yield return StartCoroutine(PlayZoneTransition(oldZoneIndex, newZoneIndex));
 
         powerUpEffects.CancelAll(p1Controller, p2Controller);
 
-        int newZone;
-        do { newZone = Random.Range(0, zones.Length); }
-        while (newZone == currentZoneIndex && zones.Length > 1);
+        currentZoneIndex = newZoneIndex;
 
-        currentZoneIndex = newZone;
-        ActivateZone(currentZoneIndex, teleport: true);
-
+        Debug.Log("ChangeZone() terminado, gameRunning = true");
         gameRunning = true;
+    }
+
+    private IEnumerator PlayZoneTransition(int oldZoneIndex, int newZoneIndex)
+    {
+        Debug.Log("PlayZoneTransition() iniciado");
+        FreezePlayers(true);
+
+        Debug.Log("SpawnAndMoveHandsToPlayers()");
+        yield return StartCoroutine(SpawnAndMoveHandsToPlayers(oldZoneIndex));
+
+        Debug.Log("GrabPlayers()");
+        yield return StartCoroutine(GrabPlayers());
+
+        Debug.Log("MoveHandsAwayWithPlayers()");
+        yield return StartCoroutine(MoveHandsAwayWithPlayers(oldZoneIndex));
+
+        Debug.Log("FadeToBlack()");
+        yield return StartCoroutine(FadeToBlack());
+
+        Debug.Log("MoveCameraToNewZone()");
+        yield return StartCoroutine(MoveCameraToNewZone(newZoneIndex));
+
+        Debug.Log("ActivateZone()");
+        ActivateZone(newZoneIndex, teleport: false);
+
+        Debug.Log("Iniciando contador + soltar jugadores");
+        yield return StartCoroutine(CountdownFadeAndReleasePlayers(newZoneIndex));
+
+        Debug.Log("PlayZoneTransition() terminado");
+    }
+
+    private IEnumerator FadeToBlack()
+    {
+        if (fadeImage == null) yield break;
+
+        fadeImage.gameObject.SetActive(true);
+        Color color = fadeImage.color;
+        color.a = 0f;
+        fadeImage.color = color;
+
+        for (float t = 0; t < fadeDuration; t += Time.deltaTime)
+        {
+            color.a = Mathf.Clamp01(t / fadeDuration);
+            fadeImage.color = color;
+            yield return null;
+        }
+
+        color.a = 1f;
+        fadeImage.color = color;
+    }
+
+    private IEnumerator CountdownFadeAndReleasePlayers(int newZoneIndex)
+    {
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(true);
+
+        bool fadeDone = false;
+        bool countdownDone = false;
+        bool playersReleased = false;
+
+        StartCoroutine(FadeFromBlackCoroutine(() => fadeDone = true));
+        
+        for (int i = 3; i >= 0; i--)
+        {
+            if (countdownText != null)
+            {
+                if (i > 0)
+                {
+                    countdownText.text = i.ToString();
+                    yield return StartCoroutine(AnimateCountdownText(countdownText));
+                }
+                else
+                {
+                    countdownText.text = "¡Ya!";
+                }
+            }
+            else if (i == 0)
+            {
+                yield return null;
+            }
+
+            if (i == 3)
+            {
+                StartCoroutine(ReleasePlayersCoroutine(newZoneIndex, () => playersReleased = true));
+            }
+
+            if (i > 0)
+                yield return new WaitForSeconds(0.5f);
+        }
+
+        countdownDone = true;
+
+        while (!fadeDone || !playersReleased)
+        {
+            yield return null;
+        }
+
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(false);
+
+        FreezePlayers(false);
+    }
+
+    private IEnumerator ReleasePlayersCoroutine(int newZoneIndex, System.Action onComplete)
+    {
+        if (handSpawnsByZone == null || handSpawnsByZone.Length <= newZoneIndex)
+        {
+            onComplete?.Invoke();
+            yield break;
+        }
+        if (player1Spawns == null || player1Spawns.Length <= newZoneIndex)
+        {
+            onComplete?.Invoke();
+            yield break;
+        }
+        if (player2Spawns == null || player2Spawns.Length <= newZoneIndex)
+        {
+            onComplete?.Invoke();
+            yield break;
+        }
+
+        ZoneHandSpawns spawns = handSpawnsByZone[newZoneIndex];
+
+        if (handLeft != null && spawns.handLeftSpawn != null)
+            handLeft.transform.position = spawns.handLeftSpawn.position;
+        if (handRight != null && spawns.handRightSpawn != null)
+            handRight.transform.position = spawns.handRightSpawn.position;
+
+        bool leftStretchDone = false;
+        bool rightStretchDone = false;
+
+        if (handLeft != null)
+            StartCoroutine(StretchHandCoroutine(handLeft, player1Spawns[newZoneIndex].position, () => leftStretchDone = true));
+        if (handRight != null)
+            StartCoroutine(StretchHandCoroutine(handRight, player2Spawns[newZoneIndex].position, () => rightStretchDone = true));
+
+        while (!leftStretchDone || !rightStretchDone)
+        {
+            yield return null;
+        }
+
+        yield return StartCoroutine(MoveHandsToPositions(
+            player1Spawns[newZoneIndex].position,
+            player2Spawns[newZoneIndex].position
+        ));
+
+        if (handLeft != null)
+            handLeft.ReleasePlayer(player1Spawns[newZoneIndex].position);
+        if (handRight != null)
+            handRight.ReleasePlayer(player2Spawns[newZoneIndex].position);
+
+        bool leftScaleDone = false;
+        bool rightScaleDone = false;
+
+        if (handLeft != null)
+            StartCoroutine(ReturnHandScaleCoroutine(handLeft, () => leftScaleDone = true));
+        if (handRight != null)
+            StartCoroutine(ReturnHandScaleCoroutine(handRight, () => rightScaleDone = true));
+
+        while (!leftScaleDone || !rightScaleDone)
+        {
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(1f);
+
+        Animator p1Animator = player1 != null ? player1.GetComponent<Animator>() : null;
+        Animator p2Animator = player2 != null ? player2.GetComponent<Animator>() : null;
+
+        if (p1Animator != null)
+            p1Animator.SetBool("Surprised", false);
+        if (p2Animator != null)
+            p2Animator.SetBool("Surprised", false);
+
+        yield return StartCoroutine(MoveHandsToPositions(
+            spawns.handLeftSpawn != null ? spawns.handLeftSpawn.position : handLeft.transform.position,
+            spawns.handRightSpawn != null ? spawns.handRightSpawn.position : handRight.transform.position
+        ));
+
+        if (handLeft != null) handLeft.gameObject.SetActive(false);
+        if (handRight != null) handRight.gameObject.SetActive(false);
+
+        onComplete?.Invoke();
+    }
+
+    private IEnumerator FadeFromBlackCoroutine(System.Action onComplete)
+    {
+        if (fadeImage == null)
+        {
+            onComplete?.Invoke();
+            yield break;
+        }
+
+        Color color = fadeImage.color;
+        color.a = 1f;
+        fadeImage.color = color;
+
+        for (float t = 0; t < fadeDuration * 3.5f; t += Time.deltaTime)
+        {
+            color.a = Mathf.Clamp01(1f - t / (fadeDuration * 3.5f));
+            fadeImage.color = color;
+            yield return null;
+        }
+
+        color.a = 0f;
+        fadeImage.color = color;
+        fadeImage.gameObject.SetActive(false);
+
+        onComplete?.Invoke();
+    }
+
+    private IEnumerator AnimateCountdownText(TextMeshProUGUI text)
+    {
+        Vector3 originalScale = text.transform.localScale;
+        Vector3 originalPos = text.transform.localPosition;
+        float duration = 0.5f;
+        float shakeAmount = 10f;
+        float scaleMultiplier = 1.3f;
+
+        for (float t = 0; t < duration; t += Time.deltaTime)
+        {
+            float progress = t / duration;
+
+            float scale = Mathf.Lerp(1f, scaleMultiplier, Mathf.PingPong(progress * 2, 1f));
+            text.transform.localScale = originalScale * scale;
+
+            float shakeX = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
+            float shakeY = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
+            text.transform.localPosition = originalPos + new Vector3(shakeX, shakeY, 0f);
+
+            yield return null;
+        }
+
+        text.transform.localScale = originalScale;
+        text.transform.localPosition = originalPos;
+    }
+
+    private IEnumerator SpawnAndMoveHandsToPlayers(int zoneIndex)
+    {
+        Debug.Log("SpawnAndMoveHandsToPlayers - zoneIndex: " + zoneIndex);
+        if (handSpawnsByZone == null || handSpawnsByZone.Length <= zoneIndex)
+        {
+            Debug.LogWarning("handSpawnsByZone es nulo o no tiene suficientes elementos!");
+            yield break;
+        }
+
+        Animator p1Animator = player1 != null ? player1.GetComponent<Animator>() : null;
+        Animator p2Animator = player2 != null ? player2.GetComponent<Animator>() : null;
+
+        if (p1Animator != null)
+            p1Animator.SetBool("Surprised", true);
+        if (p2Animator != null)
+            p2Animator.SetBool("Surprised", true);
+
+        ZoneHandSpawns spawns = handSpawnsByZone[zoneIndex];
+        if (handLeft != null && spawns.handLeftSpawn != null)
+        {
+            Debug.Log("Activando mano izquierda en: " + spawns.handLeftSpawn.position);
+            handLeft.gameObject.SetActive(true);
+            handLeft.transform.position = spawns.handLeftSpawn.position;
+            handLeft.OpenHand();
+        }
+        if (handRight != null && spawns.handRightSpawn != null)
+        {
+            Debug.Log("Activando mano derecha en: " + spawns.handRightSpawn.position);
+            handRight.gameObject.SetActive(true);
+            handRight.transform.position = spawns.handRightSpawn.position;
+            handRight.OpenHand();
+        }
+
+        bool leftStretchDone = false;
+        bool rightStretchDone = false;
+
+        if (handLeft != null)
+            StartCoroutine(StretchHandCoroutine(handLeft, player1.transform.position, () => leftStretchDone = true));
+        if (handRight != null)
+            StartCoroutine(StretchHandCoroutine(handRight, player2.transform.position, () => rightStretchDone = true));
+
+        while (!leftStretchDone || !rightStretchDone)
+        {
+            yield return null;
+        }
+
+        Debug.Log("Moviendo manos hacia jugadores...");
+        yield return StartCoroutine(MoveHandsToPositions(player1.transform.position, player2.transform.position));
+        Debug.Log("Manos llegaron a los jugadores");
+    }
+
+    private IEnumerator StretchHandCoroutine(HandController hand, Vector3 target, System.Action onComplete)
+    {
+        if (hand != null)
+            yield return StartCoroutine(hand.StretchTowards(target));
+        onComplete?.Invoke();
+    }
+
+    private IEnumerator MoveHandsToPositions(Vector3 leftTarget, Vector3 rightTarget)
+    {
+        while (true)
+        {
+            bool leftDone = true, rightDone = true;
+
+            if (handLeft != null)
+            {
+                handLeft.transform.position = Vector3.MoveTowards(
+                    handLeft.transform.position,
+                    leftTarget,
+                    handMoveSpeed * Time.deltaTime
+                );
+                leftDone = Vector3.Distance(handLeft.transform.position, leftTarget) < 0.1f;
+            }
+
+            if (handRight != null)
+            {
+                handRight.transform.position = Vector3.MoveTowards(
+                    handRight.transform.position,
+                    rightTarget,
+                    handMoveSpeed * Time.deltaTime
+                );
+                rightDone = Vector3.Distance(handRight.transform.position, rightTarget) < 0.1f;
+            }
+
+            if (leftDone && rightDone) break;
+            yield return null;
+        }
+    }
+
+    private IEnumerator GrabPlayers()
+    {
+        if (handLeft != null && !handLeft.HasPlayer)
+            handLeft.CloseHand();
+        if (handRight != null && !handRight.HasPlayer)
+            handRight.CloseHand();
+
+        if (handLeft != null && !handLeft.HasPlayer && player1 != null)
+            handLeft.GrabPlayer(player1);
+        if (handRight != null && !handRight.HasPlayer && player2 != null)
+            handRight.GrabPlayer(player2);
+
+        bool leftScaleDone = false;
+        bool rightScaleDone = false;
+
+        if (handLeft != null)
+            StartCoroutine(ReturnHandScaleCoroutine(handLeft, () => leftScaleDone = true));
+        if (handRight != null)
+            StartCoroutine(ReturnHandScaleCoroutine(handRight, () => rightScaleDone = true));
+
+        while (!leftScaleDone || !rightScaleDone)
+        {
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(0.3f);
+    }
+
+    private IEnumerator ReturnHandScaleCoroutine(HandController hand, System.Action onComplete)
+    {
+        if (hand != null)
+            yield return StartCoroutine(hand.ReturnToOriginalScale());
+        onComplete?.Invoke();
+    }
+
+    private IEnumerator MoveHandsAwayWithPlayers(int zoneIndex)
+    {
+        if (handSpawnsByZone == null || handSpawnsByZone.Length <= zoneIndex) yield break;
+
+        ZoneHandSpawns spawns = handSpawnsByZone[zoneIndex];
+        yield return StartCoroutine(MoveHandsToPositions(
+            spawns.handLeftSpawn != null ? spawns.handLeftSpawn.position : handLeft.transform.position,
+            spawns.handRightSpawn != null ? spawns.handRightSpawn.position : handRight.transform.position
+        ));
+    }
+
+    private void FreezePlayers(bool freeze)
+    {
+        if (p1Controller != null)
+        {
+            var rb1 = p1Controller.GetComponent<Rigidbody2D>();
+            if (rb1 != null) rb1.simulated = !freeze;
+            p1Controller.enabled = !freeze;
+        }
+        if (p2Controller != null)
+        {
+            var rb2 = p2Controller.GetComponent<Rigidbody2D>();
+            if (rb2 != null) rb2.simulated = !freeze;
+            p2Controller.enabled = !freeze;
+        }
+    }
+
+    private IEnumerator MoveCameraToNewZone(int zoneIndex)
+    {
+        if (zoneCamera != null && zones.Length > zoneIndex)
+        {
+            zoneCamera.SetZoneCenter(zones[zoneIndex].position, zoneIndex);
+        }
+        yield return new WaitForSeconds(0.5f);
     }
 
     private void ActivateZone(int index, bool teleport)
@@ -149,14 +568,13 @@ public class KingOfHill : MonoBehaviour
         {
             player1.transform.position = player1Spawns[index].position;
             player2.transform.position = player2Spawns[index].position;
-
-            p1Controller.SetSpawnPoint(player1Spawns[index].position);
-            p2Controller.SetSpawnPoint(player2Spawns[index].position);
         }
+
+        p1Controller.SetSpawnPoint(player1Spawns[index].position);
+        p2Controller.SetSpawnPoint(player2Spawns[index].position);
 
         zoneCamera.SetZoneCenter(zones[index].position, index);
 
-        // avisar al spawner que zona esta activa
         powerUpSpawner.SetActiveZone(index);
     }
 

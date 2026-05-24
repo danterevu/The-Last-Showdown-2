@@ -9,7 +9,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: WeaponChange
+    m_ConditionEvent: WeaponChanged
     m_EventTreshold: 0
   - m_ConditionMode: 6
     m_ConditionEvent: WeaponIndex
@@ -112,11 +112,11 @@ AnimatorStateTransition:
   m_PrefabAsset: {fileID: 0}
   m_Name: 
   m_Conditions:
-  - m_ConditionMode: 3
+  - m_ConditionMode: 6
     m_ConditionEvent: WeaponIndex
     m_EventTreshold: 2
   - m_ConditionMode: 1
-    m_ConditionEvent: WeaponChange
+    m_ConditionEvent: WeaponChanged
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 3995916242476807262}
@@ -270,7 +270,7 @@ AnimatorStateMachine:
     m_Position: {x: 630, y: -120, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -7021979248645936030}
-    m_Position: {x: 910, y: -90, z: 0}
+    m_Position: {x: 940, y: -90, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 2041346613287654430}
     m_Position: {x: 910, y: -160, z: 0}
@@ -454,7 +454,7 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
-  - m_Name: WeaponChange
+  - m_Name: WeaponChanged
     m_Type: 9
     m_DefaultFloat: 0
     m_DefaultInt: 0
@@ -518,7 +518,7 @@ AnimatorStateTransition:
     m_ConditionEvent: WeaponIndex
     m_EventTreshold: 0
   - m_ConditionMode: 1
-    m_ConditionEvent: WeaponChange
+    m_ConditionEvent: WeaponChanged
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -7021979248645936030}
@@ -601,7 +601,7 @@ AnimatorStateTransition:
     m_ConditionEvent: WeaponIndex
     m_EventTreshold: 2
   - m_ConditionMode: 1
-    m_ConditionEvent: WeaponChange
+    m_ConditionEvent: WeaponChanged
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 2041346613287654430}
@@ -765,7 +765,7 @@ AnimatorStateTransition:
     m_ConditionEvent: WeaponIndex
     m_EventTreshold: 1
   - m_ConditionMode: 1
-    m_ConditionEvent: WeaponChange
+    m_ConditionEvent: WeaponChanged
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 6645366431645881123}
@@ -793,7 +793,7 @@ AnimatorStateTransition:
     m_ConditionEvent: WeaponIndex
     m_EventTreshold: 3
   - m_ConditionMode: 1
-    m_ConditionEvent: WeaponChange
+    m_ConditionEvent: WeaponChanged
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 7831808455332762346}
@@ -870,7 +870,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: WeaponChange
+    m_ConditionEvent: WeaponChanged
     m_EventTreshold: 0
   - m_ConditionMode: 6
     m_ConditionEvent: WeaponIndex
