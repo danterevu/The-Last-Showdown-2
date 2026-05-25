@@ -42,4 +42,8 @@ public class Results : MonoBehaviour
     {
         SceneManager.LoadScene("Menu");
     }
+    public void LoadRoulette()
+    {
+        SceneManager.LoadScene("Select_Minigame");
+    }
 }

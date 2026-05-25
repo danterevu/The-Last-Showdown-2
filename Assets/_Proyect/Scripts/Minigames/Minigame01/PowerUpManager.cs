@@ -24,9 +24,18 @@ public class PowerUpManager : MonoBehaviour
     [SerializeField] private GameObject magnetEffectPlayer1; // hijo del jugador 1
     [SerializeField] private GameObject magnetEffectPlayer2; // hijo del jugador 2
 
+    [Header("Efectos Magnet")]
+    [SerializeField] private Vector3 wallPosition = Vector3.zero; // posición donde aparece la pared
+    [SerializeField] private float wallSafeDistance = 2f; // distancia mínima del centro
+
     [Header("Efectos InvertControls")]
     [SerializeField] private GameObject invertEffectPlayer1; // hijo del jugador 1
     [SerializeField] private GameObject invertEffectPlayer2; // hijo del jugador 2
+
+    [Header("Coroutinas")]
+    private Coroutine freezeCoroutine;
+    private Coroutine magnetCoroutine;
+    private Coroutine invertCoroutine;
 
     [Header("Debug")]
     [SerializeField] private PowerUpType player1PowerUp;
@@ -42,6 +51,10 @@ public class PowerUpManager : MonoBehaviour
     [Header("HUD")]
     [SerializeField] private PowerUpHUDMinigame1 player1HUD;
     [SerializeField] private PowerUpHUDMinigame1 player2HUD;
+
+    [Header("Debug")]
+    private int magnetAffectedPlayer = 0;
+    private int invertAffectedPlayer = 0;
 
     private GameObject activeWall;
     private PlayerController player1Controller;
@@ -186,6 +199,7 @@ public class PowerUpManager : MonoBehaviour
     // FREEZE 
     private IEnumerator ActivateFreeze(int opponent)
     {
+
         PlayerController opponentController = opponent == 1 ? player1Controller : player2Controller;
         Animator opponentAnim = opponent == 1 ? player1Animator : player2Animator;
 
@@ -193,9 +207,21 @@ public class PowerUpManager : MonoBehaviour
         else player2Frozen = true;
 
         opponentController.SetFrozen(true);
+
+        // Resetear el trigger antes de setearlo para evitar que quede encolado
+        opponentAnim?.ResetTrigger("Frozen");
+        opponentAnim?.ResetTrigger("Unfreeze");
+        opponentAnim?.SetTrigger("Frozen");
+
+        if (opponentAnim != null)
+            opponentAnim.SetFloat("FreezeSpeed", 1f / freezeDuration);
+
         yield return new WaitForSeconds(freezeDuration);
+
         opponentController.SetFrozen(false);
 
+        // Resetear Frozen antes de disparar Unfreeze
+        opponentAnim?.ResetTrigger("Frozen");
         opponentAnim?.SetTrigger("Unfreeze");
 
         if (opponent == 1) player1Frozen = false;
@@ -206,16 +232,40 @@ public class PowerUpManager : MonoBehaviour
     private IEnumerator ActivateWall()
     {
         wallActive = true;
-        activeWall = Instantiate(wallPrefab, Vector3.zero, Quaternion.identity);
+
+        // Antes de instanciar, mover jugadores que estén muy cerca del centro
+        SafelyMovePlayersFromWall();
+
+        activeWall = Instantiate(wallPrefab, wallPosition, Quaternion.identity);
         yield return new WaitForSeconds(wallDuration);
         Destroy(activeWall);
         wallActive = false;
+    }
+
+    private void SafelyMovePlayersFromWall()
+    {
+        // Si P1 está cerca del centro, lo movemos a la izquierda
+        if (Mathf.Abs(player1.transform.position.x) < wallSafeDistance)
+        {
+            Vector3 safePos = player1.transform.position;
+            safePos.x = -wallSafeDistance - 0.5f; // izquierda
+            player1.transform.position = safePos;
+        }
+
+        // Si P2 está cerca del centro, lo movemos a la derecha
+        if (Mathf.Abs(player2.transform.position.x) < wallSafeDistance)
+        {
+            Vector3 safePos = player2.transform.position;
+            safePos.x = wallSafeDistance + 0.5f; // derecha
+            player2.transform.position = safePos;
+        }
     }
 
     // MAGNET 
     private IEnumerator ActivateMagnet(int opponent)
     {
         magnetActive = true;
+        magnetAffectedPlayer = opponent;
 
         // activar efecto visual sobre el oponente (el que es atraído)
         GameObject opponentObj = opponent == 1 ? player1 : player2;
@@ -241,8 +291,10 @@ public class PowerUpManager : MonoBehaviour
     private IEnumerator ActivateInvertControls(int opponent)
     {
         invertActive = true;
+        invertAffectedPlayer = opponent;
         PlayerController opponentController = opponent == 1 ? player1Controller : player2Controller;
         Animator opponentAnim = opponent == 1 ? player1Animator : player2Animator;
+       
 
         // activar efecto visual sobre el oponente
         GameObject invertEffect = opponent == 1 ? invertEffectPlayer1 : invertEffectPlayer2;
@@ -274,6 +326,51 @@ public class PowerUpManager : MonoBehaviour
             player2PowerUp = type;
             player2HasPowerUp = true;
             player2HUD?.ShowIcon(2, type);
+        }
+    }
+
+    public void CancelEffectsOnDeath(int player)
+    {
+        // Freeze: si el jugador congelado murió, cancelar
+        bool playerIsFrozen = (player == 1 && player1Frozen) || (player == 2 && player2Frozen);
+        if (playerIsFrozen)
+        {
+            if (freezeCoroutine != null) { StopCoroutine(freezeCoroutine); freezeCoroutine = null; }
+            player1Frozen = false;
+            player2Frozen = false;
+            player1Controller.SetFrozen(false);
+            player2Controller.SetFrozen(false);
+        }
+
+        // Magnet: el magnet afecta al oponente del que lo activó
+        // Si el jugador afectado por el magnet murió, cancelar
+        // opponent es el que RECIBE el efecto, así que si ese jugador murió cancelamos
+        if (magnetActive)
+        {
+            // guardamos a quién afecta el magnet
+            bool affectedPlayerDied = (magnetAffectedPlayer == player);
+            if (affectedPlayerDied)
+            {
+                if (magnetCoroutine != null) { StopCoroutine(magnetCoroutine); magnetCoroutine = null; }
+                magnetActive = false;
+                magnetEffectPlayer1?.SetActive(false);
+                magnetEffectPlayer2?.SetActive(false);
+            }
+        }
+
+        // Invert: si el jugador con controles invertidos murió, cancelar
+        if (invertActive)
+        {
+            bool affectedPlayerDied = (invertAffectedPlayer == player);
+            if (affectedPlayerDied)
+            {
+                if (invertCoroutine != null) { StopCoroutine(invertCoroutine); invertCoroutine = null; }
+                invertActive = false;
+                player1Controller.SetInvertControls(false);
+                player2Controller.SetInvertControls(false);
+                invertEffectPlayer1?.SetActive(false);
+                invertEffectPlayer2?.SetActive(false);
+            }
         }
     }
 }

@@ -259,9 +259,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     private void FixedUpdate()
     {
         if (isDead) return;
-
         rb.gravityScale = heavyGravityActive ? heavyGravityValue : gravityScale;
-
         if (hasRawVelocityOverride)
         {
             rb.linearVelocity = rawVelocityOverride;
@@ -271,15 +269,19 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         }
         jetpackFiring = false;
 
-        if (jetpackActive && jumpAction != null && jumpAction.IsPressed())
+        // Detectar salto mantenido tanto en teclado como en gamepad
+        bool jumpHeldGamepad = false;
+        Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
+        if (gp != null) jumpHeldGamepad = gp.buttonSouth.isPressed;
+        bool jumpHeldKeyboard = jumpAction != null && jumpAction.IsPressed();
+
+        if (jetpackActive && (jumpHeldKeyboard || jumpHeldGamepad))
         {
             jetpackFiring = true;
-
             rb.linearVelocity = new Vector2(
-     rb.linearVelocity.x,
-     Mathf.Lerp(rb.linearVelocity.y, jetpackForce, 0.25f)
- );
-
+                rb.linearVelocity.x,
+                Mathf.Lerp(rb.linearVelocity.y, jetpackForce, 0.25f)
+            );
             if (_jetpackAnimator != null)
                 _jetpackAnimator.SetBool("Fire", true);
         }

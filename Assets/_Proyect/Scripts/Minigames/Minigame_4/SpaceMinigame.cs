@@ -271,7 +271,7 @@ public class SpaceMinigame : MonoBehaviour
     }
 
     // gameWinner: 1 o 2 (qui�n gan� el minijuego completo)
-    private void EndGame(int gameWinner)
+    public void EndGame(int gameWinner)
     {
         // COMBO ROUNDS: registrar el ganador del minijuego para acumular racha.
         // Se llama ANTES de FinishMinigame para que el bonus quede
@@ -279,7 +279,7 @@ public class SpaceMinigame : MonoBehaviour
         ModifierManager.Instance?.RegisterSpaceRoundWinner(gameWinner);
 
         GameManager.Instance?.FinishMinigame();
-        GameManager.Instance?.EndRound(5);
+        GameManager.Instance?.EndRound(4);
 
         if (SceneLoader.Instance != null)
             SceneLoader.Instance.LoadResults();

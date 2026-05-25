@@ -116,7 +116,9 @@
     }
 
     private void RespawnPlayer(int player)
-    {
+    {// Cancelar efectos activos del jugador que murió
+        PowerUpManager powerUpManager = FindFirstObjectByType<PowerUpManager>();
+        powerUpManager?.CancelEffectsOnDeath(player);
         if (player == 1)
         {
             player1Invulnerable = true;
@@ -163,8 +165,8 @@
 
     private void GivePointsToBothPlayers()
         {
-            GameManager.Instance.AddResult(1, true);
-            GameManager.Instance.AddResult(2, true);
+            //GameManager.Instance.AddResult(1, true);
+            //GameManager.Instance.AddResult(2, true);
         }
     private void UpdateUI()
     {
@@ -229,7 +231,7 @@
         }
     }
 
-    // TryHitPlayer actualizado con los modificadores
+
     public void TryHitPlayer(int player)
     {
         if (player == 1 && !player1Invulnerable)

@@ -2204,6 +2204,8 @@ MonoBehaviour:
   invertDuration: 4
   magnetEffectPlayer1: {fileID: 1845965288}
   magnetEffectPlayer2: {fileID: 1486317246}
+  wallPosition: {x: 0, y: 0, z: 0}
+  wallSafeDistance: 2
   invertEffectPlayer1: {fileID: 1946709696}
   invertEffectPlayer2: {fileID: 2050364537}
   player1PowerUp: 0
@@ -8601,7 +8603,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5977419167255780278, guid: ab0dc5c92f8f873418294e201b1e2f3a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1946709697}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1355413625400800343, guid: ab0dc5c92f8f873418294e201b1e2f3a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3627143294669352451}
   m_SourcePrefab: {fileID: 100100000, guid: ab0dc5c92f8f873418294e201b1e2f3a, type: 3}
 --- !u!68 &3627143294669352446 stripped
 EdgeCollider2D:
@@ -8613,6 +8618,52 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5977419167255780278, guid: ab0dc5c92f8f873418294e201b1e2f3a, type: 3}
   m_PrefabInstance: {fileID: 3627143294669352445}
   m_PrefabAsset: {fileID: 0}
+--- !u!61 &3627143294669352451
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1553776877}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 128
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 130943
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0.0000004172325, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 1.92, y: 1.91}
+    newSize: {x: 0.16, y: 0.16}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 1.571551, y: 1.6436145}
+  m_EdgeRadius: 0
 --- !u!1001 &7824563443230843688
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8830,7 +8881,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3430260594853427124, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2050364538}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 163626226805196753, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7907972195554078179}
   m_SourcePrefab: {fileID: 100100000, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
 --- !u!68 &7907972195554078173 stripped
 EdgeCollider2D:
@@ -8842,6 +8896,52 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3430260594853427124, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
   m_PrefabInstance: {fileID: 7907972195554078172}
   m_PrefabAsset: {fileID: 0}
+--- !u!61 &7907972195554078179
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 538370194}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 128
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 130943
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: -0.019461393, y: 0.026195496}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 1.92, y: 1.91}
+    newSize: {x: 2.83, y: 2.52}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 1.5956447, y: 1.6742387}
+  m_EdgeRadius: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
