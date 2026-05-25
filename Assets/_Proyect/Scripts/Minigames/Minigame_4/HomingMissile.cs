@@ -34,7 +34,16 @@ public class HomingMissile : MonoBehaviour
         this.target = target;
         this.ownerPlayer = ownerPlayer;
         if (target != null)
+        {
             lastTargetPosition = target.position;
+            // Apuntar directamente al target desde el inicio
+            Vector2 toTarget = ((Vector2)target.position - (Vector2)transform.position).normalized;
+            float angle = Mathf.Atan2(toTarget.y, toTarget.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        }
+     
+
+
     }
 
     public void TakeDamage(int amount)

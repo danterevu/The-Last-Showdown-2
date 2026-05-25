@@ -193,7 +193,7 @@ public class PowerUpHolder : MonoBehaviour
     {
         if (rivalTransform == null)
         {
-            Debug.LogError("[PowerUpHolder] rivalTransform es NULL. Asigna la nave rival en el Inspector.");
+            Debug.LogError("[PowerUpHolder] rivalTransform es NULL.");
             return;
         }
 
@@ -204,7 +204,9 @@ public class PowerUpHolder : MonoBehaviour
         }
 
         Vector2 origin = firePoint != null ? firePoint.position : transform.position;
-        SpacePowerUpManager.Instance.LaunchHomingMissile(origin, rivalTransform, isPlayer1 ? 1 : 2);
+        // Usar la rotacion del firePoint para que el misil arranque mirando hacia adelante
+        Quaternion rotation = firePoint != null ? firePoint.rotation : transform.rotation;
+        SpacePowerUpManager.Instance.LaunchHomingMissile(origin, rivalTransform, isPlayer1 ? 1 : 2, rotation);
     }
 
     private void ActivateRepulsion()

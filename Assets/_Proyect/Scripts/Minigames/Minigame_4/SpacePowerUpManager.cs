@@ -197,7 +197,7 @@ public class SpacePowerUpManager : MonoBehaviour
     // ── Homing Missile ───────────────────────────────────────────────────────
 
     /// Lanza un misil que persigue al rival.
-    public void LaunchHomingMissile(Vector2 origin, Transform target, int ownerPlayer)
+    public void LaunchHomingMissile(Vector2 origin, Transform target, int ownerPlayer, Quaternion shipRotation)
     {
         if (homingMissilePrefab == null)
         {
@@ -205,9 +205,9 @@ public class SpacePowerUpManager : MonoBehaviour
             return;
         }
 
-        GameObject obj = Instantiate(homingMissilePrefab, origin, Quaternion.identity);
+        // Instanciar con la rotacion de la nave en vez de Quaternion.identity
+        GameObject obj = Instantiate(homingMissilePrefab, origin, shipRotation);
 
-        // Si el prefab tiene HomingMissile.cs, inicializarlo
         HomingMissile missile = obj.GetComponent<HomingMissile>();
         if (missile != null)
         {
@@ -215,7 +215,6 @@ public class SpacePowerUpManager : MonoBehaviour
         }
         else
         {
-            // Fallback: si no tiene HomingMissile.cs, usarlo como Projectile recto
             Vector2 dir = target != null
                 ? ((Vector2)(target.position - (Vector3)(Vector2)origin)).normalized
                 : Vector2.right;

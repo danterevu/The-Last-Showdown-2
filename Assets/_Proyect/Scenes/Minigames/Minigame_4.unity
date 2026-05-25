@@ -56350,6 +56350,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 775134819}
     - target: {fileID: 5622894836061713576, guid: 2f292d60e57846e42a76267c42628cea, type: 3}
+      propertyPath: firePoint
+      value: 
+      objectReference: {fileID: 1670111664}
+    - target: {fileID: 5622894836061713576, guid: 2f292d60e57846e42a76267c42628cea, type: 3}
       propertyPath: rivalTransform
       value: 
       objectReference: {fileID: 1669866205}
@@ -56967,6 +56971,10 @@ PrefabInstance:
       value: Player2
       objectReference: {fileID: 0}
     - target: {fileID: 1583068847820849429, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
+      propertyPath: firePoint
+      value: 
+      objectReference: {fileID: 1706612969}
+    - target: {fileID: 1583068847820849429, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
       propertyPath: rivalTransform
       value: 
       objectReference: {fileID: 1647416892}
@@ -57058,6 +57066,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1f8a0c6e3a8bd848985b7ab63b05f9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &1670111664 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5186068860516421327, guid: 2f292d60e57846e42a76267c42628cea, type: 3}
+  m_PrefabInstance: {fileID: 1647416891}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1678415119
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -57660,6 +57673,11 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 1242106391100818709, guid: 6d52c6e58cede52429c1c49ef69766e9, type: 3}
   m_PrefabInstance: {fileID: 1692717287}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1706612969 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2820423276534160297, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
+  m_PrefabInstance: {fileID: 1669866203}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1712769469
 GameObject:
