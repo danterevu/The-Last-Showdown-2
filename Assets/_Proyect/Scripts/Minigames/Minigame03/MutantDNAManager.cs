@@ -42,7 +42,7 @@ public class MutantDNAManager : MonoBehaviour
         gameRunning = true;
 
         dnaPickup.SpawnDNA();
-        UpdateUI();
+        //UpdateUI();
 
     }
 
@@ -58,7 +58,7 @@ public class MutantDNAManager : MonoBehaviour
             EndMinigame();
         }
 
-        UpdateUI();
+        //UpdateUI();
     }
 
     private void UpdateUI()

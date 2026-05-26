@@ -5,7 +5,9 @@ public class DNAPowerUpPickup : MonoBehaviour
     public enum DNAPowerUpType
     {
         Shrink,  // se vuelve más chiquito y rápido
-        Mine
+        Mine,    // deja una mina que se arma y despues explota
+        RemoteControl, // Activa paredes
+        Berserk //se vuelve loco y ataca hacia adelante
     }
 
     [SerializeField] private DNAPowerUpType type;

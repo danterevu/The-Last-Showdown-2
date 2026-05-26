@@ -97,7 +97,12 @@ public class MinigameSpinner : MonoBehaviour
     private void SelectedMinigame()
     {
         List<int> available = GameManager.Instance.GetAvailableMinigames();
-        if (available.Count == 0) return;
+        if (available.Count == 0)
+        {
+            Debug.Log("No quedan minijuegos, yendo a pantalla final");
+            SceneLoader.Instance.LoadFinalScreen();
+            return;
+        }
 
         float rawAngle = transform.rotation.eulerAngles.z;
         int winnerId = GetWinnerIdFromAngle(rawAngle);
@@ -140,11 +145,14 @@ public class MinigameSpinner : MonoBehaviour
     private void ConfirmSelection()
     {
         float rawAngle = transform.rotation.eulerAngles.z;
-        int winnerId = GetWinnerIdFromAngle(rawAngle);
+        int winnerId = GetWinnerIdFromAngle(rawAngle); // 0 - 90 = M1 Dodge Disk
+                                                       // 90 - 180 = M2 King Of The Hill
+                                                       // 180 - 270 = M3 Mutant DNA
+                                                       // 270 - 360 = M4 Space Ships
 
         Debug.Log($" Confirmado: Minijuego {winnerId}");
         //GameManager.Instance.EndRound(winnerId); 
-        //NO BORRAR
+        //NO BORRAR HASTA build final
         RefreshOverlays();
 
         PlayerPrefs.SetInt("SelectedMinigame", winnerId);

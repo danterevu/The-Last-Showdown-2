@@ -2,19 +2,22 @@ using UnityEngine;
 
 public class RemoteControl : MonoBehaviour
 {
-    [SerializeField] private GameObject[] wall;
-    private Collider2D wallCol;
-    private SpriteRenderer wallSr;
+    [SerializeField] private GameObject[] walls;
 
-    private bool wallActive = false;
+    private Collider2D[] wallCols;
+    private SpriteRenderer[] wallSrs;
 
     private void Start()
     {
-        for(int i = 0;  i < wall.Length; i++)
+        wallCols = new Collider2D[walls.Length];
+        wallSrs = new SpriteRenderer[walls.Length];
+
+        for (int i = 0; i < walls.Length; i++)
         {
-            wallCol = wall[i].GetComponent<Collider2D>();
-            wallSr = wall[i].GetComponent<SpriteRenderer>();
+            wallCols[i] = walls[i].GetComponent<Collider2D>();
+            wallSrs[i] = walls[i].GetComponent<SpriteRenderer>();
         }
+
         DeactivateWall();
     }
 
@@ -30,15 +33,20 @@ public class RemoteControl : MonoBehaviour
 
     public void ActivateWall()
     {
-        wallActive = true;
-        wallCol.enabled = true;
-        wallSr.enabled = true;
+        for (int i = 0; i < walls.Length; i++)
+        {
+            if (wallCols[i] != null) wallCols[i].enabled = true;
+            if (wallSrs[i] != null) wallSrs[i].enabled = true;
+        }
     }
 
-    private void DeactivateWall()
+    public void DeactivateWall()
     {
-        wallActive = false;
-        wallCol.enabled = false;
-        wallSr.enabled = false;
+        if (wallCols == null) return; // protección si se llama antes de Start
+        for (int i = 0; i < walls.Length; i++)
+        {
+            if (wallCols[i] != null) wallCols[i].enabled = false;
+            if (wallSrs[i] != null) wallSrs[i].enabled = false;
+        }
     }
 }

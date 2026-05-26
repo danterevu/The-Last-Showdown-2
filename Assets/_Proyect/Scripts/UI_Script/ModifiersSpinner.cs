@@ -16,14 +16,15 @@ public class ModifiersSpinner : MonoBehaviour
     [SerializeField] private Sprite spriteDodgeDisk;
     [SerializeField] private Sprite spriteSpace; // sprite para el Minigame_5
 
-    // �ndice del array = secci�n de la ruleta (0, 1, 2)
+    // indice del array = secci�n de la ruleta (0, 1, 2)
     // El texto "Sin Modificador" en el slot 2 de Space mapea al enum None
     private static readonly Dictionary<int, string[]> modifierNames = new()
-    {
-        { 1, new[] { "Bonus Kill",   "Bonus Death",    "Bonus Winner"    } }, // DodgeDisk
-        { 2, new[] { "Comeback x3", "Bonus Hardpoint", "Point Bleed"     } }, // KOH
-        { 3, new[] { "Golden Kill",  "Combo Rounds",   "Sin Modificador" } }, // Space
-    };
+{
+    { 1, new[] { "Bonus Kill",    "Bonus Death",     "Bonus Winner"    } }, // DodgeDisk
+    { 2, new[] { "Comeback x3",  "Bonus Hardpoint", "Point Bleed"     } }, // KOH
+    { 3, new[] { "Mod 1", "Mod 2", "Mod 3" } },                           // DNA (Minigame_3) - completar después
+    { 4, new[] { "Golden Kill", "Combo Rounds", "Sin Modificador" } },   // Space (Minigame_4)
+};
 
     private Rigidbody2D rb;
     private SpriteRenderer sr;
@@ -46,12 +47,11 @@ public class ModifiersSpinner : MonoBehaviour
     private void UpdateSprite()
     {
         if (sr == null) return;
-        if (targetMinigame == 1 && spriteDodgeDisk != null)
-            sr.sprite = spriteDodgeDisk;
-        else if (targetMinigame == 2 && spriteKOH != null)
-            sr.sprite = spriteKOH;
-        else if (targetMinigame == 4 && spriteSpace != null)
-            sr.sprite = spriteSpace;
+        if (targetMinigame == 1 && spriteDodgeDisk != null) sr.sprite = spriteDodgeDisk;
+        else if (targetMinigame == 2 && spriteKOH != null) sr.sprite = spriteKOH; 
+                                                                                  // targetMinigame == 3 (DNA) no tiene sprite todavía
+        else if (targetMinigame == 4 && spriteSpace != null) sr.sprite = spriteSpace;
+                                                                                      
     }
 
     private void UpdateSectionTexts()
@@ -118,14 +118,16 @@ public class ModifiersSpinner : MonoBehaviour
             {
                 // DodgeDisk: None=0, BonusKill=1, BonusDeath=2, BonusWinner=3
                 // los 3 slots siempre mapean a un mod real (no hay None)
-                ModifierManager.Instance.SetDodgeDiskModifier(
-                    (ModifierManager.DodgeDiskModifier)(modIndex + 1));
+                ModifierManager.Instance.SetDodgeDiskModifier((ModifierManager.DodgeDiskModifier)(modIndex + 1));
             }
             else if (targetMinigame == 2)
             {
                 // KOH: None=0, Comeback=1, Progressive=2, PointBleed=3
-                ModifierManager.Instance.SetKOHModifier(
-                    (ModifierManager.KOHModifier)(modIndex + 1));
+                ModifierManager.Instance.SetKOHModifier((ModifierManager.KOHModifier)(modIndex + 1));
+            }
+            else if (targetMinigame == 3)
+            {
+                Debug.Log($"[ModifiersSpinner] DNA modifier {modIndex} seleccionado (sin implementar)");
             }
             else if (targetMinigame == 4)
             {

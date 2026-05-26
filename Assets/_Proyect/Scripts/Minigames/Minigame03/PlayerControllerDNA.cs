@@ -68,15 +68,20 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [Header("Mine")]
     [SerializeField] private GameObject minePrefab;
 
+    [Header("Berserk")]
+    [SerializeField] private BerserkHitbox berserkHitbox;
+    [SerializeField] private float berserkDuration = 2f;
+    [SerializeField] private float berserkSpeedMult = 1.3f;
+    [SerializeField] private float berserkScale = 1.25f;
+    [SerializeField] private float berserkStunDuration = 1f;
+    [SerializeField] private bool isBerserk = false;
+
     private Vector3 originalScale;
 
     private float coyoteTimeCounter;
     private float jumpBufferCounter;
     private bool jumpHeld = false;
 
-    [Header("PowerUp")]
-    [SerializeField] private PowerUpPickup.PowerUpType currentPowerUp;
-    [SerializeField] private bool hasPowerUp = false;
 
     private Animator animator;
     private Rigidbody2D rb;
@@ -231,7 +236,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     }
     private void LateUpdate()
     {
-        if (punchHitbox != null)
+        if (punchHitbox != null) //para orientar la hitbox de la piña
         {
             // posicion
             Vector3 pos = punchHitbox.transform.localPosition;
@@ -242,6 +247,13 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             Vector3 scale = punchHitbox.transform.localScale;
             scale.x = IsFacingRight() ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
             punchHitbox.transform.localScale = scale;
+
+        }
+        if (berserkHitbox != null) //para orientar la hitbox del berserk
+        {
+            Vector3 pos = berserkHitbox.transform.localPosition;
+            pos.x = IsFacingRight() ? Mathf.Abs(pos.x) : -Mathf.Abs(pos.x);
+            berserkHitbox.transform.localPosition = pos;
         }
     }
 
@@ -462,11 +474,17 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             case DNAPowerUpPickup.DNAPowerUpType.Mine:
                 PlaceMine();
                 break;
+            case DNAPowerUpPickup.DNAPowerUpType.RemoteControl:
+                UseRemoteControl();
+                break;
+            case DNAPowerUpPickup.DNAPowerUpType.Berserk:
+                StartCoroutine(BerserkEffect());
+                break;
         }
     }
 
-    public bool HasPowerUp() => hasPowerUp;
-    public PowerUpPickup.PowerUpType GetCurrentPowerUp() => currentPowerUp;
+    public bool HasPowerUp() => hasDNAPowerUp;
+    public DNAPowerUpPickup.DNAPowerUpType GetCurrentPowerUp() => currentDNAPowerUp;
 
     public void ReceiveDNAPowerUp(DNAPowerUpPickup.DNAPowerUpType type)
     {
@@ -477,7 +495,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     public void ClearPowerUpState()
     {
-        hasPowerUp = false;
+        hasDNAPowerUp = false;
         ClearActivePowerUpEffects();
     }
 
@@ -487,6 +505,14 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         transform.localScale = originalScale;
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
         hasDNAPowerUp = false;
+
+        if (isBerserk)
+        {
+            isBerserk = false;
+            transform.localScale = originalScale;
+            moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
+            berserkHitbox?.Deactivate();
+        }
     }
 
     //POWER UPS EFFECTS
@@ -531,6 +557,49 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             elapsed += Time.deltaTime;
             yield return null;
         }
+        isKnockedBack = false;
+    }
+
+    private void UseRemoteControl()
+    {
+        WallManager.Instance?.ActivateAll();
+        Debug.Log(gameObject.name + " activó el Remote Control");
+    }
+
+    private IEnumerator BerserkEffect()
+    {
+        isBerserk = true;
+
+        // Crecer sprite
+        transform.localScale = originalScale * berserkScale;
+
+        // Aumentar velocidad
+        float previousSpeed = moveSpeed;
+        moveSpeed = baseMoveSpeed * berserkSpeedMult;
+
+        // Activar hitbox berserk
+        berserkHitbox?.Activate();
+
+        yield return new WaitForSeconds(berserkDuration);
+
+        // Volver a normal
+        isBerserk = false;
+        transform.localScale = originalScale;
+        moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
+        berserkHitbox?.Deactivate();
+    }
+
+    public void ReceiveBerserkHit(Vector2 direction)
+    {
+        animator?.SetTrigger("Hurt");
+        rb.linearVelocity = direction * knockbackForce;
+        StartCoroutine(BerserkStun());
+    }
+
+    private IEnumerator BerserkStun()
+    {
+        isKnockedBack = true;
+        yield return new WaitForSeconds(berserkStunDuration);
         isKnockedBack = false;
     }
 
