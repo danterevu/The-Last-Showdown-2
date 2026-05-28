@@ -2,75 +2,79 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-
-/// Fase Y: spawnea fuera del borde superior de la camara.
-///         Los power ups tienen Rigidbody2D con gravedad  caen solos.
-///         Velocidad de ca�da configurable.
-/// 
-/// Fase X: spawnea fuera del borde derecho de la camara.
-///         Los power ups se mueven en -X hacia los jugadores.
-///         Velocidad horizontal configurable.
-
-/// Coloca este script en un GO vacio en la escena.
-/// El prefab de power up debe tener: Rigidbody2D + ChaseRunPowerUpPickup.
+// ─────────────────────────────────────────────────────────────────────────────
+// ChaseRunPowerUpSpawner
+//
+// PhaseY: spawna fuera del borde SUPERIOR de la cámara. Los power ups caen
+//         por gravedad hacia los jugadores.
+//
+// PhaseX: spawna fuera del borde DERECHO de la cámara. Los power ups se
+//         mueven en -X hacia los jugadores.
+//
+// Al cambiar de fase limpia todos los power ups activos de la fase anterior.
+// ─────────────────────────────────────────────────────────────────────────────
 
 public class ChaseRunPowerUpSpawner : MonoBehaviour
 {
-    //  Configuracion 
     [Header("Prefab")]
     [SerializeField] private GameObject powerUpPrefab;
 
     [Header("Intervalo de spawn")]
     [SerializeField] private float spawnInterval = 8f;
+    [Tooltip("Espera inicial antes del primer spawn.")]
+    [SerializeField] private float initialDelay = 3f;
 
-    [Header("Fase Y � ca�da")]
-    [Tooltip("Velocidad inicial de caida del power up (se suma a la gravedad del Rigidbody2D)")]
+    [Header("Fase Y — caída")]
+    [Tooltip("Velocidad inicial de caída (se suma a la gravedad del Rigidbody2D).")]
     [SerializeField] private float fallSpeed = 3f;
 
-    [Header("Fase X � movimiento horizontal")]
-    [Tooltip("Velocidad a la que el power up se mueve hacia la izquierda (valor positivo)")]
+    [Header("Fase X — movimiento horizontal")]
+    [Tooltip("Velocidad a la que el power up se mueve hacia la izquierda.")]
     [SerializeField] private float horizontalSpeed = 5f;
-
-    [Tooltip("Cuantos power ups spawnear por oleada en fase X")]
+    [Tooltip("Cuántos power ups spawnear por oleada en fase X.")]
     [SerializeField] private int spawnCountPhaseX = 2;
 
-    // Referencias 
+    // ── Estado ────────────────────────────────────────────────────────────────
+
     private ChaseRunCamera chaseCamera;
     private ChaseRunManager.RunPhase currentPhase = ChaseRunManager.RunPhase.PhaseY;
-
     private Coroutine spawnCoroutine;
-    private List<GameObject> activePickups = new List<GameObject>();
+    private readonly List<GameObject> activePickups = new List<GameObject>();
 
-    
+    // ── Ciclo de vida ─────────────────────────────────────────────────────────
 
     private void Start()
     {
-        chaseCamera = Object.FindFirstObjectByType<ChaseRunCamera>();
+        chaseCamera    = Object.FindFirstObjectByType<ChaseRunCamera>();
         spawnCoroutine = StartCoroutine(SpawnLoop());
     }
 
+    /// <summary>Llamado por ChaseRunManager al cambiar de fase.</summary>
     public void SetPhase(ChaseRunManager.RunPhase phase)
     {
         currentPhase = phase;
 
-        // Limpiar power ups de la fase anterior
+        // Destruir todos los power ups de la fase anterior
         foreach (var obj in activePickups)
             if (obj != null) Destroy(obj);
         activePickups.Clear();
     }
 
-    //  Loop principal 
+    // ── Loop principal ────────────────────────────────────────────────────────
 
     private IEnumerator SpawnLoop()
     {
-        // Peque�a espera inicial para que la camara este lista
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(initialDelay);
 
         while (true)
         {
             yield return new WaitForSeconds(spawnInterval);
 
-            if (!ChaseRunManager.Instance.IsGameRunning()) continue;
+            if (ChaseRunManager.Instance == null || !ChaseRunManager.Instance.IsGameRunning())
+                continue;
+
+            if (powerUpPrefab == null || chaseCamera == null)
+                continue;
 
             if (currentPhase == ChaseRunManager.RunPhase.PhaseY)
                 SpawnPhaseY();
@@ -79,53 +83,52 @@ public class ChaseRunPowerUpSpawner : MonoBehaviour
         }
     }
 
-    //  Spawn Fase Y (caen desde arriba)
+    // ── Spawn fase Y (caen desde arriba) ─────────────────────────────────────
 
     private void SpawnPhaseY()
     {
-        if (chaseCamera == null || powerUpPrefab == null) return;
-
         var (xMin, xMax) = chaseCamera.GetHorizontalRange();
-        float spawnX = Random.Range(xMin, xMax);
-        float spawnY = chaseCamera.GetTopBound();
+        float spawnX     = Random.Range(xMin, xMax);
+        float spawnY     = chaseCamera.GetTopBound();
 
-        Vector3 pos = new Vector3(spawnX, spawnY, 0f);
-        GameObject obj = Instantiate(powerUpPrefab, pos, Quaternion.identity);
+        SpawnPickup(new Vector3(spawnX, spawnY, 0f), falling: true);
+    }
 
-        // Configurar el pickup para que caiga
+    // ── Spawn fase X (entran por la derecha moviéndose a la izquierda) ────────
+
+    private void SpawnPhaseX()
+    {
+        for (int i = 0; i < spawnCountPhaseX; i++)
+        {
+            var (yMin, yMax) = chaseCamera.GetVerticalRange();
+            float spawnY     = Random.Range(yMin, yMax);
+            float spawnX     = chaseCamera.GetRightBound();
+
+            SpawnPickup(new Vector3(spawnX, spawnY, 0f), falling: false);
+        }
+    }
+
+    // ── Helper de instanciación ───────────────────────────────────────────────
+
+    private void SpawnPickup(Vector3 position, bool falling)
+    {
+        GameObject obj = Instantiate(powerUpPrefab, position, Quaternion.identity);
         ChaseRunPowerUpPickup pickup = obj.GetComponent<ChaseRunPowerUpPickup>();
+
         if (pickup != null)
-            pickup.SetupFalling(fallSpeed);
+        {
+            if (falling)
+                pickup.SetupFalling(fallSpeed);
+            else
+                pickup.SetupMovingLeft(horizontalSpeed);
+        }
 
         activePickups.Add(obj);
     }
 
-    //  Spawn Fase X (entran por la derecha) 
+    // ── Notificación desde pickup ─────────────────────────────────────────────
 
-    private void SpawnPhaseX()
-    {
-        if (chaseCamera == null || powerUpPrefab == null) return;
-
-        for (int i = 0; i < spawnCountPhaseX; i++)
-        {
-            var (yMin, yMax) = chaseCamera.GetVerticalRange();
-            float spawnY = Random.Range(yMin, yMax);
-            float spawnX = chaseCamera.GetRightBound();
-
-            Vector3 pos = new Vector3(spawnX, spawnY, 0f);
-            GameObject obj = Instantiate(powerUpPrefab, pos, Quaternion.identity);
-
-            // Configurar el pickup para que se mueva hacia la izquierda
-            ChaseRunPowerUpPickup pickup = obj.GetComponent<ChaseRunPowerUpPickup>();
-            if (pickup != null)
-                pickup.SetupMovingLeft(horizontalSpeed);
-
-            activePickups.Add(obj);
-        }
-    }
-
-    //  Notificacion cuando un pickup es recogido 
-
+    /// <summary>Llamado por el pickup al ser recogido o destruido.</summary>
     public void OnPickupCollected(GameObject pickup)
     {
         activePickups.Remove(pickup);

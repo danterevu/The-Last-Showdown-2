@@ -1,45 +1,45 @@
 using UnityEngine;
 
-
-
-// Sigue un GO "runner" que avanza automaticamente.
-// Fase Y  el runner sube (+Y). Fase X  el runner va a la derecha (+X).
-// La kill zone es el borde trasero de la camara (abajo en Y, izquierda en X).
+// ─────────────────────────────────────────────────────────────────────────────
+// ChaseRunCamera
+//
+// Mueve un GameObject "runner" de forma automática:
+//   PhaseY → runner sube en +Y, cámara sigue en Y
+//   PhaseX → runner va a la derecha en +X, cámara sigue en X
+//
+// La kill zone es el borde trasero de la cámara + un offset,
+// y se usa tanto para matar jugadores como para calcular spawn points.
+// ─────────────────────────────────────────────────────────────────────────────
 
 [RequireComponent(typeof(Camera))]
 public class ChaseRunCamera : MonoBehaviour
 {
-    // Runner (GO vac�o que avanza solo) 
     [Header("Runner")]
-    [Tooltip("GO vacio hijo de la c�mara o independiente que marca el centro objetivo")]
+    [Tooltip("GameObject vacío que avanza automáticamente. La cámara lo persigue.")]
     [SerializeField] private Transform runner;
 
     [Header("Velocidades del runner")]
-    [SerializeField] private float runnerSpeedY = 3f;   // velocidad al subir
-    [SerializeField] private float runnerSpeedX = 4f;   // velocidad al ir derecha
+    [SerializeField] private float runnerSpeedY = 3f;
+    [SerializeField] private float runnerSpeedX = 4f;
 
-    // Seguimiento suavizado 
-    [Header("Suavizado de la c�mara")]
+    [Header("Suavizado de cámara")]
+    [Tooltip("Qué tan rápido la cámara alcanza al runner. Mayor = más pegada.")]
     [SerializeField] private float lerpSpeed = 5f;
 
-    //  Kill Zone 
     [Header("Kill Zone")]
-    [Tooltip("Qu� tan atr�s del borde de la c�mara est� la kill zone (unidades world)")]
+    [Tooltip("Cuántas unidades DETRÁS del borde de cámara está la kill zone.")]
     [SerializeField] private float killZoneOffset = 1f;
 
-    //  Estado 
+    // ── Estado ────────────────────────────────────────────────────────────────
+
     private ChaseRunManager.RunPhase currentPhase = ChaseRunManager.RunPhase.PhaseY;
     private Camera cam;
 
-    // posicion inicial del runner para resetear si es necesario
-    private Vector3 runnerStartPos;
-
-   
+    // ── Ciclo de vida ─────────────────────────────────────────────────────────
 
     private void Awake()
     {
         cam = GetComponent<Camera>();
-        if (runner != null) runnerStartPos = runner.position;
     }
 
     public void SetPhase(ChaseRunManager.RunPhase phase)
@@ -51,30 +51,34 @@ public class ChaseRunCamera : MonoBehaviour
     {
         if (runner == null) return;
 
-        // 1. Mover el runner 
+        // 1. Mover el runner en el eje activo
         float speed = currentPhase == ChaseRunManager.RunPhase.PhaseY ? runnerSpeedY : runnerSpeedX;
-        Vector3 dir = currentPhase == ChaseRunManager.RunPhase.PhaseY ? Vector3.up : Vector3.right;
-        runner.position += dir * speed * Time.deltaTime;
+        Vector3 direction = currentPhase == ChaseRunManager.RunPhase.PhaseY ? Vector3.up : Vector3.right;
+        runner.position += direction * speed * Time.deltaTime;
 
-        // 2. La camara sigue el runner (solo en el eje activo) 
-        Vector3 targetPos = transform.position;
+        // 2. Cámara sigue al runner con lerp, solo en el eje activo
+        Vector3 target = transform.position;
+
         if (currentPhase == ChaseRunManager.RunPhase.PhaseY)
-            targetPos.y = Mathf.Lerp(transform.position.y, runner.position.y, lerpSpeed * Time.deltaTime);
+            target.y = Mathf.Lerp(transform.position.y, runner.position.y, lerpSpeed * Time.deltaTime);
         else
-            targetPos.x = Mathf.Lerp(transform.position.x, runner.position.x, lerpSpeed * Time.deltaTime);
+            target.x = Mathf.Lerp(transform.position.x, runner.position.x, lerpSpeed * Time.deltaTime);
 
-        transform.position = targetPos;
+        transform.position = target;
     }
 
-    // Kill Zone: posicion del borde trasero de la camara 
-   
-    // Retorna la posicion Y del borde inferior de la camara (fase Y)
-    // o la posicion X del borde izquierdo (fase X), con el offset aplicado.
-    
+    // ── Kill Zone ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Retorna la posición del borde TRASERO de la cámara (con offset).
+    /// PhaseY → borde inferior en Y.
+    /// PhaseX → borde izquierdo en X.
+    /// Si un jugador queda por debajo/izquierda de este valor, muere.
+    /// </summary>
     public float GetKillZoneBound()
     {
         float halfHeight = cam.orthographicSize;
-        float halfWidth = halfHeight * cam.aspect;
+        float halfWidth  = halfHeight * cam.aspect;
 
         if (currentPhase == ChaseRunManager.RunPhase.PhaseY)
             return transform.position.y - halfHeight - killZoneOffset;
@@ -82,34 +86,36 @@ public class ChaseRunCamera : MonoBehaviour
             return transform.position.x - halfWidth - killZoneOffset;
     }
 
-    public ChaseRunManager.RunPhase CurrentPhase => currentPhase;
+    // ── Helpers para SpawnPointUpdater ────────────────────────────────────────
 
-    // Helpers para el spawner de power ups 
-   
-    // Posicion justo FUERA del borde superior de la camara (fase Y).
-    
-    public float GetTopBound() => transform.position.y + cam.orthographicSize + 1f;
+    /// Posición X del centro de la cámara.
+    public float CenterX => transform.position.x;
+    /// Posición Y del centro de la cámara.
+    public float CenterY => transform.position.y;
 
-    
-    // Posicion justo FUERA del borde derecho de la camara (fase X).
-    
-    public float GetRightBound() => transform.position.x + cam.orthographicSize * cam.aspect + 1f;
+    // ── Helpers para el spawner de power ups ──────────────────────────────────
 
-    
-    // Rango horizontal visible (para spawnear power ups en X aleatorio dentro de pantalla).
-   
+    /// Justo fuera del borde SUPERIOR de la cámara (spawn power ups fase Y).
+    public float GetTopBound()    => transform.position.y + cam.orthographicSize + 1f;
+
+    /// Justo fuera del borde DERECHO de la cámara (spawn power ups fase X).
+    public float GetRightBound()  => transform.position.x + cam.orthographicSize * cam.aspect + 1f;
+
+    /// Rango horizontal visible (para elegir X aleatoria en fase Y).
     public (float min, float max) GetHorizontalRange()
     {
-        float halfWidth = cam.orthographicSize * cam.aspect;
-        return (transform.position.x - halfWidth + 1f, transform.position.x + halfWidth - 1f);
+        float hw = cam.orthographicSize * cam.aspect;
+        return (transform.position.x - hw + 1f, transform.position.x + hw - 1f);
     }
 
-   
-    // Rango vertical visible (para spawnear power ups en Y aleatorio dentro de pantalla, fase X).
-    
+    /// Rango vertical visible (para elegir Y aleatoria en fase X).
     public (float min, float max) GetVerticalRange()
     {
-        float halfHeight = cam.orthographicSize;
-        return (transform.position.y - halfHeight + 1f, transform.position.y + halfHeight - 1f);
+        float hh = cam.orthographicSize;
+        return (transform.position.y - hh + 1f, transform.position.y + hh - 1f);
     }
+
+    // ── Propiedad pública de fase ─────────────────────────────────────────────
+
+    public ChaseRunManager.RunPhase CurrentPhase => currentPhase;
 }

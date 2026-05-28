@@ -1,106 +1,109 @@
 using UnityEngine;
+using System.Collections;
 
-
-/// Power up del Chase Run.
-/// Se configura en runtime desde ChaseRunPowerUpSpawner:
-///   - SetupFalling:     cae desde arriba con gravedad (fase Y)
-///   - SetupMovingLeft:  se mueve en -X (fase X)
-/// 
-/// Al ser recogido dispara el efecto correspondiente a traves de PowerUpEffects
-/// (mismo sistema que KOH) si est� disponible, o aplica un efecto simple propio.
-/// 
-/// Requiere: Rigidbody2D en el prefab.
+// ─────────────────────────────────────────────────────────────────────────────
+// ChaseRunPowerUpPickup
+//
+// Configurado desde ChaseRunPowerUpSpawner en runtime:
+//   SetupFalling()     → cae desde arriba (fase Y)
+//   SetupMovingLeft()  → se mueve en -X (fase X)
+//
+// Al ser recogido aplica un efecto al jugador que lo tocó.
+// Se destruye a sí mismo si sale del área visible.
+//
+// Requiere: Rigidbody2D + Collider2D (trigger) en el prefab.
+// ─────────────────────────────────────────────────────────────────────────────
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
 public class ChaseRunPowerUpPickup : MonoBehaviour
 {
-    // Tipos de power up disponibles 
     public enum PowerUpType
     {
-        SpeedBoost,       // +velocidad al jugador que lo recoge
-        ScoreBonus,       // puntos extra inmediatos
-        Shield,           // invencibilidad breve a la kill zone
-        SlowOpponent,     // ralentiza al oponente
-        ExtraJump         // +1 salto extra por un tiempo
+        SpeedBoost,     // +velocidad al recolector por X segundos
+        ScoreBonus,     // puntos extra inmediatos
+        Shield,         // inmunidad a kill zone por X segundos
+        SlowOpponent,   // ralentiza al oponente por X segundos
+        ExtraJump       // +1 salto en el aire por X segundos
     }
 
     [Header("Tipo")]
     [SerializeField] private PowerUpType type = PowerUpType.SpeedBoost;
 
-    [Header("Duracion del efecto (si aplica)")]
+    [Header("Duración del efecto")]
     [SerializeField] private float effectDuration = 5f;
+
+    [Header("Puntos (solo ScoreBonus)")]
+    [SerializeField] private int scoreBonus = 10;
 
     [Header("Visual")]
     [SerializeField] private SpriteRenderer spriteRenderer;
-    [SerializeField] private Sprite[] typeSprites; // uno por cada PowerUpType, mismo orden que el enum
+    [Tooltip("Un sprite por cada valor del enum PowerUpType, en el mismo orden.")]
+    [SerializeField] private Sprite[] typeSprites;
 
-    // Movimiento
+    // ── Movimiento ────────────────────────────────────────────────────────────
+
     private enum MoveMode { Falling, MovingLeft, None }
     private MoveMode moveMode = MoveMode.None;
-    private float speed;
 
     private Rigidbody2D rb;
+    private ChaseRunCamera chaseCamera;
     private ChaseRunPowerUpSpawner spawner;
     private bool collected = false;
 
-
+    // ── Inicialización ────────────────────────────────────────────────────────
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
+        rb          = GetComponent<Rigidbody2D>();
+        chaseCamera = Object.FindFirstObjectByType<ChaseRunCamera>();
+        spawner     = Object.FindFirstObjectByType<ChaseRunPowerUpSpawner>();
 
-        // En el Start, buscar el spawner si no se asigno
-        spawner = Object.FindFirstObjectByType<ChaseRunPowerUpSpawner>();
-
-        // Aleatorizar tipo visualmente
+        // Aleatorizar tipo al spawnear
         type = (PowerUpType)Random.Range(0, System.Enum.GetValues(typeof(PowerUpType)).Length);
+
+        // Asignar sprite si hay uno definido
         if (spriteRenderer != null && typeSprites != null && (int)type < typeSprites.Length)
             spriteRenderer.sprite = typeSprites[(int)type];
     }
 
-    // Configuracion desde el spawner 
+    // ── Configuración desde el spawner ────────────────────────────────────────
 
-    /// Fase Y: el power up cae. Usa gravedad del Rigidbody2D + velocidad inicial.
+    /// <summary>Fase Y: el power up cae por gravedad.</summary>
     public void SetupFalling(float fallSpeed)
     {
-        moveMode = MoveMode.Falling;
-        speed = fallSpeed;
-
+        moveMode        = MoveMode.Falling;
         rb.gravityScale = 1f;
         rb.linearVelocity = Vector2.down * fallSpeed;
     }
 
-    /// Fase X: el power up se mueve horizontalmente hacia la izquierda.
+    /// <summary>Fase X: el power up se mueve hacia la izquierda a velocidad constante.</summary>
     public void SetupMovingLeft(float horizontalSpeed)
     {
-        moveMode = MoveMode.MovingLeft;
-        speed = horizontalSpeed;
-
-        rb.gravityScale = 0f;
+        moveMode          = MoveMode.MovingLeft;
+        rb.gravityScale   = 0f;
         rb.linearVelocity = Vector2.left * horizontalSpeed;
     }
 
-    //  Destruir si sale de camara (seguridad) 
+    // ── Culling — destruir si sale de cámara ──────────────────────────────────
 
     private void Update()
     {
-        if (collected) return;
+        if (collected || chaseCamera == null) return;
 
-        ChaseRunCamera cam = Object.FindFirstObjectByType<ChaseRunCamera>();
-        if (cam == null) return;
-
+        float killBound = chaseCamera.GetKillZoneBound();
         bool outOfBounds = false;
 
-        if (moveMode == MoveMode.Falling)
+        switch (moveMode)
         {
-            // Destruir si cae demasiado abajo
-            outOfBounds = transform.position.y < cam.GetKillZoneBound() - 3f;
-        }
-        else if (moveMode == MoveMode.MovingLeft)
-        {
-            // Destruir si sale por la izquierda de la camara
-            outOfBounds = transform.position.x < cam.GetKillZoneBound() - 3f;
+            case MoveMode.Falling:
+                // Destruir si cae por debajo de la kill zone
+                outOfBounds = transform.position.y < killBound - 2f;
+                break;
+            case MoveMode.MovingLeft:
+                // Destruir si sale por la izquierda de la kill zone
+                outOfBounds = transform.position.x < killBound - 2f;
+                break;
         }
 
         if (outOfBounds)
@@ -110,7 +113,7 @@ public class ChaseRunPowerUpPickup : MonoBehaviour
         }
     }
 
-    // Colision con jugadores 
+    // ── Colisión con jugadores ────────────────────────────────────────────────
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -126,17 +129,17 @@ public class ChaseRunPowerUpPickup : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // Efectos 
+    // ── Efectos ───────────────────────────────────────────────────────────────
 
     private void ApplyEffect(ChaseRunPlayerController player)
     {
-        int pNum = player.PlayerNumber;
+        int pNum  = player.PlayerNumber;
         int opNum = pNum == 1 ? 2 : 1;
 
         switch (type)
         {
             case PowerUpType.ScoreBonus:
-                GameManager.Instance?.AddPoints(pNum, 10);
+                GameManager.Instance?.AddPoints(pNum, scoreBonus);
                 break;
 
             case PowerUpType.SpeedBoost:
@@ -159,30 +162,30 @@ public class ChaseRunPowerUpPickup : MonoBehaviour
         }
     }
 
-    // Coroutines de efectos 
+    // ── Coroutines de efectos ─────────────────────────────────────────────────
 
-    private System.Collections.IEnumerator SpeedBoostCoroutine(ChaseRunPlayerController player)
+    private IEnumerator SpeedBoostCoroutine(ChaseRunPlayerController player)
     {
         player.ApplySpeedMultiplier(1.6f);
         yield return new WaitForSeconds(effectDuration);
         player.ApplySpeedMultiplier(1f);
     }
 
-    private System.Collections.IEnumerator ShieldCoroutine(ChaseRunPlayerController player)
+    private IEnumerator ShieldCoroutine(ChaseRunPlayerController player)
     {
         player.SetKillZoneImmunity(true);
         yield return new WaitForSeconds(effectDuration);
         player.SetKillZoneImmunity(false);
     }
 
-    private System.Collections.IEnumerator SlowCoroutine(ChaseRunPlayerController player)
+    private IEnumerator SlowCoroutine(ChaseRunPlayerController player)
     {
         player.ApplySpeedMultiplier(0.5f);
         yield return new WaitForSeconds(effectDuration);
         player.ApplySpeedMultiplier(1f);
     }
 
-    private System.Collections.IEnumerator ExtraJumpCoroutine(ChaseRunPlayerController player)
+    private IEnumerator ExtraJumpCoroutine(ChaseRunPlayerController player)
     {
         player.AddExtraJump();
         yield return new WaitForSeconds(effectDuration);

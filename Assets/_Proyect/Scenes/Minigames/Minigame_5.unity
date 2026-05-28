@@ -210,6 +210,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a551649c988e1a41b7aa2c7480cf9e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  triggered: 0
 --- !u!1 &170668952
 GameObject:
   m_ObjectHideFlags: 0
@@ -244,6 +245,9 @@ MonoBehaviour:
   fallSpeed: 3
   horizontalSpeed: 5
   spawnCountPhaseX: 2
+  chaseCamera: {fileID: 0}
+  currentPhase: 0
+  activePickups: []
 --- !u!4 &170668954
 Transform:
   m_ObjectHideFlags: 0
@@ -849,10 +853,8 @@ MonoBehaviour:
   jumpBufferTime: 0.12
   groundCheckDistance: 0.2
   groundLayer:
-    serializedVersion: 2
     m_Bits: 1024
   wallLayer:
-    serializedVersion: 2
     m_Bits: 65536
   wallCheckDistance: 0.15
   wallInitialFriction: 0.85
@@ -867,6 +869,45 @@ MonoBehaviour:
   invulnerableTime: 1.5
   isGrounded: 0
   isWallSliding: 0
+  isTouchingWallLeft: 0
+  isTouchingWallRight: 0
+  wasWallSliding: 0
+  wallSlideSide: 0
+  isJumping: 0
+  coyoteTimeCounter: 0
+  jumpBufferCounter: 0
+  jumpHeld: 0
+  isInvulnerable: 0
+  isDead: 0
+  animator: {fileID: 0}
+  rb: {fileID: 0}
+  sr: {fileID: 0}
+  col: {fileID: 0}
+  moveAction:
+    m_Name: 
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 7ade1270-104a-46a3-bdb2-d5d08e978cdd
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  jumpAction:
+    m_Name: 
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 76df6040-c196-4b16-bb82-aab68b893b99
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  moveInput: {x: 0, y: 0}
+  manager: {fileID: 0}
+  chaseCamera: {fileID: 0}
+  spawnPoint: {x: 0, y: 0, z: 0}
+  currentPhase: 0
+  speedMultiplier: 1
+  killZoneImmune: 0
 --- !u!1 &789424568
 GameObject:
   m_ObjectHideFlags: 0
@@ -1166,10 +1207,8 @@ MonoBehaviour:
   jumpBufferTime: 0.12
   groundCheckDistance: 0.2
   groundLayer:
-    serializedVersion: 2
     m_Bits: 1024
   wallLayer:
-    serializedVersion: 2
     m_Bits: 65536
   wallCheckDistance: 0.15
   wallInitialFriction: 0.85
@@ -1184,6 +1223,45 @@ MonoBehaviour:
   invulnerableTime: 1.5
   isGrounded: 0
   isWallSliding: 0
+  isTouchingWallLeft: 0
+  isTouchingWallRight: 0
+  wasWallSliding: 0
+  wallSlideSide: 0
+  isJumping: 0
+  coyoteTimeCounter: 0
+  jumpBufferCounter: 0
+  jumpHeld: 0
+  isInvulnerable: 0
+  isDead: 0
+  animator: {fileID: 0}
+  rb: {fileID: 0}
+  sr: {fileID: 0}
+  col: {fileID: 0}
+  moveAction:
+    m_Name: 
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: e8928b84-83e6-4dba-957f-80f68475d75a
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  jumpAction:
+    m_Name: 
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 8d8ec2b0-5bb8-48a3-bf88-93f0f56a8110
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  moveInput: {x: 0, y: 0}
+  manager: {fileID: 0}
+  chaseCamera: {fileID: 0}
+  spawnPoint: {x: 0, y: 0, z: 0}
+  currentPhase: 0
+  speedMultiplier: 1
+  killZoneImmune: 0
 --- !u!114 &1363148817
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1406,6 +1484,9 @@ MonoBehaviour:
   runnerSpeedX: 4
   lerpSpeed: 2
   killZoneOffset: 1
+  currentPhase: 0
+  cam: {fileID: 0}
+  runnerStartPos: {x: 0, y: 0, z: 0}
 --- !u!114 &1622283081
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1505,7 +1586,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1701096466}
-  - component: {fileID: 1701096465}
   m_Layer: 0
   m_Name: ChaseRunManager
   m_TagString: Untagged
@@ -1513,27 +1593,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1701096465
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1701096464}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a00985de4748b2345b7f94a1a42ed100, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  player1: {fileID: 417903409}
-  player2: {fileID: 1363148816}
-  chaseCamera: {fileID: 1622283080}
-  powerUpSpawner: {fileID: 170668953}
-  flashImage: {fileID: 346954104}
-  flashDuration: 0.6
-  pointsPerSurvivalInterval: 2
-  survivalInterval: 3
-  goalBonusPoints: 50
 --- !u!4 &1701096466
 Transform:
   m_ObjectHideFlags: 0
