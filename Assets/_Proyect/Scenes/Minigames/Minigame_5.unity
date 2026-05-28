@@ -181,7 +181,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 200, y: 2}
   m_EdgeRadius: 0
 --- !u!4 &101819189
 Transform:
@@ -210,7 +210,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a551649c988e1a41b7aa2c7480cf9e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  triggered: 0
 --- !u!1 &170668952
 GameObject:
   m_ObjectHideFlags: 0
@@ -242,12 +241,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   powerUpPrefab: {fileID: 2519992553602383347, guid: a88008ba975a9cd46bf62071564e153b, type: 3}
   spawnInterval: 8
+  initialDelay: 3
   fallSpeed: 3
   horizontalSpeed: 5
   spawnCountPhaseX: 2
-  chaseCamera: {fileID: 0}
-  currentPhase: 0
-  activePickups: []
 --- !u!4 &170668954
 Transform:
   m_ObjectHideFlags: 0
@@ -841,73 +838,37 @@ MonoBehaviour:
   m_GameObject: {fileID: 417903407}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc8dc6409d79e0b4f9992a2c5ef850fb, type: 3}
+  m_Script: {fileID: 11500000, guid: 5fa578e031e81a5459536ae5f0da28d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 8
+  moveSpeed: 5
   gravityScale: 4
-  jumpForce: 18
-  jumpCutMultiplier: 3
-  fallMultiplier: 1.6
+  jumpForce: 12
+  jumpCutMultiplier: 0.5
+  fallMultiplier: 3
   coyoteTime: 0.15
   jumpBufferTime: 0.12
-  groundCheckDistance: 0.2
+  groundCheckDistance: 0.05
   groundLayer:
+    serializedVersion: 2
     m_Bits: 1024
   wallLayer:
+    serializedVersion: 2
     m_Bits: 65536
-  wallCheckDistance: 0.15
-  wallInitialFriction: 0.85
-  wallSlideFriction: 0.12
+  wallCheckDistance: 0.1
+  wallInitialFriction: 0.8
+  wallSlideGravity: 2
   wallSlideMaxFallSpeed: -2
-  wallJumpForceX: 12
-  wallJumpForceY: 16
+  wallJumpForceX: 9
+  wallJumpForceY: 12
   inputActions: {fileID: -944628639613478452, guid: e3270181fb3993c478a2ddab4e8b288a, type: 3}
   actionMapName: Player1_Platform
-  playerIndex: 1
-  respawnDelay: 1
+  playerIndex: 0
+  respawnDelay: 0.8
   invulnerableTime: 1.5
-  isGrounded: 0
-  isWallSliding: 0
-  isTouchingWallLeft: 0
-  isTouchingWallRight: 0
-  wasWallSliding: 0
-  wallSlideSide: 0
-  isJumping: 0
-  coyoteTimeCounter: 0
-  jumpBufferCounter: 0
-  jumpHeld: 0
-  isInvulnerable: 0
-  isDead: 0
-  animator: {fileID: 0}
-  rb: {fileID: 0}
-  sr: {fileID: 0}
-  col: {fileID: 0}
-  moveAction:
-    m_Name: 
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 7ade1270-104a-46a3-bdb2-d5d08e978cdd
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
-  jumpAction:
-    m_Name: 
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 76df6040-c196-4b16-bb82-aab68b893b99
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
-  moveInput: {x: 0, y: 0}
-  manager: {fileID: 0}
-  chaseCamera: {fileID: 0}
-  spawnPoint: {x: 0, y: 0, z: 0}
-  currentPhase: 0
-  speedMultiplier: 1
-  killZoneImmune: 0
+  dbgGrounded: 0
+  dbgWallSliding: 0
+  dbgExtraJumps: 0
 --- !u!1 &789424568
 GameObject:
   m_ObjectHideFlags: 0
@@ -1172,9 +1133,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1929242598546552070, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1363148816}
-    - targetCorrespondingSourceObject: {fileID: 1929242598546552070, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1363148817}
   m_SourcePrefab: {fileID: 100100000, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
 --- !u!1 &1363148814 stripped
 GameObject:
@@ -1195,103 +1153,37 @@ MonoBehaviour:
   m_GameObject: {fileID: 1363148814}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc8dc6409d79e0b4f9992a2c5ef850fb, type: 3}
+  m_Script: {fileID: 11500000, guid: 5fa578e031e81a5459536ae5f0da28d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 8
+  moveSpeed: 5
   gravityScale: 4
-  jumpForce: 18
-  jumpCutMultiplier: 3
-  fallMultiplier: 1.6
+  jumpForce: 12
+  jumpCutMultiplier: 0.5
+  fallMultiplier: 3
   coyoteTime: 0.15
   jumpBufferTime: 0.12
-  groundCheckDistance: 0.2
+  groundCheckDistance: 0.05
   groundLayer:
+    serializedVersion: 2
     m_Bits: 1024
   wallLayer:
+    serializedVersion: 2
     m_Bits: 65536
-  wallCheckDistance: 0.15
-  wallInitialFriction: 0.85
-  wallSlideFriction: 0.12
+  wallCheckDistance: 0.1
+  wallInitialFriction: 0.8
+  wallSlideGravity: 2
   wallSlideMaxFallSpeed: -2
-  wallJumpForceX: 12
-  wallJumpForceY: 16
+  wallJumpForceX: 9
+  wallJumpForceY: 12
   inputActions: {fileID: -944628639613478452, guid: 2eefc3655699b6b4c94338e68a1d94bb, type: 3}
   actionMapName: Player2_Platform
-  playerIndex: 2
-  respawnDelay: 1
+  playerIndex: 1
+  respawnDelay: 0.8
   invulnerableTime: 1.5
-  isGrounded: 0
-  isWallSliding: 0
-  isTouchingWallLeft: 0
-  isTouchingWallRight: 0
-  wasWallSliding: 0
-  wallSlideSide: 0
-  isJumping: 0
-  coyoteTimeCounter: 0
-  jumpBufferCounter: 0
-  jumpHeld: 0
-  isInvulnerable: 0
-  isDead: 0
-  animator: {fileID: 0}
-  rb: {fileID: 0}
-  sr: {fileID: 0}
-  col: {fileID: 0}
-  moveAction:
-    m_Name: 
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: e8928b84-83e6-4dba-957f-80f68475d75a
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
-  jumpAction:
-    m_Name: 
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 8d8ec2b0-5bb8-48a3-bf88-93f0f56a8110
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
-  moveInput: {x: 0, y: 0}
-  manager: {fileID: 0}
-  chaseCamera: {fileID: 0}
-  spawnPoint: {x: 0, y: 0, z: 0}
-  currentPhase: 0
-  speedMultiplier: 1
-  killZoneImmune: 0
---- !u!114 &1363148817
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1363148814}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Actions: {fileID: -944628639613478452, guid: 2eefc3655699b6b4c94338e68a1d94bb, type: 3}
-  m_NotificationBehavior: 0
-  m_UIInputModule: {fileID: 0}
-  m_DeviceLostEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_DeviceRegainedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ControlsChangedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ActionEvents: []
-  m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: 
-  m_DefaultActionMap: Player2_Platform
-  m_SplitScreenIndex: -1
-  m_Camera: {fileID: 0}
+  dbgGrounded: 0
+  dbgWallSliding: 0
+  dbgExtraJumps: 0
 --- !u!1 &1459653525
 GameObject:
   m_ObjectHideFlags: 0
@@ -1338,9 +1230,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player1: {fileID: 417903409}
   player2: {fileID: 1363148816}
-  chaseCamera: {fileID: 1622283080}
+  chaseCamera: {fileID: 1622283082}
   offsetFromKillZone: 2
-  spawnHeightOffset: -1
+  lateralSeparation: 0.8
 --- !u!1 &1486479415
 GameObject:
   m_ObjectHideFlags: 0
@@ -1384,7 +1276,7 @@ GameObject:
   - component: {fileID: 1622283078}
   - component: {fileID: 1622283077}
   - component: {fileID: 1622283081}
-  - component: {fileID: 1622283080}
+  - component: {fileID: 1622283082}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1467,26 +1359,6 @@ Transform:
   - {fileID: 1814736807}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1622283080
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1622283076}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f7ffc6ad4350f5240b8c74783c3c3b2c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  runner: {fileID: 1814736807}
-  runnerSpeedY: 0
-  runnerSpeedX: 4
-  lerpSpeed: 2
-  killZoneOffset: 1
-  currentPhase: 0
-  cam: {fileID: 0}
-  runnerStartPos: {x: 0, y: 0, z: 0}
 --- !u!114 &1622283081
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1531,6 +1403,23 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!114 &1622283082
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1622283076}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7ffc6ad4350f5240b8c74783c3c3b2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  runner: {fileID: 1814736807}
+  runnerSpeedY: 3
+  runnerSpeedX: 4
+  lerpSpeed: 5
+  killZoneOffset: 1
 --- !u!1 &1671974962
 GameObject:
   m_ObjectHideFlags: 0
@@ -1586,9 +1475,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1701096466}
+  - component: {fileID: 1701096467}
   m_Layer: 0
   m_Name: ChaseRunManager
-  m_TagString: Untagged
+  m_TagString: CameraRunner
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1608,6 +1498,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1701096467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1701096464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a00985de4748b2345b7f94a1a42ed100, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player1: {fileID: 417903409}
+  player2: {fileID: 1363148816}
+  chaseCamera: {fileID: 1622283082}
+  powerUpSpawner: {fileID: 170668953}
+  flashImage: {fileID: 346954104}
+  flashDuration: 0.6
+  pointsPerSurvivalInterval: 2
+  survivalInterval: 3
+  goalBonusPoints: 50
 --- !u!1 &1739221659
 GameObject:
   m_ObjectHideFlags: 0
@@ -1781,6 +1692,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1814736807}
+  - component: {fileID: 1814736809}
   - component: {fileID: 1814736808}
   m_Layer: 0
   m_Name: Trigger
@@ -1804,8 +1716,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1622283079}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!58 &1814736808
-CircleCollider2D:
+--- !u!61 &1814736808
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1834,12 +1746,49 @@ CircleCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.5
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 0.1, y: 0.1}
+  m_EdgeRadius: 0
+--- !u!50 &1814736809
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1814736806}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1 &1855424916
 GameObject:
   m_ObjectHideFlags: 0
@@ -2368,12 +2317,12 @@ SceneRoots:
   m_Roots:
   - {fileID: 1701096466}
   - {fileID: 1622283079}
+  - {fileID: 1459653526}
   - {fileID: 417903406}
   - {fileID: 1363148813}
-  - {fileID: 170668954}
-  - {fileID: 1459653526}
   - {fileID: 101819189}
   - {fileID: 789424570}
+  - {fileID: 170668954}
   - {fileID: 1739221663}
   - {fileID: 1891457843}
   - {fileID: 1671974964}

@@ -34,7 +34,7 @@ public class SpawnPointUpdater : MonoBehaviour
         {
             // Kill zone es el borde inferior en Y → spawn un poco arriba de ese borde
             float safeY = chaseCamera.GetKillZoneBound() + offsetFromKillZone;
-            float camX  = chaseCamera.CenterX;
+            float camX = chaseCamera.CenterX;
 
             p1Spawn = new Vector3(camX - lateralSeparation, safeY, 0f);
             p2Spawn = new Vector3(camX + lateralSeparation, safeY, 0f);
@@ -43,7 +43,7 @@ public class SpawnPointUpdater : MonoBehaviour
         {
             // Kill zone es el borde izquierdo en X → spawn un poco a la derecha de ese borde
             float safeX = chaseCamera.GetKillZoneBound() + offsetFromKillZone;
-            float camY  = chaseCamera.CenterY;
+            float camY = chaseCamera.CenterY;
 
             p1Spawn = new Vector3(safeX, camY + lateralSeparation, 0f);
             p2Spawn = new Vector3(safeX, camY - lateralSeparation, 0f);
