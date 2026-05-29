@@ -251,7 +251,7 @@ public class ChaseRunPlayerController : MonoBehaviour
             animator.SetFloat("velocityX", Mathf.Abs(moveInput.x));
             animator.SetFloat("velocityY", rb.linearVelocity.y);
             animator.SetBool("isGrounded",   isGrounded);
-            animator.SetBool("isWallSliding", isWallSliding);
+            // animator.SetBool("isWallSliding", isWallSliding);
         }
 
         // Debug
