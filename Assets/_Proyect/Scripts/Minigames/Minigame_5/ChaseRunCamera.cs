@@ -1,15 +1,6 @@
 using UnityEngine;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ChaseRunCamera
-//
-// Mueve un GameObject "runner" de forma automática:
-//   PhaseY → runner sube en +Y, cámara sigue en Y
-//   PhaseX → runner va a la derecha en +X, cámara sigue en X
-//
-// La kill zone es el borde trasero de la cámara + un offset,
-// y se usa tanto para matar jugadores como para calcular spawn points.
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 [RequireComponent(typeof(Camera))]
 public class ChaseRunCamera : MonoBehaviour
@@ -30,12 +21,12 @@ public class ChaseRunCamera : MonoBehaviour
     [Tooltip("Cuántas unidades DETRÁS del borde de cámara está la kill zone.")]
     [SerializeField] private float killZoneOffset = 1f;
 
-    // ── Estado ────────────────────────────────────────────────────────────────
+    //Estado 
 
     private ChaseRunManager.RunPhase currentPhase = ChaseRunManager.RunPhase.PhaseY;
     private Camera cam;
 
-    // ── Ciclo de vida ─────────────────────────────────────────────────────────
+    // Ciclo de vida 
 
     private void Awake()
     {
@@ -67,18 +58,13 @@ public class ChaseRunCamera : MonoBehaviour
         transform.position = target;
     }
 
-    // ── Kill Zone ─────────────────────────────────────────────────────────────
+    // Kill Zone
 
-    /// <summary>
-    /// Retorna la posición del borde TRASERO de la cámara (con offset).
-    /// PhaseY → borde inferior en Y.
-    /// PhaseX → borde izquierdo en X.
-    /// Si un jugador queda por debajo/izquierda de este valor, muere.
-    /// </summary>
+    
     public float GetKillZoneBound()
     {
         float halfHeight = cam.orthographicSize;
-        float halfWidth  = halfHeight * cam.aspect;
+        float halfWidth = halfHeight * cam.aspect;
 
         if (currentPhase == ChaseRunManager.RunPhase.PhaseY)
             return transform.position.y - halfHeight - killZoneOffset;
@@ -86,20 +72,20 @@ public class ChaseRunCamera : MonoBehaviour
             return transform.position.x - halfWidth - killZoneOffset;
     }
 
-    // ── Helpers para SpawnPointUpdater ────────────────────────────────────────
+    // Helpers para SpawnPointUpdater 
 
     /// Posición X del centro de la cámara.
     public float CenterX => transform.position.x;
     /// Posición Y del centro de la cámara.
     public float CenterY => transform.position.y;
 
-    // ── Helpers para el spawner de power ups ──────────────────────────────────
+    //Helpers para el spawner de power ups 
 
     /// Justo fuera del borde SUPERIOR de la cámara (spawn power ups fase Y).
-    public float GetTopBound()    => transform.position.y + cam.orthographicSize + 1f;
+    public float GetTopBound() => transform.position.y + cam.orthographicSize + 1f;
 
     /// Justo fuera del borde DERECHO de la cámara (spawn power ups fase X).
-    public float GetRightBound()  => transform.position.x + cam.orthographicSize * cam.aspect + 1f;
+    public float GetRightBound() => transform.position.x + cam.orthographicSize * cam.aspect + 1f;
 
     /// Rango horizontal visible (para elegir X aleatoria en fase Y).
     public (float min, float max) GetHorizontalRange()
@@ -115,7 +101,10 @@ public class ChaseRunCamera : MonoBehaviour
         return (transform.position.y - hh + 1f, transform.position.y + hh - 1f);
     }
 
-    // ── Propiedad pública de fase ─────────────────────────────────────────────
+    // Propiedades públicas
 
     public ChaseRunManager.RunPhase CurrentPhase => currentPhase;
+
+   
+    public Transform Runner => runner;
 }

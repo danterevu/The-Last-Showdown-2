@@ -2,175 +2,170 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ChaseRunPlayerController
-//
-// Movimiento plataformero completo:
-//   - Movimiento horizontal con speedMultiplier (power ups)
-//   - Salto con coyote time, jump buffer y jump cut
-//   - Wall slide: al presionar hacia una pared en el aire se frena y cae lento.
-//       Dos valores de fricción: contacto inicial (wallInitialFriction, frenada
-//       fuerte) y deslizamiento continuo (wallSlideFriction, caída lenta).
-//   - Wall jump: al saltar desde una pared se imprime fuerza X e Y opuestos.
-//   - Extra jump: power up que añade un salto adicional en el aire.
-//   - Kill zone: si sale del borde trasero de la cámara → respawn.
-//   - Shield: inmunidad temporal a la kill zone.
-// ─────────────────────────────────────────────────────────────────────────────
 
 public class ChaseRunPlayerController : MonoBehaviour
 {
-    // ── Movimiento ────────────────────────────────────────────────────────────
+    // Movimiento
 
     [Header("Movimiento")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float gravityScale = 4f;
 
-    // ── Salto ─────────────────────────────────────────────────────────────────
+    // Salto 
 
     [Header("Salto")]
     [SerializeField] private float jumpForce = 12f;
-    [Tooltip("Multiplica velocityY al soltar el botón de salto (0-1). Menor = salto más corto.")]
-    [SerializeField] private float jumpCutMultiplier = 0.5f;
+    [Tooltip("Multiplica velocityY al soltar el botón (0-1). Menor = salto más corto.")]
+    [SerializeField] private float jumpCutMultiplier = 0.4f;
     [Tooltip("Multiplicador de gravedad extra al caer. Mayor = caída más pesada.")]
-    [SerializeField] private float fallMultiplier = 3f;
+    [SerializeField] private float fallMultiplier = 2.5f;
     [SerializeField] private float coyoteTime = 0.15f;
     [SerializeField] private float jumpBufferTime = 0.12f;
 
-    // ── Ground Check ──────────────────────────────────────────────────────────
+    // Ground Check 
 
     [Header("Ground Check")]
-    [SerializeField] private float groundCheckDistance = 0.05f;
+    [Tooltip("Tamaño del box de detección de suelo. Ajustar al ancho del collider body del player.")]
+    [SerializeField] private Vector2 groundCheckSize = new Vector2(0.8f, 0.05f);
+    [Tooltip("Cuánto baja el centro del box desde el borde inferior del collider.")]
+    [SerializeField] private float groundCheckOffset = 0.02f;
     [SerializeField] private LayerMask groundLayer;
 
-    // ── Wall Slide ────────────────────────────────────────────────────────────
+    // Wall Check 
+
+    [Header("Wall Check")]
+    [Tooltip("Distancia del raycast lateral más allá del borde del collider.")]
+    [SerializeField] private float wallCheckDistance = 0.12f;
+
+    // Wall Slide 
 
     [Header("Wall Slide")]
-    [SerializeField] private LayerMask wallLayer;
-    [SerializeField] private float wallCheckDistance = 0.1f;
-
-    [Tooltip("Reducción de velocityY en el PRIMER frame de contacto con la pared. " +
-             "0 = sin frenada, 1 = frena completamente. Ej: 0.8")]
-    [SerializeField] private float wallInitialFriction = 0.8f;
-
-    [Tooltip("Gravedad por frame mientras se desliza por la pared (reemplaza la gravedad normal). " +
-             "Menor valor = cae más lento. Ej: 2")]
-    [SerializeField] private float wallSlideGravity = 2f;
-
-    [Tooltip("Velocidad máxima de caída en wall slide (valor negativo). Ej: -2")]
-    [SerializeField] private float wallSlideMaxFallSpeed = -2f;
+    [Tooltip("Frenada al primer contacto con la pared (0=nada, 1=frena del todo).")]
+    [SerializeField] private float wallInitialFriction = 0.75f;
+    [Tooltip("Gravedad artificial durante el deslizamiento. Menor = cae más lento.")]
+    [SerializeField] private float wallSlideGravity = 2.5f;
+    [Tooltip("Velocidad máxima de caída en pared (negativo).")]
+    [SerializeField] private float wallSlideMaxFallSpeed = -2.5f;
 
     [Header("Wall Jump")]
-    [SerializeField] private float wallJumpForceX = 9f;
-    [SerializeField] private float wallJumpForceY = 12f;
+    [SerializeField] private float wallJumpForceX = 8f;
+    [SerializeField] private float wallJumpForceY = 11f;
+    [Tooltip("Tiempo tras el wall jump donde el input horizontal no puede anular el impulso.")]
+    [SerializeField] private float wallJumpInputLockTime = 0.15f;
 
-    // ── Input ─────────────────────────────────────────────────────────────────
+    // Input 
 
     [Header("Input")]
     [SerializeField] private InputActionAsset inputActions;
     [SerializeField] private string actionMapName = "Player1_Platform";
     [SerializeField] private int playerIndex = 0;
 
-    // ── Respawn ───────────────────────────────────────────────────────────────
+    // Respawn 
 
     [Header("Respawn")]
-    [SerializeField] private float respawnDelay = 0.8f;
+    [SerializeField] private float respawnDelay = 0.6f;
     [SerializeField] private float invulnerableTime = 1.5f;
 
-    // ── Debug ─────────────────────────────────────────────────────────────────
+    //Debug (solo lectura en inspector)
 
     [Header("Debug (solo lectura)")]
     [SerializeField] private bool dbgGrounded;
+    [SerializeField] private bool dbgWallL;
+    [SerializeField] private bool dbgWallR;
     [SerializeField] private bool dbgWallSliding;
-    [SerializeField] private int  dbgExtraJumps;
+    [SerializeField] private int dbgExtraJumps;
 
-    // ── Componentes ───────────────────────────────────────────────────────────
+    // Componentes
 
     private Rigidbody2D rb;
     private SpriteRenderer sr;
-    private Collider2D col;
+    private Collider2D bodyCol;       // el collider principal (body)
     private Animator animator;
 
-    // ── Input actions ─────────────────────────────────────────────────────────
+    // Input
 
     private InputAction moveAction;
     private InputAction jumpAction;
     private Vector2 moveInput;
 
-    // ── Estado de movimiento ──────────────────────────────────────────────────
+    // Estado
 
     private bool isGrounded;
-    private bool isWallSliding;
-    private bool wasWallSliding;       // para detectar el primer frame de contacto
     private bool isTouchingWallLeft;
     private bool isTouchingWallRight;
-    private int  wallSlideSide;        // -1 = pared izquierda, +1 = pared derecha
+    private bool isWallSliding;
+    private bool wasWallSliding;
+    private int wallSlideSide;           // -1 izq, +1 der — se bloquea al entrar
 
     private float coyoteTimeCounter;
     private float jumpBufferCounter;
-    private bool  jumpHeld;
-    private bool  isJumping;           // true si el salto actual fue iniciado por el jugador
+    private bool jumpHeld;
+    private bool isJumping;
+    private bool jumpCutApplied;         // solo aplicar jump cut una vez por salto
 
-    // ── Extra jump ────────────────────────────────────────────────────────────
+    private float wallJumpInputLockTimer; // bloquea input X tras wall jump
 
-    private int baseExtraJumps = 0;    // puede cambiar con power up
-    private int extraJumpsLeft = 0;    // resetea al tocar suelo / pared
+    // Extra jumps 
 
-    // ── Power ups ─────────────────────────────────────────────────────────────
+    private int baseExtraJumps = 0;
+    private int extraJumpsLeft = 0;
 
-    private float speedMultiplier  = 1f;
-    private bool  killZoneImmune   = false;
+    // Power ups 
 
-    // ── Referencias de juego ──────────────────────────────────────────────────
+    private float speedMultiplier = 1f;
+    private bool killZoneImmune = false;
+
+    // Referencias 
 
     private ChaseRunManager manager;
-    private ChaseRunCamera  chaseCamera;
-    private Vector3 spawnPoint;
+    private ChaseRunCamera chaseCamera;
     private ChaseRunManager.RunPhase currentPhase = ChaseRunManager.RunPhase.PhaseY;
 
-    // ── Respawn / muerte ──────────────────────────────────────────────────────
+    // Respawn 
 
     private bool isDead;
     private bool isInvulnerable;
 
-    // ── Propiedad pública ─────────────────────────────────────────────────────
+    // Propiedad pública
 
     public int PlayerNumber => playerIndex + 1;
 
-    // ═════════════════════════════════════════════════════════════════════════
+    
     //  Inicialización
-    // ═════════════════════════════════════════════════════════════════════════
+    
 
     private void Awake()
     {
-        rb       = GetComponent<Rigidbody2D>();
-        sr       = GetComponent<SpriteRenderer>();
-        col      = GetComponent<Collider2D>();
+        rb = GetComponent<Rigidbody2D>();
+        sr = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
+
+        // Tomar el collider marcado como NO trigger (el body)
+        Collider2D[] cols = GetComponents<Collider2D>();
+        foreach (var c in cols)
+            if (!c.isTrigger) { bodyCol = c; break; }
+
+        if (bodyCol == null)
+            Debug.LogError("[ChaseRunPlayer] No se encontró un Collider2D no-trigger (body).", this);
     }
 
-    private void OnEnable()  { SetupInput(); }
-    private void OnDisable() { TeardownInput(); }
+    private void OnEnable() => SetupInput();
+    private void OnDisable() => TeardownInput();
 
     private void SetupInput()
     {
         if (inputActions == null) return;
-
         var map = inputActions.FindActionMap(actionMapName);
-        if (map == null)
-        {
-            Debug.LogError($"[ChaseRunPlayer] Action map '{actionMapName}' no encontrado.", this);
-            return;
-        }
+        if (map == null) { Debug.LogError($"[ChaseRunPlayer] ActionMap '{actionMapName}' no encontrado."); return; }
 
         moveAction = map.FindAction("Move");
         jumpAction = map.FindAction("Jump");
-
         moveAction?.Enable();
         if (jumpAction != null)
         {
             jumpAction.Enable();
             jumpAction.performed += OnJumpPerformed;
-            jumpAction.canceled  += OnJumpCanceled;
+            jumpAction.canceled += OnJumpCanceled;
         }
     }
 
@@ -180,33 +175,28 @@ public class ChaseRunPlayerController : MonoBehaviour
         if (jumpAction != null)
         {
             jumpAction.performed -= OnJumpPerformed;
-            jumpAction.canceled  -= OnJumpCanceled;
+            jumpAction.canceled -= OnJumpCanceled;
             jumpAction.Disable();
         }
     }
 
-    /// <summary>Llamado por ChaseRunManager al iniciar el minijuego.</summary>
     public void Initialize(ChaseRunManager mgr)
     {
-        manager      = mgr;
-        chaseCamera  = Object.FindFirstObjectByType<ChaseRunCamera>();
+        manager = mgr;
+        chaseCamera = Object.FindFirstObjectByType<ChaseRunCamera>();
         currentPhase = ChaseRunManager.RunPhase.PhaseY;
-        isDead       = false;
+        isDead = false;
         isInvulnerable = false;
         speedMultiplier = 1f;
-        killZoneImmune  = false;
-        extraJumpsLeft  = baseExtraJumps;
+        killZoneImmune = false;
+        extraJumpsLeft = baseExtraJumps;
     }
 
-    /// <summary>Llamado por ChaseRunManager al cambiar de fase.</summary>
-    public void OnPhaseChanged(ChaseRunManager.RunPhase newPhase)
-    {
-        currentPhase = newPhase;
-    }
+    public void OnPhaseChanged(ChaseRunManager.RunPhase newPhase) => currentPhase = newPhase;
 
-    // ═════════════════════════════════════════════════════════════════════════
-    //  Update — input, checks, timers, animaciones
-    // ═════════════════════════════════════════════════════════════════════════
+    
+    //  Update
+  
 
     private void Update()
     {
@@ -222,17 +212,22 @@ public class ChaseRunPlayerController : MonoBehaviour
         if (isGrounded)
         {
             coyoteTimeCounter = coyoteTime;
-            isJumping         = false;
-            extraJumpsLeft    = baseExtraJumps;   // resetear extra jumps al pisar suelo
+            isJumping = false;
+            jumpCutApplied = false;
+            extraJumpsLeft = baseExtraJumps;
         }
         else
         {
             coyoteTimeCounter -= Time.deltaTime;
         }
 
-        // Al pegarse a una pared se resetea el extra jump también
+        // Resetear extra jumps al pegarse a la pared
         if (isWallSliding)
             extraJumpsLeft = baseExtraJumps;
+
+        // Wall jump input lock timer
+        if (wallJumpInputLockTimer > 0f)
+            wallJumpInputLockTimer -= Time.deltaTime;
 
         // Jump buffer
         if (jumpBufferCounter > 0f)
@@ -241,133 +236,168 @@ public class ChaseRunPlayerController : MonoBehaviour
             TryExecuteBufferedJump();
         }
 
-        // Flip sprite según dirección
-        if (moveInput.x > 0.01f)       sr.flipX = false;
+        // Flip sprite
+        if (moveInput.x > 0.01f) sr.flipX = false;
         else if (moveInput.x < -0.01f) sr.flipX = true;
 
         // Animaciones
         if (animator != null)
         {
-            animator.SetFloat("velocityX", Mathf.Abs(moveInput.x));
+            animator.SetFloat("velocityX", Mathf.Abs(rb.linearVelocity.x));
             animator.SetFloat("velocityY", rb.linearVelocity.y);
-            animator.SetBool("isGrounded",   isGrounded);
+            animator.SetBool("isGrounded", isGrounded);
             // animator.SetBool("isWallSliding", isWallSliding);
         }
 
         // Debug
-        dbgGrounded    = isGrounded;
+        dbgGrounded = isGrounded;
+        dbgWallL = isTouchingWallLeft;
+        dbgWallR = isTouchingWallRight;
         dbgWallSliding = isWallSliding;
-        dbgExtraJumps  = extraJumpsLeft;
+        dbgExtraJumps = extraJumpsLeft;
     }
 
-    // ═════════════════════════════════════════════════════════════════════════
-    //  FixedUpdate — física
-    // ═════════════════════════════════════════════════════════════════════════
+    
+    //  FixedUpdate
+   
 
     private void FixedUpdate()
     {
         if (isDead) return;
 
-        rb.gravityScale = gravityScale;
-
-        // Movimiento horizontal (no aplicar si está en wall slide para no despegarlo)
-        if (!isWallSliding)
-        {
-            rb.linearVelocity = new Vector2(
-                moveInput.x * moveSpeed * speedMultiplier,
-                rb.linearVelocity.y
-            );
-        }
-
-        // Wall slide — reemplaza gravedad normal
         if (isWallSliding)
         {
-            rb.gravityScale = 0f;   // la manejamos manualmente
-            float vy = rb.linearVelocity.y;
-
-            if (!wasWallSliding)
-            {
-                // Primer frame: frenada inicial fuerte si está cayendo
-                if (vy < 0f)
-                    vy *= (1f - wallInitialFriction);
-                wasWallSliding = true;
-            }
-            else
-            {
-                // Deslizamiento continuo: aplicar wallSlideGravity reducida
-                vy -= wallSlideGravity * Time.fixedDeltaTime;
-            }
-
-            vy = Mathf.Max(vy, wallSlideMaxFallSpeed);
-            rb.linearVelocity = new Vector2(0f, vy);
+            ApplyWallSlidePhysics();
         }
         else
         {
-            wasWallSliding = false;
+            rb.gravityScale = gravityScale;
+            ApplyHorizontalMove();
             ApplyBetterGravity();
         }
 
-        // Kill zone
-        if (!isInvulnerable && !killZoneImmune && !isDead && chaseCamera != null)
+        if (!isInvulnerable && !killZoneImmune && chaseCamera != null)
             CheckKillZone();
     }
 
-    // ═════════════════════════════════════════════════════════════════════════
-    //  Ground & Wall checks
-    // ═════════════════════════════════════════════════════════════════════════
+    
+    //  Ground Check
+   
 
     private void CheckGround()
     {
-        // No puede estar en el suelo si está subiendo
-        if (rb.linearVelocity.y > 0.1f) { isGrounded = false; return; }
+        if (rb.linearVelocity.y > 0.5f) { isGrounded = false; return; }
+        if (bodyCol == null) return;
 
-        Vector2 left  = new Vector2(col.bounds.min.x + 0.02f, col.bounds.min.y);
-        Vector2 right = new Vector2(col.bounds.max.x - 0.02f, col.bounds.min.y);
+        // Inset horizontal para no rozar paredes laterales con las esquinas
+        float innerMargin = 0.08f;
+        float boxW = Mathf.Max(0.05f, bodyCol.bounds.size.x - innerMargin * 2f);
 
-        bool hitLeft  = Physics2D.Raycast(left,  Vector2.down, groundCheckDistance, groundLayer);
-        bool hitRight = Physics2D.Raycast(right, Vector2.down, groundCheckDistance, groundLayer);
+        Vector2 center = new Vector2(
+            bodyCol.bounds.center.x,
+            bodyCol.bounds.min.y - groundCheckOffset
+        );
 
-        isGrounded = hitLeft || hitRight;
+        isGrounded = Physics2D.OverlapBox(center, new Vector2(boxW, groundCheckSize.y), 0f, groundLayer) != null;
     }
+
+    
 
     private void CheckWalls()
     {
-        // No detectar paredes en el suelo
+        if (bodyCol == null) return;
+
+        float halfW = bodyCol.bounds.extents.x;
+        float height = bodyCol.bounds.size.y;
+        Vector2 center = bodyCol.bounds.center;
+
+        // Tres puntos de altura: 75%, 50% y 25% del collider desde abajo
+        // El punto al 25% lo usamos solo si NO estamos en suelo (evita
+        // detectar el tile de esquina cuando estamos parados encima)
+        Vector2 high = center + Vector2.up * height * 0.25f;   // 75% desde abajo
+        Vector2 mid = center;                                   // 50%
+        Vector2 low = center - Vector2.up * height * 0.25f;   // 25% desde abajo
+
+        float dist = halfW + wallCheckDistance;
+
         if (isGrounded)
         {
-            isTouchingWallLeft  = false;
-            isTouchingWallRight = false;
-            return;
+            // Parado encima (imagen 2): solo raycasts alto y medio
+            // El bajo rozaría el tile del suelo lateral y daría false positive
+            isTouchingWallLeft = Physics2D.Raycast(high, Vector2.left, dist, groundLayer)
+                               || Physics2D.Raycast(mid, Vector2.left, dist, groundLayer);
+            isTouchingWallRight = Physics2D.Raycast(high, Vector2.right, dist, groundLayer)
+                               || Physics2D.Raycast(mid, Vector2.right, dist, groundLayer);
         }
-
-        Vector2 center = col.bounds.center;
-        float halfH    = col.bounds.extents.y * 0.6f;
-        float halfW    = col.bounds.extents.x;
-
-        isTouchingWallLeft =
-            Physics2D.Raycast(center + Vector2.up * halfH, Vector2.left, halfW + wallCheckDistance, wallLayer) ||
-            Physics2D.Raycast(center - Vector2.up * halfH, Vector2.left, halfW + wallCheckDistance, wallLayer);
-
-        isTouchingWallRight =
-            Physics2D.Raycast(center + Vector2.up * halfH, Vector2.right, halfW + wallCheckDistance, wallLayer) ||
-            Physics2D.Raycast(center - Vector2.up * halfH, Vector2.right, halfW + wallCheckDistance, wallLayer);
+        else
+        {
+            // En el aire (imagen 1): los tres raycasts
+            isTouchingWallLeft = Physics2D.Raycast(high, Vector2.left, dist, groundLayer)
+                               || Physics2D.Raycast(mid, Vector2.left, dist, groundLayer)
+                               || Physics2D.Raycast(low, Vector2.left, dist, groundLayer);
+            isTouchingWallRight = Physics2D.Raycast(high, Vector2.right, dist, groundLayer)
+                               || Physics2D.Raycast(mid, Vector2.right, dist, groundLayer)
+                               || Physics2D.Raycast(low, Vector2.right, dist, groundLayer);
+        }
     }
+
+    //  Wall Slide lógica
 
     private void HandleWallSlide()
     {
-        bool pressingLeft  = moveInput.x < -0.1f && isTouchingWallLeft;
-        bool pressingRight = moveInput.x >  0.1f && isTouchingWallRight;
+        bool pressingLeft = moveInput.x < -0.1f && isTouchingWallLeft;
+        bool pressingRight = moveInput.x > 0.1f && isTouchingWallRight;
 
-        // Solo entrar en wall slide si está cayendo (o quieto vertical)
-        isWallSliding = (pressingLeft || pressingRight) && !isGrounded && rb.linearVelocity.y <= 0.1f;
+        // Wall slide solo si estamos en el aire Y cayendo (o quietos en Y)
+        // isGrounded aquí impide entrar en wall slide parado encima de una pared
+        bool canSlide = (pressingLeft || pressingRight)
+                     && !isGrounded
+                     && rb.linearVelocity.y <= 0.1f;
 
-        if (isWallSliding)
+        if (canSlide && !isWallSliding)
+        {
+            isWallSliding = true;
+            wasWallSliding = false;
             wallSlideSide = isTouchingWallLeft ? -1 : 1;
+        }
+        else if (!canSlide)
+        {
+            isWallSliding = false;
+            wasWallSliding = false;
+        }
     }
 
-    // ═════════════════════════════════════════════════════════════════════════
-    //  Gravedad mejorada (solo cuando NO hay wall slide)
-    // ═════════════════════════════════════════════════════════════════════════
+    // Wall slide física 
+    private void ApplyWallSlidePhysics()
+    {
+        rb.gravityScale = 0f;
+        float vy = rb.linearVelocity.y;
+
+        if (!wasWallSliding)
+        {
+            // Primer frame: frenada inicial fuerte
+            if (vy < 0f) vy *= (1f - wallInitialFriction);
+            wasWallSliding = true;
+        }
+        else
+        {
+            vy -= wallSlideGravity * Time.fixedDeltaTime;
+        }
+
+        vy = Mathf.Max(vy, wallSlideMaxFallSpeed);
+        rb.linearVelocity = new Vector2(0f, vy);
+    }
+
+    
+    //  Movimiento horizontal y gravedad
+  
+
+    private void ApplyHorizontalMove()
+    {
+        // Si acabamos de hacer wall jump, no dejar que el input anule el impulso X
+        float inputX = (wallJumpInputLockTimer > 0f) ? 0f : moveInput.x;
+        rb.linearVelocity = new Vector2(inputX * moveSpeed * speedMultiplier, rb.linearVelocity.y);
+    }
 
     private void ApplyBetterGravity()
     {
@@ -376,128 +406,128 @@ public class ChaseRunPlayerController : MonoBehaviour
             // Caída más pesada
             rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1f) * Time.fixedDeltaTime;
         }
-        else if (rb.linearVelocity.y > 0f && !jumpHeld && isJumping)
+        else if (rb.linearVelocity.y > 0f && !jumpHeld && isJumping && !jumpCutApplied)
         {
-            // Jump cut: soltar botón acorta el salto
+            // Jump cut — solo una vez
+            jumpCutApplied = true;
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * jumpCutMultiplier);
         }
     }
 
-    // ═════════════════════════════════════════════════════════════════════════
+    
     //  Saltos
-    // ═════════════════════════════════════════════════════════════════════════
+    
 
     private void OnJumpPerformed(InputAction.CallbackContext ctx)
     {
-        if (!IsCorrectDevice(ctx.control.device)) return;
-        if (isDead) return;
-
+        if (!IsCorrectDevice(ctx.control.device) || isDead) return;
         jumpHeld = true;
 
         if (isWallSliding)
-        {
             ExecuteWallJump();
-        }
         else if (isGrounded || coyoteTimeCounter > 0f)
-        {
             ExecuteJump();
-        }
         else if (extraJumpsLeft > 0)
         {
             extraJumpsLeft--;
             ExecuteJump();
         }
         else
-        {
             jumpBufferCounter = jumpBufferTime;
-        }
     }
 
-    private void OnJumpCanceled(InputAction.CallbackContext ctx)
-    {
-        jumpHeld = false;
-    }
+    private void OnJumpCanceled(InputAction.CallbackContext ctx) => jumpHeld = false;
 
     private void TryExecuteBufferedJump()
     {
-        if (isWallSliding)
-        {
-            ExecuteWallJump();
-            jumpBufferCounter = 0f;
-        }
-        else if (isGrounded || coyoteTimeCounter > 0f)
-        {
-            ExecuteJump();
-            jumpBufferCounter = 0f;
-        }
+        if (isWallSliding) { ExecuteWallJump(); jumpBufferCounter = 0f; }
+        else if (isGrounded || coyoteTimeCounter > 0f) { ExecuteJump(); jumpBufferCounter = 0f; }
     }
 
     private void ExecuteJump()
     {
-        rb.linearVelocity   = new Vector2(rb.linearVelocity.x, jumpForce);
-        coyoteTimeCounter   = 0f;
-        jumpBufferCounter   = 0f;
-        isJumping           = true;
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+        coyoteTimeCounter = 0f;
+        jumpBufferCounter = 0f;
+        isJumping = true;
+        jumpCutApplied = false;
     }
 
     private void ExecuteWallJump()
     {
-        // -wallSlideSide: si estaba en la pared derecha (+1), sale hacia la izquierda (-1) y viceversa
         rb.linearVelocity = new Vector2(-wallSlideSide * wallJumpForceX, wallJumpForceY);
+        wallJumpInputLockTimer = wallJumpInputLockTime;
 
-        isWallSliding       = false;
-        wasWallSliding      = false;
-        isTouchingWallLeft  = false;
+        isWallSliding = false;
+        wasWallSliding = false;
+        isTouchingWallLeft = false;
         isTouchingWallRight = false;
-        coyoteTimeCounter   = 0f;
-        jumpBufferCounter   = 0f;
-        isJumping           = true;
+        coyoteTimeCounter = 0f;
+        jumpBufferCounter = 0f;
+        isJumping = true;
+        jumpCutApplied = false;
     }
 
-    // ═════════════════════════════════════════════════════════════════════════
+    
     //  Kill Zone & Respawn
-    // ═════════════════════════════════════════════════════════════════════════
+    
 
     private void CheckKillZone()
     {
-        float killBound = chaseCamera.GetKillZoneBound();
+        if (isDead) return;
 
+        float killBound = chaseCamera.GetKillZoneBound();
         bool dead = currentPhase == ChaseRunManager.RunPhase.PhaseY
             ? transform.position.y < killBound
             : transform.position.x < killBound;
 
-        if (dead && !isDead)
-            StartCoroutine(Respawn());
+        if (dead) StartCoroutine(DoRespawn());
     }
 
-    private System.Collections.IEnumerator Respawn()
+    private IEnumerator DoRespawn()
     {
-        isDead                = true;
-        rb.linearVelocity     = Vector2.zero;
-        rb.gravityScale       = 0f;
+        isDead = true;
+        rb.linearVelocity = Vector2.zero;
+        rb.gravityScale = 0f;
+
+        // Ocultar al jugador durante el delay
+        sr.enabled = false;
 
         yield return new WaitForSeconds(respawnDelay);
 
-        transform.position = spawnPoint;
-        rb.gravityScale    = gravityScale;
-        isDead             = false;
+        // Spawnear en la posición del runner (siempre dentro de cámara)
+        if (chaseCamera != null && chaseCamera.Runner != null)
+        {
+            Vector3 runnerPos = chaseCamera.Runner.position;
 
-        StartCoroutine(Invulnerable());
+            // Separar ligeramente a los dos jugadores para que no se superpongan
+            float offset = (playerIndex == 0) ? -0.6f : 0.6f;
+
+            transform.position = currentPhase == ChaseRunManager.RunPhase.PhaseY
+                ? new Vector3(runnerPos.x + offset, runnerPos.y, 0f)
+                : new Vector3(runnerPos.x, runnerPos.y + offset, 0f);
+        }
+
+        rb.gravityScale = gravityScale;
+        isDead = false;
+        sr.enabled = true;
+
+        StartCoroutine(DoInvulnerable());
     }
 
-    private System.Collections.IEnumerator Invulnerable()
+    private IEnumerator DoInvulnerable()
     {
         isInvulnerable = true;
-        float elapsed  = 0f;
+        float elapsed = 0f;
 
         while (elapsed < invulnerableTime)
         {
-            sr.enabled =  !sr.enabled;
-            elapsed    += 0.15f;
-            yield return new WaitForSeconds(0.15f);
+            sr.enabled = !sr.enabled;
+            elapsed += 0.12f;
+            yield return new WaitForSeconds(0.12f);
         }
 
-        sr.enabled     = true;
+        sr.enabled = true;
         isInvulnerable = false;
     }
 
@@ -507,40 +537,38 @@ public class ChaseRunPlayerController : MonoBehaviour
             manager?.PlayerReachedGoal(PlayerNumber);
     }
 
-    // ═════════════════════════════════════════════════════════════════════════
-    //  Input — lectura filtrada (gamepad / teclado)
-    // ═════════════════════════════════════════════════════════════════════════
+   
+    //  Input
+    
 
     private Vector2 ReadFilteredMove()
     {
         Vector2 result = Vector2.zero;
 
-        // Gamepad asignado
         Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
         if (gp != null)
         {
             Vector2 stick = gp.leftStick.ReadValue();
-            Vector2 dpad  = gp.dpad.ReadValue();
+            Vector2 dpad = gp.dpad.ReadValue();
             result = stick.sqrMagnitude > dpad.sqrMagnitude ? stick : dpad;
             if (result.sqrMagnitude > 0.01f) return result;
         }
 
-        // Teclado fallback
         if (Keyboard.current != null)
         {
             if (playerIndex == 0)
             {
-                if (Keyboard.current.dKey.isPressed)          result.x += 1f;
-                if (Keyboard.current.aKey.isPressed)          result.x -= 1f;
-                if (Keyboard.current.wKey.isPressed)          result.y += 1f;
-                if (Keyboard.current.sKey.isPressed)          result.y -= 1f;
+                if (Keyboard.current.dKey.isPressed) result.x += 1f;
+                if (Keyboard.current.aKey.isPressed) result.x -= 1f;
+                if (Keyboard.current.wKey.isPressed) result.y += 1f;
+                if (Keyboard.current.sKey.isPressed) result.y -= 1f;
             }
             else
             {
                 if (Keyboard.current.rightArrowKey.isPressed) result.x += 1f;
-                if (Keyboard.current.leftArrowKey.isPressed)  result.x -= 1f;
-                if (Keyboard.current.upArrowKey.isPressed)    result.y += 1f;
-                if (Keyboard.current.downArrowKey.isPressed)  result.y -= 1f;
+                if (Keyboard.current.leftArrowKey.isPressed) result.x -= 1f;
+                if (Keyboard.current.upArrowKey.isPressed) result.y += 1f;
+                if (Keyboard.current.downArrowKey.isPressed) result.y -= 1f;
             }
         }
 
@@ -554,25 +582,57 @@ public class ChaseRunPlayerController : MonoBehaviour
         return false;
     }
 
-    // ═════════════════════════════════════════════════════════════════════════
-    //  API pública — llamada por power ups y SpawnPointUpdater
-    // ═════════════════════════════════════════════════════════════════════════
+    
 
-    public void SetSpawnPoint(Vector3 point)          => spawnPoint = point;
-    public void ApplySpeedMultiplier(float mult)      => speedMultiplier = mult;
-    public void SetKillZoneImmunity(bool immune)      => killZoneImmune = immune;
 
-    /// <summary>Añade un extra jump disponible (power up).</summary>
+
+    public void SetSpawnPoint(Vector3 point) => _ = point; // mantenido por compatibilidad, no se usa
+    public void ApplySpeedMultiplier(float mult) => speedMultiplier = mult;
+    public void SetKillZoneImmunity(bool immune) => killZoneImmune = immune;
+
     public void AddExtraJump()
     {
         baseExtraJumps++;
         extraJumpsLeft = Mathf.Max(extraJumpsLeft, baseExtraJumps);
     }
 
-    /// <summary>Quita el extra jump al expirar el power up.</summary>
     public void RemoveExtraJump()
     {
         baseExtraJumps = Mathf.Max(0, baseExtraJumps - 1);
         extraJumpsLeft = Mathf.Min(extraJumpsLeft, baseExtraJumps);
     }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
+    {
+        if (bodyCol == null) return;
+
+        // Ground check box (verde)
+        float innerMargin = 0.08f;
+        float boxW = Mathf.Max(0.05f, bodyCol.bounds.size.x - innerMargin * 2f);
+        Gizmos.color = isGrounded ? Color.green : new Color(0f, 1f, 0f, 0.4f);
+        Vector3 gc = new Vector3(bodyCol.bounds.center.x, bodyCol.bounds.min.y - groundCheckOffset, 0f);
+        Gizmos.DrawWireCube(gc, new Vector3(boxW, groundCheckSize.y, 0f));
+
+        // Wall check rays (cyan = aéreo, amarillo = parado)
+        float hw = bodyCol.bounds.extents.x + wallCheckDistance;
+        float height = bodyCol.bounds.size.y;
+        Vector3 c = bodyCol.bounds.center;
+
+        Vector3 high = c + Vector3.up * height * 0.25f;
+        Vector3 mid = c;
+        Vector3 low = c - Vector3.up * height * 0.25f;
+
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawRay(high, Vector3.left * hw);
+        Gizmos.DrawRay(high, Vector3.right * hw);
+        Gizmos.DrawRay(mid, Vector3.left * hw);
+        Gizmos.DrawRay(mid, Vector3.right * hw);
+
+        // El raycast bajo solo se usa en el aire — mostrarlo atenuado si está en suelo
+        Gizmos.color = isGrounded ? new Color(0f, 1f, 1f, 0.2f) : Color.cyan;
+        Gizmos.DrawRay(low, Vector3.left * hw);
+        Gizmos.DrawRay(low, Vector3.right * hw);
+    }
+#endif
 }

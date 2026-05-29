@@ -1,17 +1,6 @@
 using UnityEngine;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TriggerZone
-//
-// Coloca este componente en un GameObject con Collider2D (trigger) en la escena.
-// Cuando el runner (el GO vacío que sigue la cámara, con tag "CameraRunner")
-// entra en la zona, avisa al ChaseRunManager para cambiar de fase.
-//
-// Setup:
-//   - Agregar un BoxCollider2D con Is Trigger = true.
-//   - Asignar el tag "CameraRunner" al GameObject runner de ChaseRunCamera.
-//   - Posicionar esta zona donde quieras que ocurra el cambio Y→X.
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 public class TriggerZone : MonoBehaviour
 {

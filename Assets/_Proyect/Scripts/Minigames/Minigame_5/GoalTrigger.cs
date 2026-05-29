@@ -1,15 +1,6 @@
 using UnityEngine;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GoalTrigger
-//
-// Coloca este componente en el GameObject meta con Collider2D (trigger).
-// Asignar el tag "Goal" al GO (opcional, el player también lo detecta por tag).
-//
-// Setup:
-//   - Agregar un Collider2D con Is Trigger = true.
-//   - Posicionar al final del nivel.
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 public class GoalTrigger : MonoBehaviour
 {

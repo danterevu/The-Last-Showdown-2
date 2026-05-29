@@ -1,18 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ChaseRunPowerUpPickup
-//
-// Configurado desde ChaseRunPowerUpSpawner en runtime:
-//   SetupFalling()     → cae desde arriba (fase Y)
-//   SetupMovingLeft()  → se mueve en -X (fase X)
-//
-// Al ser recogido aplica un efecto al jugador que lo tocó.
-// Se destruye a sí mismo si sale del área visible.
-//
-// Requiere: Rigidbody2D + Collider2D (trigger) en el prefab.
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
@@ -41,7 +30,7 @@ public class ChaseRunPowerUpPickup : MonoBehaviour
     [Tooltip("Un sprite por cada valor del enum PowerUpType, en el mismo orden.")]
     [SerializeField] private Sprite[] typeSprites;
 
-    // ── Movimiento ────────────────────────────────────────────────────────────
+    // Movimiento 
 
     private enum MoveMode { Falling, MovingLeft, None }
     private MoveMode moveMode = MoveMode.None;
@@ -118,6 +107,8 @@ public class ChaseRunPowerUpPickup : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (collected) return;
+
+        if (!other.CompareTag("Player")) return;
 
         ChaseRunPlayerController player = other.GetComponent<ChaseRunPlayerController>();
         if (player == null) return;

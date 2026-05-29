@@ -1,16 +1,6 @@
 using UnityEngine;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SpawnPointUpdater
-//
-// Recalcula cada frame el spawn point de cada jugador para que siempre esté
-// en una posición segura (delante de la kill zone, dentro de cámara).
-//
-// PhaseY: los jugadores spawnen cerca del borde INFERIOR de la cámara,
-//         separados horizontalmente.
-// PhaseX: los jugadores spawnen cerca del borde IZQUIERDO de la cámara,
-//         separados verticalmente.
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 public class SpawnPointUpdater : MonoBehaviour
 {

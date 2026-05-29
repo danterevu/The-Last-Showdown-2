@@ -31,7 +31,7 @@ public class ChaseRunManager : MonoBehaviour
     [Tooltip("Bonus al llegar a la meta")]
     [SerializeField] private int goalBonusPoints = 50;
 
-    // ── Estado interno ────────────────────────────────────────────────────────
+    // Estado interno 
 
     private bool gameRunning = false;
     private bool player1Finished = false;
@@ -41,7 +41,7 @@ public class ChaseRunManager : MonoBehaviour
     private float survivalTimer1 = 0f;
     private float survivalTimer2 = 0f;
 
-    // ── Ciclo de vida ─────────────────────────────────────────────────────────
+    // Ciclo de vida 
 
     private void Awake()
     {

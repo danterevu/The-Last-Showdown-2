@@ -2,17 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ChaseRunPowerUpSpawner
-//
-// PhaseY: spawna fuera del borde SUPERIOR de la cámara. Los power ups caen
-//         por gravedad hacia los jugadores.
-//
-// PhaseX: spawna fuera del borde DERECHO de la cámara. Los power ups se
-//         mueven en -X hacia los jugadores.
-//
-// Al cambiar de fase limpia todos los power ups activos de la fase anterior.
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 public class ChaseRunPowerUpSpawner : MonoBehaviour
 {
