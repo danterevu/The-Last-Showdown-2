@@ -14,6 +14,8 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
 
     [Header("Salto")]
+    private float baseJumpForce;
+    private float baseGravityScale;
     [SerializeField] private float jumpForce = 12f;
     [SerializeField] private float jumpCutMultiplier = 0.85f;
     [SerializeField] private float fallMultiplier = 3f;
@@ -76,6 +78,15 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [SerializeField] private float berserkStunDuration = 1f;
     [SerializeField] private bool isBerserk = false;
 
+    [Header("SlimeShot")]
+    [SerializeField] private GameObject slimeProjectilePrefab;
+    [SerializeField] private float slimeDuration = 2f;
+    [SerializeField] private float slimeSpeedMult = 0.5f;      // 50% más lento
+    [SerializeField] private float slimeJumpForceReduction = 0.3f; // salta al 30% de lo normal
+    [SerializeField] private float slimeGravityMult = 2.5f;    // más pesado
+    [SerializeField] private bool isSlimed = false;
+    private Coroutine slimeCoroutine;
+
     private Vector3 originalScale;
 
     private float coyoteTimeCounter;
@@ -105,6 +116,8 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         rc = GetComponent<RemoteControl>();
         baseMoveSpeed = moveSpeed;
         originalScale = transform.localScale;
+        baseJumpForce = jumpForce;
+        baseGravityScale = gravityScale;
     }
 
     private void OnEnable() { SetupInput(); }
@@ -480,6 +493,9 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             case DNAPowerUpPickup.DNAPowerUpType.Berserk:
                 StartCoroutine(BerserkEffect());
                 break;
+            case DNAPowerUpPickup.DNAPowerUpType.SlimeShot:
+                ShootSlime();
+                break;
         }
     }
 
@@ -501,6 +517,9 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     public void ClearActivePowerUpEffects()
     {
+        jumpForce = baseJumpForce;
+        gravityScale = baseGravityScale;
+
         StopAllCoroutines(); // para el shrink si está activo
         transform.localScale = originalScale;
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
@@ -513,6 +532,17 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
             berserkHitbox?.Deactivate();
         }
+
+        if (slimeCoroutine != null)
+        {
+            StopCoroutine(slimeCoroutine);
+            slimeCoroutine = null;
+        }
+
+        isSlimed = false;
+        jumpForce = // necesitás guardar el jumpForce original en Awake
+        gravityScale = // mismo
+        moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
     }
 
     //POWER UPS EFFECTS
@@ -602,6 +632,50 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         yield return new WaitForSeconds(berserkStunDuration);
         isKnockedBack = false;
     }
+
+    private void ShootSlime()
+    {
+        if (slimeProjectilePrefab == null) return;
+
+        // Dirección según para donde mira el jugador
+        float dirX = IsFacingRight() ? 1f : -1f; //para donde veo? seguro que para el bulto de chori
+        Vector2 direction = new Vector2(dirX, 0f);
+
+        Quaternion rotation = Quaternion.Euler(0f, 0f, IsFacingRight() ? 90f : -90f);
+
+        Vector3 spawnPos = transform.position + new Vector3(dirX * 0.5f, 0f, 0f);
+        GameObject proj = Instantiate(slimeProjectilePrefab, spawnPos, rotation);
+        proj.GetComponent<SlimeProjectile>().Init(direction, playerIndex + 1);
+    }
+
+    public void ApplySlimeEffect()
+    {
+        if (isSlimed) return;
+        slimeCoroutine = StartCoroutine(SlimeEffect());
+    }
+
+    private IEnumerator SlimeEffect()
+    {
+        isSlimed = true;
+
+        // Guardar valores originales
+        float originalSpeed = moveSpeed;
+        float originalJumpForce = jumpForce;
+        float originalGravity = gravityScale;
+
+        // Aplicar efecto
+        moveSpeed = baseMoveSpeed * slimeSpeedMult;
+        jumpForce = originalJumpForce * slimeJumpForceReduction;
+        gravityScale = originalGravity * slimeGravityMult;
+
+        yield return new WaitForSeconds(slimeDuration);
+
+        // Restaurar
+        moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
+        jumpForce = originalJumpForce;
+        gravityScale = originalGravity;
+        isSlimed = false;
+    }  
 
     public bool IsFacingRight() => !sr.flipX;
     public Collider2D GetCollider() => col;

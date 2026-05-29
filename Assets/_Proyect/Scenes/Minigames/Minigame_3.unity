@@ -1099,6 +1099,12 @@ MonoBehaviour:
   berserkScale: 1.25
   berserkStunDuration: 1
   isBerserk: 0
+  slimeProjectilePrefab: {fileID: 0}
+  slimeDuration: 2
+  slimeSpeedMult: 0.5
+  slimeJumpForceReduction: 0.3
+  slimeGravityMult: 2.5
+  isSlimed: 0
 --- !u!4 &276861375 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 218947745283897739, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
@@ -2923,8 +2929,14 @@ MonoBehaviour:
   berserkDuration: 2
   berserkSpeedMult: 1.3
   berserkScale: 1.25
-  berserkStunDuration: 1.5
+  berserkStunDuration: 1
   isBerserk: 0
+  slimeProjectilePrefab: {fileID: 8008164126039924098, guid: c8ef6efe1f8010047a9bd9da28bb8b9f, type: 3}
+  slimeDuration: 2
+  slimeSpeedMult: 0.5
+  slimeJumpForceReduction: 0.3
+  slimeGravityMult: 2.5
+  isSlimed: 0
 --- !u!114 &708058474
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6193,7 +6205,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01837fac8c2a4704e91edc46d7ea0f74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameDuration: 90
+  gameDuration: 180
   player1: {fileID: 1471711615}
   player2: {fileID: 276861369}
   dnaPickup: {fileID: 1160438725}
@@ -6347,6 +6359,12 @@ MonoBehaviour:
   berserkScale: 1.25
   berserkStunDuration: 1
   isBerserk: 0
+  slimeProjectilePrefab: {fileID: 0}
+  slimeDuration: 2
+  slimeSpeedMult: 0.5
+  slimeJumpForceReduction: 0.3
+  slimeGravityMult: 2.5
+  isSlimed: 0
 --- !u!4 &1471711621 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6589293998364306632, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
@@ -6529,11 +6547,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 218947745283897739, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.34834996
+      value: 0.34834993
       objectReference: {fileID: 0}
     - target: {fileID: 218947745283897739, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
       propertyPath: m_LocalScale.y
       value: 0.32059997
+      objectReference: {fileID: 0}
+    - target: {fileID: 218947745283897739, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.49999997
       objectReference: {fileID: 0}
     - target: {fileID: 218947745283897739, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6553,15 +6575,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 218947745283897739, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 218947745283897739, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 218947745283897739, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 218947745283897739, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -6666,6 +6688,12 @@ MonoBehaviour:
   berserkScale: 1.25
   berserkStunDuration: 1
   isBerserk: 0
+  slimeProjectilePrefab: {fileID: 8008164126039924098, guid: c8ef6efe1f8010047a9bd9da28bb8b9f, type: 3}
+  slimeDuration: 2
+  slimeSpeedMult: 0.5
+  slimeJumpForceReduction: 0.3
+  slimeGravityMult: 2.5
+  isSlimed: 0
 --- !u!114 &1585737176
 MonoBehaviour:
   m_ObjectHideFlags: 0
