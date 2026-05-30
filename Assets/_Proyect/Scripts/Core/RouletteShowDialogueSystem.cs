@@ -1,6 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 using DG.Tweening;
 using TMPro;
+using System.Collections;
 using System.Collections.Generic;
 
 [System.Serializable]
@@ -9,118 +10,121 @@ public class DialogueLine
     [TextArea(2, 5)] public string text;
     public Sprite presenterSprite;
     public float displayDuration = 2.5f;
-    public float typeSpeed = 0.05f;
     public bool isFinalDialogue = false;
 }
 
 [System.Serializable]
 public class DialogueSequence
 {
-    public List<DialogueLine> lines = new List<DialogueLine>();
+    public string sequenceName; // solo para identificar en el Inspector
     public Sprite defaultPresenterSprite;
+    public DialogueLine[] lines;
 }
 
 public class RouletteShowDialogueSystem : MonoBehaviour
 {
-    [Header("Camera Settings")]
+    [Header("Camara")]
     [SerializeField] private Camera mainCamera;
-    [SerializeField] private float initialOrthoSize = 3f;
     [SerializeField] private float zoomOutOrthoSize = 8f;
     [SerializeField] private float zoomToRouletteOrthoSize = 5f;
     [SerializeField] private float zoomDuration = 1f;
 
-    [Header("Center Sprite")]
+    [Header("Centro")]
     [SerializeField] private GameObject centerSprite;
     [SerializeField] private float centerSpritePopDuration = 0.5f;
 
-    [Header("Lights")]
+    [Header("Luces")]
     [SerializeField] private GameObject[] lights;
-    [SerializeField] private float lightsMoveAmount = 5f;
-    [SerializeField] private float lightsMoveDuration = 2f;
+    [SerializeField] private float lightsPendulumAmount = 3f;
+    [SerializeField] private float lightsPendulumDuration = 1.5f;
+    [SerializeField] private bool lightsAlternateDirection = true;
 
-    [Header("Presenter & Dialogues")]
+    [Header("Presentador")]
     [SerializeField] private SpriteRenderer presenterSpriteRenderer;
-    [SerializeField] private RectTransform dialogueContainer;
-    [SerializeField] private TextMeshProUGUI dialogueText;
-    [SerializeField] private float dialogueRiseAmount = 30f;
-    [SerializeField] private float dialogueRiseDuration = 0.5f;
-    [SerializeField] private float dialoguePopAmount = 1.2f;
+    [SerializeField] private float presenterJumpHeight = 0.5f;
+    [SerializeField] private float presenterJumpDuration = 0.25f;
+    [SerializeField] private Transform presenterRouletteDestination; // GO destino al caer la ruleta
 
-    [Header("Roulette")]
+    [Header("Textos del diálogo")]
+    [Tooltip("GOs vacíos en la escena donde puede aparecer cada bloque de texto")]
+    [SerializeField] private Transform[] textSpawnPoints;
+    [Tooltip("Prefab con componente TextMeshPro (3D, NO UI)")]
+    [SerializeField] private TextMeshPro textPrefab;
+    [SerializeField] private float textFadeInDuration = 0.2f;
+    [SerializeField] private float textFadeOutDuration = 0.3f;
+
+    [Header("Secuencias de diálogo (se elige 1 al azar)")]
+    [SerializeField] private DialogueSequence[] openingSequences;
+    [SerializeField] private DialogueSequence[] resultSequences;
+
+    [Header("Ruleta")]
     [SerializeField] private GameObject roulette;
-    [SerializeField] private float rouletteDropHeight = 10f;
-    [SerializeField] private float rouletteDropDuration = 1f;
-    [SerializeField] private float rouletteBounceStrength = 1f;
-    [SerializeField] private float rouletteBounceDuration = 1f;
+    [SerializeField] private float rouletteDropDelay = 0f; // delay antes de caer (en segundos)
+    [SerializeField] private float rouletteDropDuration = 1.2f;
+    [SerializeField] private float rouletteBounceStrength = 0.5f;
+    [SerializeField] private int rouletteBounceVibrato = 5;
+    [SerializeField] private float rouletteBounceDuration = 0.8f;
 
-    [Header("Roulette Cover")]
+    [Header("Tapa de la ruleta")]
     [SerializeField] private GameObject rouletteCover;
+    [SerializeField] private bool removeCoverAutomatically = true; // si es false, sacarla a mano
     [SerializeField] private float coverMoveAmount = 10f;
     [SerializeField] private float coverMoveDuration = 0.5f;
 
-    [Header("Result Objects")]
+    [Header("Objetos de resultado")]
     [SerializeField] private GameObject[] resultColorObjects;
     [SerializeField] private Color[] resultColors;
     [SerializeField] private float colorChangeDuration = 0.5f;
 
-    [Header("Dialogue Sequences")]
-    [SerializeField] private List<DialogueSequence> dialogueSequenceVariations = new List<DialogueSequence>();
-    [SerializeField] private List<DialogueSequence> resultDialogueSequenceVariations = new List<DialogueSequence>();
-
-    [Header("References")]
+    [Header("Referencias")]
     [SerializeField] private MinigameSpinner minigameSpinner;
 
+    // ── Estado interno ────────────────────────────────────────────────────────
+
     private Sequence mainSequence;
-    private Vector3 rouletteOriginalPosition;
+    private Vector3 rouletteDestination;
     private Vector3 coverOriginalPosition;
-    private Vector3 dialogueOriginalPosition;
+    private Vector3 presenterOriginalPosition;
     private int selectedMinigameId;
-    private DialogueSequence currentOpeningSequence;
-    private DialogueSequence currentResultSequence;
-    private Coroutine typingCoroutine;
-    private bool isWaitingForSpinResult = false;
     private bool hasInitializedSpinner = false;
+
+    private TextMeshPro activeText;
+
+    // ── Ciclo de vida ─────────────────────────────────────────────────────────
 
     void Awake()
     {
+        // Guardar destino de la ruleta y moverla fuera de pantalla hacia arriba
         if (roulette != null)
         {
-            rouletteOriginalPosition = roulette.transform.localPosition;
-            roulette.transform.localPosition = new Vector3(rouletteOriginalPosition.x, rouletteOriginalPosition.y + rouletteDropHeight, rouletteOriginalPosition.z);
+            rouletteDestination = roulette.transform.position;
+            roulette.transform.position = new Vector3(
+                rouletteDestination.x,
+                rouletteDestination.y + 50f, // fuera de camara siempre
+                rouletteDestination.z
+            );
         }
 
         if (rouletteCover != null)
-        {
-            coverOriginalPosition = rouletteCover.transform.localPosition;
-        }
+            coverOriginalPosition = rouletteCover.transform.position;
 
-        if (dialogueText != null)
-        {
-            dialogueOriginalPosition = dialogueText.transform.localPosition;
-            dialogueText.alpha = 0f;
-            dialogueText.text = "";
-        }
+        if (presenterSpriteRenderer != null)
+            presenterOriginalPosition = presenterSpriteRenderer.transform.localPosition;
 
         if (centerSprite != null)
-        {
             centerSprite.transform.localScale = Vector3.zero;
-        }
     }
 
     void OnEnable()
     {
         if (minigameSpinner != null)
-        {
             minigameSpinner.OnSpinComplete += HandleSpinComplete;
-        }
     }
 
     void OnDisable()
     {
         if (minigameSpinner != null)
-        {
             minigameSpinner.OnSpinComplete -= HandleSpinComplete;
-        }
     }
 
     void Start()
@@ -128,173 +132,166 @@ public class RouletteShowDialogueSystem : MonoBehaviour
         PlayShowSequence();
     }
 
+    // ── Secuencia principal ───────────────────────────────────────────────────
+
     private void PlayShowSequence()
     {
         mainSequence = DOTween.Sequence();
 
-        // 1. Zoom out camera
         if (mainCamera != null)
-        {
             mainSequence.Append(mainCamera.DOOrthoSize(zoomOutOrthoSize, zoomDuration).SetEase(Ease.OutQuad));
-        }
 
-        // 2. Pop center sprite
         if (centerSprite != null)
-        {
             mainSequence.Join(centerSprite.transform.DOScale(Vector3.one, centerSpritePopDuration).SetEase(Ease.OutElastic));
-        }
 
-        // 3. Start lights loop
         StartLightsLoop();
 
-        // 4. Pick random opening dialogue sequence
-        PickRandomOpeningSequence();
-
-        // 5. Drop roulette with bounce
-        mainSequence.AppendCallback(DropRoulette);
-        mainSequence.AppendInterval(rouletteDropDuration + rouletteBounceDuration);
-
-        // 6. Remove cover
-        mainSequence.AppendCallback(RemoveCover);
-        mainSequence.AppendInterval(coverMoveDuration);
-
-        // 7. Zoom to roulette
-        if (mainCamera != null)
-        {
-            mainSequence.Append(mainCamera.DOOrthoSize(zoomToRouletteOrthoSize, zoomDuration).SetEase(Ease.InOutQuad));
-        }
+        // Arrancar los diálogos de apertura como coroutine independiente
+        // para que no bloqueen ni dependan del timing del mainSequence
+        StartCoroutine(PlayOpeningThenDrop());
 
         mainSequence.Play();
     }
 
-    private void PickRandomOpeningSequence()
+    private IEnumerator PlayOpeningThenDrop()
     {
-        if (dialogueSequenceVariations.Count == 0) return;
+        yield return null;
 
-        currentOpeningSequence = dialogueSequenceVariations[Random.Range(0, dialogueSequenceVariations.Count)];
-        StartCoroutine(PlayDialogueSequence(currentOpeningSequence, true));
-    }
-
-    private void PickRandomResultSequence()
-    {
-        if (resultDialogueSequenceVariations.Count == 0)
+        // Diálogos de apertura
+        if (openingSequences != null && openingSequences.Length > 0)
         {
-            LoadMinigame();
-            return;
+            DialogueSequence chosen = openingSequences[Random.Range(0, openingSequences.Length)];
+            yield return StartCoroutine(PlayDialogueSequence(chosen, true));
         }
 
-        currentResultSequence = resultDialogueSequenceVariations[Random.Range(0, resultDialogueSequenceVariations.Count)];
-        StartCoroutine(PlayDialogueSequence(currentResultSequence, false));
+        // Delay configurable antes de caer
+        if (rouletteDropDelay > 0f)
+            yield return new WaitForSeconds(rouletteDropDelay);
+
+        // El presentador se mueve ANTES de la caída
+        MovePresenterToRoulettePosition();
+
+        // Caer la ruleta
+        yield return StartCoroutine(DropRoulette());
+
+        // Sacar la tapa automáticamente si está configurado
+        if (removeCoverAutomatically)
+            RemoveCover();
+
+        // Zoom hacia la ruleta
+        if (mainCamera != null)
+            mainCamera.DOOrthoSize(zoomToRouletteOrthoSize, zoomDuration)
+                .SetEase(Ease.InOutQuad);
+
+        // Recién acá empieza a girar
+        SpinRoulette();
     }
 
-    private System.Collections.IEnumerator PlayDialogueSequence(DialogueSequence sequence, bool activatesRoulette)
+    // ── Diálogos ──────────────────────────────────────────────────────────────
+
+    private IEnumerator PlayDialogueSequence(DialogueSequence sequence, bool activatesRoulette)
     {
-        for (int i = 0; i < sequence.lines.Count; i++)
+        if (sequence.lines == null || sequence.lines.Length == 0) yield break;
+
+        for (int i = 0; i < sequence.lines.Length; i++)
         {
             DialogueLine line = sequence.lines[i];
 
-            // Set presenter sprite
-            if (presenterSpriteRenderer != null)
-            {
-                presenterSpriteRenderer.sprite = line.presenterSprite != null ? line.presenterSprite : sequence.defaultPresenterSprite;
-            }
+            // Cambiar sprite + salto del presentador
+            Sprite spriteToUse = line.presenterSprite != null ? line.presenterSprite : sequence.defaultPresenterSprite;
+            if (presenterSpriteRenderer != null && spriteToUse != null)
+                presenterSpriteRenderer.sprite = spriteToUse;
 
-            // Show dialogue with effect
-            yield return ShowDialogueWithEffect(line);
+            PresenterJump();
+
+            // Mostrar el texto como bloque en un spawn point aleatorio
+            yield return StartCoroutine(ShowTextBlock(line));
 
             if (line.isFinalDialogue && activatesRoulette && !hasInitializedSpinner)
             {
                 hasInitializedSpinner = true;
-                // Start the roulette
-                if (minigameSpinner != null)
-                {
-                    minigameSpinner.InitializeSpinner();
-                }
-                else
-                {
-                    Debug.LogWarning("MinigameSpinner not assigned! Using fallback random selection.");
-                    // Fallback: pick random minigame and proceed
-                    selectedMinigameId = Random.Range(1, 5);
-                    HandleSpinComplete(selectedMinigameId);
-                }
             }
-        }
-
-        // If we're playing result dialogues and done, load the minigame
-        if (!activatesRoulette)
-        {
-            LoadMinigame();
         }
     }
 
-    private System.Collections.IEnumerator ShowDialogueWithEffect(DialogueLine line)
+    private IEnumerator ShowTextBlock(DialogueLine line)
     {
-        if (dialogueText == null) yield break;
+        // Limpiar texto anterior
+        ClearActiveText();
 
-        // Reset dialogue position and state
-        dialogueText.transform.localPosition = dialogueOriginalPosition;
-        dialogueText.alpha = 0f;
-        dialogueText.text = "";
-        dialogueText.transform.localScale = Vector3.one * 0.8f;
-
-        Sequence showSequence = DOTween.Sequence();
-        showSequence.Join(dialogueText.DOFade(1f, dialogueRiseDuration * 0.5f).SetEase(Ease.OutQuad));
-        showSequence.Join(dialogueText.transform.DOLocalMoveY(dialogueOriginalPosition.y + dialogueRiseAmount, dialogueRiseDuration).SetEase(Ease.OutQuad));
-        showSequence.Join(dialogueText.transform.DOScale(Vector3.one, dialogueRiseDuration * 0.5f).SetEase(Ease.OutBack));
-        showSequence.Play();
-
-        // Type text letter by letter
-        float timer = 0f;
-        int charIndex = 0;
-
-        while (charIndex < line.text.Length)
+        if (textSpawnPoints == null || textSpawnPoints.Length == 0 || textPrefab == null)
         {
-            timer += Time.deltaTime;
-            if (timer >= line.typeSpeed)
-            {
-                timer = 0f;
-                charIndex++;
-                dialogueText.text = line.text.Substring(0, charIndex);
-
-                // Pop effect for each character
-                dialogueText.transform.DOScale(Vector3.one * dialoguePopAmount, 0.05f)
-                    .OnComplete(() => dialogueText.transform.DOScale(Vector3.one, 0.05f));
-            }
-            yield return null;
+            yield return new WaitForSeconds(line.displayDuration);
+            yield break;
         }
+
+        // Elegir spawn point aleatorio
+        Transform spawnPoint = textSpawnPoints[Random.Range(0, textSpawnPoints.Length)];
+
+        // Instanciar texto 3D
+        TextMeshPro instance = Instantiate(textPrefab, spawnPoint.position, spawnPoint.rotation, spawnPoint);
+        instance.text = line.text;
+
+        Color c = instance.color;
+        instance.color = new Color(c.r, c.g, c.b, 0f);
+        instance.transform.localScale = Vector3.one * 0.8f;
+        activeText = instance;
+
+        // Fade in + pop
+        Sequence showSeq = DOTween.Sequence();
+        showSeq.Join(instance.DOFade(1f, textFadeInDuration).SetEase(Ease.OutQuad));
+        showSeq.Join(instance.transform.DOScale(Vector3.one, textFadeInDuration).SetEase(Ease.OutBack));
+        showSeq.Play();
 
         yield return new WaitForSeconds(line.displayDuration);
 
-        // Hide dialogue
-        Sequence hideSequence = DOTween.Sequence();
-        hideSequence.Join(dialogueText.DOFade(0f, dialogueRiseDuration * 0.5f).SetEase(Ease.InQuad));
-        hideSequence.Join(dialogueText.transform.DOLocalMoveY(dialogueOriginalPosition.y + dialogueRiseAmount * 1.5f, dialogueRiseDuration).SetEase(Ease.InQuad));
-        hideSequence.Play();
+        ClearActiveText();
 
-        yield return new WaitForSeconds(dialogueRiseDuration);
+        // Pequeña pausa entre líneas
+        yield return new WaitForSeconds(textFadeOutDuration);
     }
 
-    private void HandleSpinComplete(int winnerId)
+    private void ClearActiveText()
     {
-        selectedMinigameId = winnerId;
-
-        // Apply color (use winnerId - 1 as index, since winnerId starts at 1)
-        int colorIndex = (winnerId - 1) % resultColors.Length;
-        if (resultColors.Length > 0)
+        if (activeText == null) return;
+        TextMeshPro captured = activeText;
+        activeText = null;
+        captured.DOFade(0f, textFadeOutDuration).SetEase(Ease.InQuad).OnComplete(() =>
         {
-            ApplyResultColor(resultColors[colorIndex]);
-        }
-
-        // Zoom out camera
-        if (mainCamera != null)
-        {
-            mainCamera.DOOrthoSize(zoomOutOrthoSize, zoomDuration).SetEase(Ease.InOutQuad).OnComplete(PickRandomResultSequence);
-        }
-        else
-        {
-            PickRandomResultSequence();
-        }
+            if (captured != null) Destroy(captured.gameObject);
+        });
     }
+
+    // ── Salto del presentador ─────────────────────────────────────────────────
+
+    private void PresenterJump()
+    {
+        if (presenterSpriteRenderer == null) return;
+
+        Transform t = presenterSpriteRenderer.transform;
+        t.DOKill();
+        t.localPosition = presenterOriginalPosition;
+
+        Sequence jumpSeq = DOTween.Sequence();
+        jumpSeq.Append(t.DOLocalMoveY(presenterOriginalPosition.y + presenterJumpHeight, presenterJumpDuration)
+            .SetEase(Ease.OutQuad));
+        jumpSeq.Append(t.DOLocalMoveY(presenterOriginalPosition.y, presenterJumpDuration)
+            .SetEase(Ease.InQuad));
+        jumpSeq.Play();
+    }
+
+    // Mover el presentador hacia el GO destino al caer la ruleta
+    private void MovePresenterToRoulettePosition()
+    {
+        if (presenterSpriteRenderer == null || presenterRouletteDestination == null) return;
+
+        presenterSpriteRenderer.transform.DOMove(
+            presenterRouletteDestination.position,
+            0.5f
+        ).SetEase(Ease.OutQuad);
+    }
+
+    // ── Luces péndulo ─────────────────────────────────────────────────────────
 
     private void StartLightsLoop()
     {
@@ -304,72 +301,135 @@ public class RouletteShowDialogueSystem : MonoBehaviour
         {
             GameObject light = lights[i];
             Vector3 originalPos = light.transform.localPosition;
-            float direction = i % 2 == 0 ? 1f : -1f;
+            float direction = (lightsAlternateDirection && i % 2 != 0) ? -1f : 1f;
 
-            Sequence lightSequence = DOTween.Sequence();
-            lightSequence.Append(light.transform.DOLocalMove(originalPos + Vector3.right * lightsMoveAmount * direction, lightsMoveDuration / 2f)
-                .SetEase(Ease.InOutSine).SetDelay(i * 0.2f));
-            lightSequence.Append(light.transform.DOLocalMove(originalPos + Vector3.left * lightsMoveAmount * direction, lightsMoveDuration)
-                .SetEase(Ease.InOutSine));
-            lightSequence.Append(light.transform.DOLocalMove(originalPos, lightsMoveDuration / 2f)
-                .SetEase(Ease.InOutSine));
-            lightSequence.SetLoops(-1, LoopType.Restart);
-            lightSequence.Play();
+            light.transform.localPosition = new Vector3(
+                originalPos.x + lightsPendulumAmount * direction,
+                originalPos.y,
+                originalPos.z
+            );
+
+            light.transform.DOLocalMoveX(originalPos.x - lightsPendulumAmount * direction, lightsPendulumDuration * 2f)
+                .SetEase(Ease.InOutSine)
+                .SetLoops(-1, LoopType.Yoyo);
         }
     }
 
-    private void DropRoulette()
-    {
-        if (roulette == null) return;
+    // ── Ruleta ────────────────────────────────────────────────────────────────
 
-        Sequence dropSequence = DOTween.Sequence();
-        dropSequence.Append(roulette.transform.DOLocalMove(rouletteOriginalPosition, rouletteDropDuration).SetEase(Ease.InBounce));
-        dropSequence.Append(roulette.transform.DOPunchPosition(Vector3.down * rouletteBounceStrength, rouletteBounceDuration, 5).SetEase(Ease.OutElastic));
-        dropSequence.Play();
+    private IEnumerator DropRoulette()
+    {
+        if (roulette == null) yield break;
+
+        bool dropDone = false;
+
+        Sequence dropSeq = DOTween.Sequence();
+        dropSeq.Append(roulette.transform.DOMove(rouletteDestination, rouletteDropDuration).SetEase(Ease.OutBounce));
+        dropSeq.Append(roulette.transform.DOPunchPosition(
+            Vector3.down * rouletteBounceStrength,
+            rouletteBounceDuration,
+            rouletteBounceVibrato
+        ).SetEase(Ease.OutElastic));
+        dropSeq.OnComplete(() =>
+        {
+            dropDone = true;
+            MovePresenterToRoulettePosition();
+        });
+        dropSeq.Play();
+
+        yield return new WaitUntil(() => dropDone);
     }
 
-    private void RemoveCover()
+    // Método público para sacar la cortina manualmente desde el Inspector o un botón
+    public void RemoveCover()
     {
         if (rouletteCover == null) return;
-        rouletteCover.transform.DOLocalMoveX(coverOriginalPosition.x + coverMoveAmount, coverMoveDuration).SetEase(Ease.OutQuad);
+        rouletteCover.transform.DOMoveX(coverOriginalPosition.x + coverMoveAmount, coverMoveDuration).SetEase(Ease.OutQuad);
+    }
+
+    private void SpinRoulette()
+    {
+        if (minigameSpinner != null)
+        {
+            minigameSpinner.InitializeSpinner();
+        }
+        else
+        {
+            FallbackSelectResult();
+        }
+    }
+
+    // ── Resultado ─────────────────────────────────────────────────────────────
+
+    private void HandleSpinComplete(int winnerId)
+    {
+        selectedMinigameId = winnerId;
+
+        int colorIndex = (winnerId - 1) % Mathf.Max(1, resultColors.Length);
+
+        if (resultColors.Length > 0)
+            ApplyResultColor(resultColors[colorIndex]);
+
+        if (mainCamera != null)
+        {
+            mainCamera.DOOrthoSize(
+                zoomOutOrthoSize,
+                zoomDuration
+            )
+            .SetEase(Ease.InOutQuad)
+            .OnComplete(PlayResultDialogues);
+        }
+        else
+        {
+            PlayResultDialogues();
+        }
+    }
+    private void FallbackSelectResult()
+    {
+        if (minigameIds == null || minigameIds.Length == 0) { LoadMinigame(); return; }
+        selectedMinigameId = minigameIds[Random.Range(0, minigameIds.Length)];
+        LoadMinigame();
+    }
+
+    private void PlayResultDialogues()
+    {
+        if (resultSequences == null || resultSequences.Length == 0) { LoadMinigame(); return; }
+        DialogueSequence chosen = resultSequences[Random.Range(0, resultSequences.Length)];
+        StartCoroutine(PlayResultThenLoad(chosen));
+    }
+
+    private IEnumerator PlayResultThenLoad(DialogueSequence sequence)
+    {
+        yield return StartCoroutine(PlayDialogueSequence(sequence, false));
+        LoadMinigame();
     }
 
     private void ApplyResultColor(Color color)
     {
         if (resultColorObjects == null) return;
-
         foreach (var obj in resultColorObjects)
         {
-            SpriteRenderer spriteRenderer = obj.GetComponent<SpriteRenderer>();
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.DOColor(color, colorChangeDuration).SetEase(Ease.InOutQuad);
-            }
+            SpriteRenderer sr = obj.GetComponent<SpriteRenderer>();
+            if (sr != null) sr.DOColor(color, colorChangeDuration).SetEase(Ease.InOutQuad);
 
-            UnityEngine.UI.Image image = obj.GetComponent<UnityEngine.UI.Image>();
-            if (image != null)
-            {
-                image.DOColor(color, colorChangeDuration).SetEase(Ease.InOutQuad);
-            }
+            UnityEngine.UI.Image img = obj.GetComponent<UnityEngine.UI.Image>();
+            if (img != null) img.DOColor(color, colorChangeDuration).SetEase(Ease.InOutQuad);
         }
     }
+
+    // ── Carga ─────────────────────────────────────────────────────────────────
+
+    [SerializeField] private int[] minigameIds; // fallback si no hay spinner
 
     private void LoadMinigame()
     {
         KillAllTweens();
-        
-        // Save the selected minigame (in case we need it)
         PlayerPrefs.SetInt("SelectedMinigame", selectedMinigameId);
-        
+
         if (SceneLoader.Instance != null)
-        {
             SceneLoader.Instance.LoadSelectModifier();
-        }
         else
-        {
-            Debug.LogWarning("SceneLoader.Instance is null! Loading directly.");
             UnityEngine.SceneManagement.SceneManager.LoadScene("Select_Modifier");
-        }
     }
 
     private void KillAllTweens()
