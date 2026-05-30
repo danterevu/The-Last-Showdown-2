@@ -31,6 +31,13 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [SerializeField] private float selfKnockback; public float SelfKnockback => selfKnockback;
     [SerializeField] private float attackCooldown = 0.5f;
 
+    [Header("Crate")]
+    [SerializeField] private Transform crateHoldPoint; // punto donde se sostiene la caja
+    [SerializeField] private LayerMask crateLayer;
+    private Crate heldCrate = null;
+    private bool isStunned = false;
+    private float stunTimer = 0f;
+
     [Header("Hitbox")]
     [SerializeField] private PunchHitboxDNA punchHitbox;
 
@@ -158,7 +165,19 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         if (isDead) return;
         if (moveAction == null) return;
 
-        moveInput = ReadFilteredMove();
+        if (isStunned)
+        {
+            stunTimer -= Time.deltaTime;
+            if (stunTimer <= 0f)
+            {
+                isStunned = false;
+                canAttack = true;
+                Debug.Log(gameObject.name + " recuperado del stun");
+            }
+            return; // No procesar movimiento ni ataques
+        }
+
+            moveInput = ReadFilteredMove();
 
         Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
         if (gp != null)
@@ -236,17 +255,16 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     private void FixedUpdate()
     {
-        if (isDead) return;
-
+        if (isStunned) return;
         rb.gravityScale = gravityScale;
 
         if (!isKnockedBack)
         {
             rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
         }
-
         ApplyBetterGravity();
     }
+
     private void LateUpdate()
     {
         if (punchHitbox != null) //para orientar la hitbox de la piña
@@ -342,7 +360,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     private void TryAttack()
     {
-        if (isDead || !canAttack || isAttacking || hasDNA) return;
+        if (!canAttack || isAttacking || hasDNA || isStunned || heldCrate != null) return;
         isAttacking = true;
         animator.SetTrigger("Attack");
         StartCoroutine(AttackCooldown());
@@ -389,12 +407,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         canAttack = true;
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Spike") && !isDead && !isInvulnerable)
-            StartCoroutine(Die());
-    }
-
     private void CheckGround()
     {
         if (rb.linearVelocity.y > 0.1f)
@@ -417,26 +429,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         bool onHead = (headLeft.collider != null && headLeft.collider.transform.root != transform) ||
                       (headRight.collider != null && headRight.collider.transform.root != transform);
 
-        isGrounded = onGround || onHead;
-    }
-
-    private IEnumerator Die()
-    {
-        isDead = true;
-        isKnockedBack = false;
-        isAttacking = false;
-        punchHitbox?.Deactivate();
-        rb.linearVelocity = Vector2.zero;
-        rb.gravityScale = 0f;
-        animator.SetTrigger("Die");
-        yield return new WaitForSeconds(respawnDelay);
-        sr.enabled = false;
-        transform.position = spawnPoint;
-        rb.gravityScale = gravityScale;
-        yield return new WaitForSeconds(0.1f);
-        sr.enabled = true;
-        isDead = false;
-        StartCoroutine(Invulnerable());
+        isGrounded = onGround || onHead; //aura
     }
 
     public void SetCrushed(bool crushed)
@@ -444,25 +437,53 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         isCrushed = crushed;
         animator?.SetBool("isCrushed", crushed);
     }
-    private IEnumerator Invulnerable()
-    {
-        isInvulnerable = true;
-        float elapsed = 0f;
-        while (elapsed < invulnerableTime)
-        {
-            sr.enabled = !sr.enabled;
-            elapsed += 0.2f;
-            yield return new WaitForSeconds(0.2f);
-        }
-        sr.enabled = true;
-        isInvulnerable = false;
-    }
 
     private void OnInteract(InputAction.CallbackContext context)
     {
         if (!IsCorrectDevice(context.control.device)) return;
-        Debug.Log(gameObject.name + " presiono interact");
-        UsePowerUp();
+        if (isDead || isStunned) return;
+
+        // PRIORIDAD ABSOLUTA: si tengo caja, la suelto o lanzo
+        if (heldCrate != null)
+        {
+            float playerSpeed = Mathf.Abs(rb.linearVelocity.x);
+            if (playerSpeed < 0.5f)
+            {
+                heldCrate.DropAtPlace();
+            }
+            else
+            {
+                float dirX = IsFacingRight() ? 1f : -1f;
+                heldCrate.Throw(new Vector2(dirX, 0f), playerSpeed);
+            }
+            heldCrate = null;
+            return; //  IMPORTANTE: salir aquí para no procesar power-up ni agarrar otra caja
+        }
+
+        // Si no tengo caja, intento agarrar una cercana
+        if (TryGrabNearbyCrate())
+            return; // si agarró caja, no usar power-up
+
+        // Si no hay caja cerca, usar power-up (si lo tiene)
+        if (hasDNAPowerUp)
+        {
+            UsePowerUp();
+        }
+    }
+
+    private bool TryGrabNearbyCrate()
+    {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.8f, crateLayer);
+        foreach (var col in colliders)
+        {
+            Crate crate = col.GetComponent<Crate>();
+            if (crate != null && crate.TryPickUp(this))
+            {
+                heldCrate = crate;
+                return true;
+            }
+        }
+        return false;
     }
 
     private bool IsCorrectDevice(InputDevice device)
@@ -476,6 +497,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     // Power ups — implementar según el nuevo minijuego
     private void UsePowerUp()
     {
+        if (!hasDNAPowerUp || heldCrate != null) return;
         if (!hasDNAPowerUp) return;
         hasDNAPowerUp = false;
 
@@ -517,6 +539,12 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     public void ClearActivePowerUpEffects()
     {
+        if (heldCrate != null)
+        {
+            heldCrate.DropAtPlace();
+            heldCrate = null;
+        }
+
         jumpForce = baseJumpForce;
         gravityScale = baseGravityScale;
 
@@ -543,6 +571,25 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         jumpForce = // necesitás guardar el jumpForce original en Awake
         gravityScale = // mismo
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
+    }
+
+    //CAJAAAAAAA (Crate)
+
+    public void Stun(float duration)
+    {
+        if (isStunned) return;
+        isStunned = true;
+        stunTimer = duration;
+        rb.linearVelocity = Vector2.zero;
+        canAttack = false;
+        // Opcional: soltar caja si la tiene
+        if (heldCrate != null)
+        {
+            heldCrate.DropAtPlace();
+            heldCrate = null;
+        }
+        animator?.SetTrigger("Hurt");
+        Debug.Log(gameObject.name + " stuneado por " + duration + "s");
     }
 
     //POWER UPS EFFECTS
@@ -678,14 +725,19 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     }  
 
     public bool IsFacingRight() => !sr.flipX;
-    public Collider2D GetCollider() => col;
-    public Rigidbody2D GetRigidbody() => rb;
-    public void SetSpawnPoint(Vector3 point) { spawnPoint = point; }
 
     // Mutant DNA
     public bool HasDNA() => hasDNA;
     public void PickDNA(DNA dna)
     {
+        // Si tiene caja, soltarla antes de agarrar ADN, MODIFICAR linea EN TryPickUp() de la clase Crate
+       /* if (heldCrate != null) 
+        {
+            heldCrate.DropAtPlace();
+            heldCrate = null;
+        }*/
+
+        if (hasDNA) return;
         hasDNA = true;
         carriedDNA = dna;
         moveSpeed = baseMoveSpeed * 0.6f;
@@ -693,11 +745,14 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     public void DropDNA()
     {
+        if (!hasDNA) return;
         hasDNA = false;
         carriedDNA = null;
-        moveSpeed = baseMoveSpeed;
+        moveSpeed = baseMoveSpeed;  // restaurar velocidad normal
+                                    // Si además tiene caja, la velocidad ya la maneja el agarre de caja (baseMoveSpeed * algo)
+                                    // Aquí no afecta a la caja.
     }
-
+    public Transform GetCrateHoldPoint() => crateHoldPoint;
+    public bool IsStunned() => isStunned;
     public DNA GetCarriedDNA() => carriedDNA;
-
 }

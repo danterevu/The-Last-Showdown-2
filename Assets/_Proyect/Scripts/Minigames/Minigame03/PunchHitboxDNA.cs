@@ -19,6 +19,15 @@ public class PunchHitboxDNA : MonoBehaviour
     {
         if (!hitbox.enabled) return;
 
+        // Destruir caja si golpea
+        Crate crate = other.GetComponent<Crate>();
+        if (crate != null)
+        {
+            crate.DestroyCrate();
+            Deactivate();
+            return;
+        }
+
         //Definimos al Target (al otro jugador)
         PlayerControllerDNA target = other.GetComponentInParent<PlayerControllerDNA>();
         if (target == null || target == owner) return;
