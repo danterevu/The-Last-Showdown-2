@@ -3,10 +3,12 @@ using System.Collections.Generic;
 
 public class MinigameSpinner : MonoBehaviour
 {
-    [Header("Configuración de Minijuegos")]
+    public event System.Action<int> OnSpinComplete;
+
+    [Header("Configuraciï¿½n de Minijuegos")]
     [SerializeField] private int totalMinigames = 4;
 
-    [Header("Configuración Visual")]
+    [Header("Configuraciï¿½n Visual")]
     [SerializeField] private float minSpinPower = 40f;
     [SerializeField] private float maxSpinPower = 80f;
     [SerializeField] private float stopPower = 2f;
@@ -17,7 +19,7 @@ public class MinigameSpinner : MonoBehaviour
     [Header("Referencias")]
     [SerializeField] private ModifiersSpinner modifiersSpinner;
 
-    // Offset centralizado — cambiá solo este valor si ajustás la ruleta
+    // Offset centralizado ï¿½ cambiï¿½ solo este valor si ajustï¿½s la ruleta
     private const float ANGLE_OFFSET = 270f;
 
     private Rigidbody2D rb;
@@ -28,10 +30,23 @@ public class MinigameSpinner : MonoBehaviour
     private float targetAngle = 0f;
     [SerializeField] private float correctionSpeed = 90f;
 
-    private void Start()
+    private bool isInitialized = false;
+
+    private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         rb.angularDamping = 0.2f;
+    }
+
+    private void Start()
+    {
+        // No hacemos nada aquÃ­ para que no se active solo
+    }
+
+    public void InitializeSpinner()
+    {
+        if (isInitialized) return;
+        isInitialized = true;
         RefreshOverlays();
         SpinIt();
     }
@@ -107,7 +122,7 @@ public class MinigameSpinner : MonoBehaviour
         float rawAngle = transform.rotation.eulerAngles.z;
         int winnerId = GetWinnerIdFromAngle(rawAngle);
 
-        Debug.Log($"Angulo raw: {rawAngle:F1}° | Minijuego: {winnerId}");
+        Debug.Log($"Angulo raw: {rawAngle:F1}ï¿½ | Minijuego: {winnerId}");
 
         if (GameManager.Instance.IsMinigameAvailable(winnerId))
             ConfirmSelection();
@@ -145,18 +160,18 @@ public class MinigameSpinner : MonoBehaviour
     private void ConfirmSelection()
     {
         float rawAngle = transform.rotation.eulerAngles.z;
-        int winnerId = GetWinnerIdFromAngle(rawAngle); // 0 - 90 = M1 Dodge Disk
-                                                       // 90 - 180 = M2 King Of The Hill
-                                                       // 180 - 270 = M3 Mutant DNA
-                                                       // 270 - 360 = M4 Space Ships
+        int winnerId = GetWinnerIdFromAngle(rawAngle);// 0 - 90 = M1 Dodge Disk
+                                                      // 90 - 180 = M2 King Of The Hill
+                                                      // 180 - 270 = M3 Mutant DNA
+                                                      // 270 - 360 = M4 Space Ships
 
         Debug.Log($" Confirmado: Minijuego {winnerId}");
         //GameManager.Instance.EndRound(winnerId); 
         //NO BORRAR HASTA build final
         RefreshOverlays();
 
-        PlayerPrefs.SetInt("SelectedMinigame", winnerId);
-        SceneLoader.Instance.LoadSelectModifier();
+        // Invoke the event instead of loading directly
+        OnSpinComplete?.Invoke(winnerId);
     }
 
     private void RefreshOverlays()
