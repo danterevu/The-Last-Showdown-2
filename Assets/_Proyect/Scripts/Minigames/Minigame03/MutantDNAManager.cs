@@ -79,7 +79,7 @@ public class MutantDNAManager : MonoBehaviour
 
         var (p1Round, p2Round) = GameManager.Instance.FinishMinigame();
         GameManager.Instance.EndRound(3); // id del minijuego DNA
-
+        PlayerPrefs.SetInt("LastPlayedMinigame", 3);
         PlayerPrefs.SetInt("LastRoundP1", p1Round);
         PlayerPrefs.SetInt("LastRoundP2", p2Round);
 

@@ -286,7 +286,8 @@
 
             var (p1Round, p2Round) = GameManager.Instance.FinishMinigame();
             GameManager.Instance.EndRound(1);
-            PlayerPrefs.SetInt("LastRoundP1", p1Round);
+        PlayerPrefs.SetInt("LastPlayedMinigame", 1);
+        PlayerPrefs.SetInt("LastRoundP1", p1Round);
             PlayerPrefs.SetInt("LastRoundP2", p2Round);
             SceneLoader.Instance.LoadResults();
         }

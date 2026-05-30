@@ -120,6 +120,8 @@ public class GameManager : MonoBehaviour
         player2Multiplier = 1f;
         currentRound = 1;
         InitializeMinigames();
+        PlayerPrefs.SetInt("LastPlayedMinigame", 0);
+        PlayerPrefs.Save();
     }
 }
 

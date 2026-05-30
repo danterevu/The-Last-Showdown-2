@@ -70,6 +70,7 @@ public class Menu : MonoBehaviour
     
     public void MenuButton()
     {
+        GameManager.Instance?.ResetGame();
         KillAllTweens();
         AudioManager.Instance?.StopMusic();
         if (SceneLoader.Instance != null)

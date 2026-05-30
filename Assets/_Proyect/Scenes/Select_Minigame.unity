@@ -740,7 +740,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 4
+  m_SortingOrder: 5
   m_Sprite: {fileID: -248141845095383678, guid: 03099b12aaa85f8428d4b20fb22d7c88, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1297,18 +1297,22 @@ MonoBehaviour:
   textFadeOutDuration: 0.3
   openingSequences:
   - sequenceName: Start1
-    defaultPresenterSprite: {fileID: 0}
+    defaultPresenterSprite: {fileID: -6291641308854743428, guid: 5e05f5154ebb59349b81cec8da6b2ab7, type: 3}
+    keepLastSprite: 0
+    postSequenceSprite: {fileID: 0}
     lines:
     - text: 'Lindo dia para existir '
       presenterSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
       displayDuration: 4
       isFinalDialogue: 0
     - text: Perfecto para tirar esta Ruleta una vez mas
-      presenterSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
+      presenterSprite: {fileID: -7568444368513293514, guid: 81a9f4faf9ee38948b53fd0e70db40e0, type: 3}
       displayDuration: 2
       isFinalDialogue: 1
   - sequenceName: Start2
-    defaultPresenterSprite: {fileID: 0}
+    defaultPresenterSprite: {fileID: -6291641308854743428, guid: 5e05f5154ebb59349b81cec8da6b2ab7, type: 3}
+    keepLastSprite: 0
+    postSequenceSprite: {fileID: 0}
     lines:
     - text: 'Desearia tirar la ruleta '
       presenterSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
@@ -1318,9 +1322,171 @@ MonoBehaviour:
       presenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
       displayDuration: 5
       isFinalDialogue: 1
+  returnSequencesByMinigame:
+  - minigameId: 1
+    minigameName: DodgeDisk
+    sequences:
+    - sequenceName: Normal
+      defaultPresenterSprite: {fileID: 0}
+      keepLastSprite: 0
+      postSequenceSprite: {fileID: 0}
+      lines:
+      - text: Mamita que espectaculo! ni en las tierras de alabama vi tantas habilidades
+          de esquivar!
+        presenterSprite: {fileID: 0}
+        displayDuration: 5
+        isFinalDialogue: 0
+      - text: Pero bueno.. ahora que presenciamos ese espectaculo, que tal si pasamos
+          a otra ronda?
+        presenterSprite: {fileID: 0}
+        displayDuration: 5
+        isFinalDialogue: 1
+    - sequenceName: Locura
+      defaultPresenterSprite: {fileID: 0}
+      keepLastSprite: 0
+      postSequenceSprite: {fileID: 0}
+      lines:
+      - text: Eso fue una completa porqueria! Para ser los mas capacitados, lo hicieron
+          completamente fatal! como van a salvar su propio culo si no saben esquivar
+          una maldita bola
+        presenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 0
+      - text: 'Vayamos al final de esto '
+        presenterSprite: {fileID: 0}
+        displayDuration: 5
+        isFinalDialogue: 1
+  - minigameId: 2
+    minigameName: KOH
+    sequences:
+    - sequenceName: 'Normal '
+      defaultPresenterSprite: {fileID: -6291641308854743428, guid: 5e05f5154ebb59349b81cec8da6b2ab7, type: 3}
+      keepLastSprite: 1
+      postSequenceSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
+      lines:
+      - text: Que forma de agarrarse a golpes con tal de ganar unos puntos, eso si
+          es un verdadero concurso por la excelencia de cada uno!
+        presenterSprite: {fileID: -7568444368513293514, guid: 81a9f4faf9ee38948b53fd0e70db40e0, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 0
+      - text: Ahora que hemos concluido con esta increible ronda, que tal si pasamos
+          al siguiente minijuego?
+        presenterSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 1
+    - sequenceName: Locura
+      defaultPresenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
+      keepLastSprite: 1
+      postSequenceSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
+      lines:
+      - text: 'Si tuviera que elegir entre torturar a uno de mis espectadores o eliminar
+          a uno de estos dos jugadores, definitivamente ACABARIA EL JUEGO '
+        presenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 0
+      - text: 'Sigamos con el programa '
+        presenterSprite: {fileID: -7568444368513293514, guid: 81a9f4faf9ee38948b53fd0e70db40e0, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 1
+  - minigameId: 3
+    minigameName: DNA
+    sequences:
+    - sequenceName: 'Normal '
+      defaultPresenterSprite: {fileID: -6291641308854743428, guid: 5e05f5154ebb59349b81cec8da6b2ab7, type: 3}
+      keepLastSprite: 1
+      postSequenceSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
+      lines:
+      - text: 'Pero que cambios tan abruptos en el panorama! Cajas? Mutaciones? Que
+          espectaculo nos dieron! '
+        presenterSprite: {fileID: -6291641308854743428, guid: 5e05f5154ebb59349b81cec8da6b2ab7, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 0
+      - text: Ahora que acabamos con estas mutaciones, que tal si vamos a la siguiente
+          ronda?
+        presenterSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 1
+    - sequenceName: Locura
+      defaultPresenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
+      keepLastSprite: 1
+      postSequenceSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
+      lines:
+      - text: Si me dieran una Zipzomoneda por todas las veces que estos dos fracasados
+          no llegaron a entregar ni una sola muestra, TENDRIA MAS DE 10
+        presenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 0
+      - text: 'Mi paciencia se esta colmando, los espectadores estan bajando, si
+          no hacen una buena actuacion, pronto van a encontrar mi ira, vamos con
+          la ruleta '
+        presenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 1
+  - minigameId: 4
+    minigameName: Space
+    sequences:
+    - sequenceName: 'Normal '
+      defaultPresenterSprite: {fileID: -6291641308854743428, guid: 5e05f5154ebb59349b81cec8da6b2ab7, type: 3}
+      keepLastSprite: 1
+      postSequenceSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
+      lines:
+      - text: Que forma de volar esos obstaculos! no me queda duda que ustedes son
+          unos expertos
+        presenterSprite: {fileID: -6291641308854743428, guid: 5e05f5154ebb59349b81cec8da6b2ab7, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 0
+      - text: 'Vamos al siguiente minijuego! '
+        presenterSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 1
+    - sequenceName: Locura
+      defaultPresenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
+      keepLastSprite: 1
+      postSequenceSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
+      lines:
+      - text: No saben ni saltar un PUTO obstaculo, que pensara el publico de ustedes
+          cuando tenga que ELIMINARLOS A LOS DOS
+        presenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 0
+      - text: 'Que lastima que ustedes nazcan y mueran sin ver la luz del sol '
+        presenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 1
+  - minigameId: 5
+    minigameName: ChaseRun
+    sequences:
+    - sequenceName: 'Normal '
+      defaultPresenterSprite: {fileID: -6291641308854743428, guid: 5e05f5154ebb59349b81cec8da6b2ab7, type: 3}
+      keepLastSprite: 1
+      postSequenceSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
+      lines:
+      - text: Que forma de sobrevolar a base de tiros y powerUps!
+        presenterSprite: {fileID: -6291641308854743428, guid: 5e05f5154ebb59349b81cec8da6b2ab7, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 0
+      - text: 'Vamos al siguiente minijuego! '
+        presenterSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 1
+    - sequenceName: Locura
+      defaultPresenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
+      keepLastSprite: 1
+      postSequenceSprite: {fileID: 5461972331887365146, guid: a1b373708ed20db45a1cbb44891a25d5, type: 3}
+      lines:
+      - text: Que desastre...
+        presenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 0
+      - text: 'Van a morir aqui '
+        presenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
+        displayDuration: 5
+        isFinalDialogue: 1
   resultSequences:
   - sequenceName: Ten Misericordia Dios
     defaultPresenterSprite: {fileID: -4726644080215648741, guid: 6732a827b5d440649be042b46bf9254e, type: 3}
+    keepLastSprite: 0
+    postSequenceSprite: {fileID: 0}
     lines:
     - text: POR QUE ME ODIAS DIOS
       presenterSprite: {fileID: -6291641308854743428, guid: 5e05f5154ebb59349b81cec8da6b2ab7, type: 3}

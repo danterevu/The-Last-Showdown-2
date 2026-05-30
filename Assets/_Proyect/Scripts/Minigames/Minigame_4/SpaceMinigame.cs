@@ -280,6 +280,7 @@ public class SpaceMinigame : MonoBehaviour
 
         GameManager.Instance?.FinishMinigame();
         GameManager.Instance?.EndRound(4);
+        PlayerPrefs.SetInt("LastPlayedMinigame", 4); // el id de ese minijuego
 
         if (SceneLoader.Instance != null)
             SceneLoader.Instance.LoadResults();

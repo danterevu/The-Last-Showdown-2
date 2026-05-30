@@ -742,6 +742,8 @@ public class KingOfHill : MonoBehaviour
                                           // guardar para mostrar en Results
         PlayerPrefs.SetInt("LastRoundP1", p1Round);
         PlayerPrefs.SetInt("LastRoundP2", p2Round);
+        PlayerPrefs.SetInt("LastPlayedMinigame", 2);
         SceneLoader.Instance.LoadResults();
+
     }
 }
