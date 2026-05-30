@@ -468,8 +468,19 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Spike") && !isDead)
+        {
+            AudioManager.Instance?.PlaySFX(SoundID.LDeath);
             StartCoroutine(Die());
+        }
+
+        else if (other.CompareTag("Saw") && !isDead)
+        {
+            AudioManager.Instance?.PlaySFX(SoundID.SDeath);
+            StartCoroutine(Die());
+        }
     }
+
+
     public void SetCrushed(bool crushed)
     {
         isCrushed = crushed;

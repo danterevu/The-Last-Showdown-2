@@ -26,6 +26,7 @@ public class PunchHitbox : MonoBehaviour
         // Dirección del golpe según a dónde mira el jugador
         float dirX = owner.IsFacingRight() ? 1f : -1f;
         Vector2 knockDir = new Vector2(dirX, 0.3f).normalized;
+        AudioManager.Instance?.PlaySFX(SoundID.Punch);
 
         // Knockback al rival
         target.ReceiveKnockback(knockDir);

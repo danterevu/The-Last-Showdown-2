@@ -167,7 +167,7 @@ public class Menu : MonoBehaviour
 
         if (lightImages != null && lightImages.Length > 0)
         {
-            Debug.Log($"Hay {lightImages.Length} luces");
+            
             AnimateLightImages();
         }
 
@@ -175,7 +175,7 @@ public class Menu : MonoBehaviour
         {
             if (cameramanContainer.childCount > 0)
             {
-                Debug.Log($"CameramanContainer tiene {cameramanContainer.childCount} hijos");
+               
                 AnimateCameramen();
             }
             else

@@ -28,6 +28,19 @@ public enum SoundID //Esto simplemente es una lista de nombres que vos aca vas a
     PUConfusion,
     PUMagneto,
     PUTp,
-   
-    
+
+
+    // Gameplay M2
+    Punch,
+    SDeath,
+    LDeath,
+    PUHook,
+    PUJetpack,
+    PUMirror,
+    PUShield,
+    PUCaja,
+    PUGavity,
+
+
+    // Gameplay M3
 }

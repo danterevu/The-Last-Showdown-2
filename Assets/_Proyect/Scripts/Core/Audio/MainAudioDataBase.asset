@@ -38,10 +38,22 @@ MonoBehaviour:
     volume: 0.05
     loop: 0
   - id: 18
-    clip: {fileID: 8300000, guid: 29e1162a6558b68458fe745952c7c359, type: 3}
+    clip: {fileID: 8300000, guid: b29bf059758994f4fbaa636452b2444a, type: 3}
     volume: 0.05
     loop: 0
   - id: 0
     clip: {fileID: 8300000, guid: 616776ea3144e204ea90b6f6f9566360, type: 3}
+    volume: 0.65
+    loop: 1
+  - id: 20
+    clip: {fileID: 8300000, guid: e611fec5e6941e847a084b300d7105f2, type: 3}
+    volume: 0.65
+    loop: 1
+  - id: 22
+    clip: {fileID: 8300000, guid: 346735f3c0427db4391e8a2ddc235045, type: 3}
+    volume: 0.65
+    loop: 1
+  - id: 21
+    clip: {fileID: 8300000, guid: 99f26799b7847914d992d9287f738315, type: 3}
     volume: 0.65
     loop: 1
