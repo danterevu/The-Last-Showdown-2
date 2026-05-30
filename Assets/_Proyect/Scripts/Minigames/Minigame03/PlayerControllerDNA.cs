@@ -27,7 +27,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [SerializeField] private LayerMask groundLayer;
 
     [Header("Golpe")]
-    [SerializeField] private float knockbackForce;
+    [SerializeField] public float knockbackForce;
     [SerializeField] private float selfKnockback; public float SelfKnockback => selfKnockback;
     [SerializeField] private float attackCooldown = 0.5f;
 
@@ -78,12 +78,13 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [SerializeField] private GameObject minePrefab;
 
     [Header("Berserk")]
-    [SerializeField] private BerserkHitbox berserkHitbox;
+   // [SerializeField] private BerserkHitbox berserkHitbox;
     [SerializeField] private float berserkDuration = 2f;
     [SerializeField] private float berserkSpeedMult = 1.3f;
     [SerializeField] private float berserkScale = 1.25f;
     [SerializeField] private float berserkStunDuration = 1f;
     [SerializeField] private bool isBerserk = false;
+
 
     [Header("SlimeShot")]
     [SerializeField] private GameObject slimeProjectilePrefab;
@@ -280,12 +281,13 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             punchHitbox.transform.localScale = scale;
 
         }
-        if (berserkHitbox != null) //para orientar la hitbox del berserk
+       /* if (berserkHitbox != null) //para orientar la hitbox del berserk
         {
             Vector3 pos = berserkHitbox.transform.localPosition;
             pos.x = IsFacingRight() ? Mathf.Abs(pos.x) : -Mathf.Abs(pos.x);
             berserkHitbox.transform.localPosition = pos;
-        }
+        }*/
+        
     }
 
     private Vector2 ReadFilteredMove()
@@ -386,6 +388,15 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         rb.linearVelocity = direction * knockbackForce;
         StartCoroutine(KnockbackDuration());
     }
+
+    public void ReceiveKnockback(Vector2 direction, float force)
+    {
+        if (isInvulnerable) return;
+        animator?.SetTrigger("Hurt");
+        rb.linearVelocity = direction * force;
+        StartCoroutine(KnockbackDuration());
+    }
+
     public void ApplySelfKnockback(float dirX)
     {
         rb.linearVelocity = new Vector2(-dirX * selfKnockback, selfKnockback * 0.3f);
@@ -558,7 +569,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             isBerserk = false;
             transform.localScale = originalScale;
             moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
-            berserkHitbox?.Deactivate();
+            //berserkHitbox?.Deactivate();
         }
 
         if (slimeCoroutine != null)
@@ -577,19 +588,32 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     public void Stun(float duration)
     {
-        if (isStunned) return;
-        isStunned = true;
-        stunTimer = duration;
-        rb.linearVelocity = Vector2.zero;
-        canAttack = false;
-        // Opcional: soltar caja si la tiene
-        if (heldCrate != null)
+        if (isInvulnerable) return;
+        // Si ya está stuneado, reiniciamos el timer al máximo entre el que le queda y el nuevo
+        if (isStunned)
         {
-            heldCrate.DropAtPlace();
-            heldCrate = null;
+            stunTimer = Mathf.Max(stunTimer, duration);
         }
-        animator?.SetTrigger("Hurt");
-        Debug.Log(gameObject.name + " stuneado por " + duration + "s");
+        else
+        {
+            isStunned = true;
+            stunTimer = duration;
+            rb.linearVelocity = Vector2.zero;
+            canAttack = false;
+            if (heldCrate != null)
+            {
+                heldCrate.DropAtPlace();
+                heldCrate = null;
+            }
+            animator?.SetTrigger("Stun");
+        }
+    }
+
+    public void AddStunTime(float extra)
+    {
+        if (!isStunned) return;
+        stunTimer += extra;
+        Debug.Log(gameObject.name + " +" + extra + "s de stun extra. Total restante: " + stunTimer);
     }
 
     //POWER UPS EFFECTS
@@ -654,8 +678,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         float previousSpeed = moveSpeed;
         moveSpeed = baseMoveSpeed * berserkSpeedMult;
 
-        // Activar hitbox berserk
-        berserkHitbox?.Activate();
 
         yield return new WaitForSeconds(berserkDuration);
 
@@ -663,7 +685,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         isBerserk = false;
         transform.localScale = originalScale;
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
-        berserkHitbox?.Deactivate();
     }
 
     public void ReceiveBerserkHit(Vector2 direction)
@@ -755,4 +776,5 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     public Transform GetCrateHoldPoint() => crateHoldPoint;
     public bool IsStunned() => isStunned;
     public DNA GetCarriedDNA() => carriedDNA;
+    public bool IsBerserk() => isBerserk;
 }

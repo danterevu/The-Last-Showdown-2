@@ -1,9 +1,17 @@
+using System.Collections;
 using UnityEngine;
 
 public class PunchHitboxDNA : MonoBehaviour
 {
     private BoxCollider2D hitbox;
     private PlayerControllerDNA owner;
+
+    [Header("Berserk")]
+    [SerializeField] private float berserkKnockbackMultiplier = 2.5f;   // multiplicador de fuerza total (antes 1.8)
+    [SerializeField] private float berserkVerticalMultiplier = 1.5f;   // aumento extra en Y (para que vuele más alto)
+    [SerializeField] private float extraStunOnWall = 2f;               // segundos extra si choca con pared (antes 1)
+    [SerializeField] private float wallCheckRadius = 0.6f;             // radio para detectar pared
+    [SerializeField] private float wallCheckDelay = 0.12f;             // tiempo tras golpe para comprobar pared
 
     private void Awake()
     {
@@ -28,35 +36,67 @@ public class PunchHitboxDNA : MonoBehaviour
             return;
         }
 
-        //Definimos al Target (al otro jugador)
         PlayerControllerDNA target = other.GetComponentInParent<PlayerControllerDNA>();
         if (target == null || target == owner) return;
 
-        // Dirección del golpe según a dónde mira el jugador
+        // Dirección base del golpe
         float dirX = owner.IsFacingRight() ? 1f : -1f;
-        Vector2 knockDir = new Vector2(dirX, 0.3f).normalized;
-        
 
-        // Si el rival tiene DNA, lo lanzamos
+        // Si está en Berserk, la dirección tiene mucha más vertical
+        Vector2 knockDir;
+        float finalKnockbackForce = owner.knockbackForce;
+
+        if (owner.IsBerserk())
+        {
+            // Dirección con mucha más altura (0.7 horizontal, 0.7 vertical ? normalizado da ~0.7 cada uno)
+            // O puedes usar (dirX, 1.2f) y normalizar. Yo pondré (dirX * 0.8f, 1.2f)
+            knockDir = new Vector2(dirX * 0.8f, 1.2f).normalized;
+            finalKnockbackForce = owner.knockbackForce * berserkKnockbackMultiplier;
+        }
+        else
+        {
+            knockDir = new Vector2(dirX, 0.3f).normalized;
+            finalKnockbackForce = owner.knockbackForce;
+        }
+
+        // Aplicar knockback
+        target.ReceiveKnockback(knockDir, finalKnockbackForce);
+
+        // Si tiene DNA, lanzarlo
         if (target.HasDNA() && target.GetCarriedDNA() != null)
         {
-            target.GetCarriedDNA().transform.position = target.transform.position;
-            target.GetCarriedDNA().gameObject.SetActive(true);
-
-            // Dirección random: X mantiene la dirección del golpe pero con variación,
-            // Y siempre va hacia arriba pero con variación
-            Vector2 throwDir = new Vector2(dirX * Random.Range(-1f, 1f),Random.Range(-1f, 1f));
-
-            target.GetCarriedDNA().ThrowDNA(throwDir);
-            target.GetCarriedDNA().SetSpinEffect(); // rotación en el aire
+            DNA dna = target.GetCarriedDNA();
+            dna.transform.position = target.transform.position;
+            dna.gameObject.SetActive(true);
+            Vector2 throwDir = new Vector2(dirX * Random.Range(-1f, 1f), Random.Range(0.5f, 1f)).normalized;
+            dna.ThrowDNA(throwDir);
+            dna.SetSpinEffect();
             target.DropDNA();
         }
-        // Knockback al rival
-        target.ReceiveKnockback(knockDir);
 
-        // Mini knockback al atacante en dirección contraria
+        // Self-knockback al atacante
         owner.ApplySelfKnockback(dirX);
 
+        //  Si está en Berserk, comprobar si el rival choca con pared
+        if (owner.IsBerserk())
+        {
+            StartCoroutine(CheckWallCollisionAfterKnockback(target, extraStunOnWall));
+        }
+
         Deactivate();
+    }
+
+    private IEnumerator CheckWallCollisionAfterKnockback(PlayerControllerDNA target, float extraStun)
+    {
+        yield return new WaitForSeconds(wallCheckDelay);
+
+        // Verificar si el rival está tocando una pared (capa "Walls")
+        Collider2D[] hits = Physics2D.OverlapCircleAll(target.transform.position, wallCheckRadius, LayerMask.GetMask("Walls"));
+        if (hits.Length > 0)
+        {
+            // Añadir tiempo de stun extra (no reiniciar, sumar)
+            target.AddStunTime(extraStun);
+            Debug.Log(target.name + " chocó contra pared por Berserk, +" + extraStun + "s de stun");
+        }
     }
 }
