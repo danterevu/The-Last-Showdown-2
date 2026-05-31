@@ -2068,7 +2068,7 @@ MonoBehaviour:
         isFinalDialogue: 0
       - text: Les dare una pista de lo que consiste.. el resto lo averiguaran ustedes!
         presenterSprite: {fileID: 0}
-        displayDuration: 2
+        displayDuration: 3
         isFinalDialogue: 0
       - text: En lo frio del hielo y el azul del neon, una amigable sierra se acercara
           a ustedes a darle una calida bienvenida! vamos a los modificadores
@@ -2134,10 +2134,10 @@ MonoBehaviour:
         presenterSprite: {fileID: 0}
         displayDuration: 2
         isFinalDialogue: 0
-      - text: 'Matense el uno al otro, en busca de la victoria, o torturen sus almas
-          hasta volverse escoria '
+      - text: "Matense el uno al otro, en busca de la victoria, o torturen sus almas
+          hasta volverse escoria \n\n"
         presenterSprite: {fileID: 0}
-        displayDuration: 3
+        displayDuration: 5
         isFinalDialogue: 0
       - text: Vamos a la ruleta de modificadores!
         presenterSprite: {fileID: 0}
