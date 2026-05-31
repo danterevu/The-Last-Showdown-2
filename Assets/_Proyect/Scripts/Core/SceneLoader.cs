@@ -43,8 +43,5 @@ public class SceneLoader : MonoBehaviour
         SceneManager.LoadScene("Menu");
     }
 
-    public void LoadSelectModifier()
-    {
-        SceneManager.LoadScene("Select_Modifier");
-    }
+
 }

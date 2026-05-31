@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviour
         [Header("Estado del juego")]
         public int currentRound = 1;
         public const int TOTAL_ROUNDS = 4;
-
+    [HideInInspector] public int selectedMinigameId = 0;
 
 
     // modificador activo para esta ronda
@@ -30,6 +30,10 @@ public class GameManager : MonoBehaviour
 
     private List<int> availableMinigames = new List<int>();
     private List<int> playedMinigames = new List<int>();
+
+    public List<int> GetPlayedMinigames() => new List<int>(playedMinigames);
+           public void SetSelectedMinigame(int id) => selectedMinigameId = id;
+           public int  GetSelectedMinigame()       => selectedMinigameId;
 
     private void Awake()
     {

@@ -1,8 +1,12 @@
-﻿using UnityEngine;
-using DG.Tweening;
-using TMPro;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using DG.Tweening;
+using TMPro;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tipos de datos de diálogo
+// ─────────────────────────────────────────────────────────────────────────────
 
 [System.Serializable]
 public class DialogueLine
@@ -10,6 +14,8 @@ public class DialogueLine
     [TextArea(2, 5)] public string text;
     public Sprite presenterSprite;
     public float displayDuration = 2.5f;
+
+    [Tooltip("Si es true, al mostrar esta línea se inicializa la ruleta de minijuegos.")]
     public bool isFinalDialogue = false;
 }
 
@@ -19,34 +25,63 @@ public class DialogueSequence
     public string sequenceName;
     public Sprite defaultPresenterSprite;
 
-    [Tooltip("Si true, al terminar la secuencia se mantiene el ultimo sprite mostrado. " +
-             "Si false, se restaura defaultPresenterSprite al finalizar.")]
+    [Tooltip("Si true, al terminar la secuencia se mantiene el último sprite mostrado.")]
     public bool keepLastSprite = false;
 
-    [Tooltip("Sprite que queda visible despues de la secuencia cuando keepLastSprite es false. " +
-             "Si esta vacio se usa defaultPresenterSprite.")]
+    [Tooltip("Sprite que queda después de la secuencia cuando keepLastSprite es false. " +
+             "Si está vacío se usa defaultPresenterSprite.")]
     public Sprite postSequenceSprite;
 
     public DialogueLine[] lines;
 }
 
-// Agrupa secuencias de retorno para un minijuego especifico
 [System.Serializable]
 public class MinigameReturnDialogues
 {
-    [Tooltip("ID del minijuego (1=DodgeDisk, 2=KOH, 3=DNA, 4=Space, 5=ChaseRun)")]
-    public int minigameId;
-    public string minigameName; // solo para identificar en el Inspector
+    [Tooltip("Minijuego al que corresponden estas secuencias.")]
+    public MinigameID minigameId;
+    public string minigameName; // solo para el Inspector
     public DialogueSequence[] sequences;
 }
 
+[System.Serializable]
+public class MinigameResultDialogue
+{
+    public MinigameID minigameId;
+    public string minigameName;
+    public DialogueSequence[] sequences;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Máquina de estados de la secuencia
+// ─────────────────────────────────────────────────────────────────────────────
+
+public enum RoulettePhase
+{
+    Intro,
+    OpeningDialogue,
+    MinigameRoulette,
+    MinigameResultDialogue,
+    ModifierRoulette,
+    ModifierResultDialogue,
+    Loading,
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Script principal
+// ─────────────────────────────────────────────────────────────────────────────
+
 public class RouletteShowDialogueSystem : MonoBehaviour
 {
-    [Header("Camara")]
+    // ── Inspector: Cámara ─────────────────────────────────────────────────────
+
+    [Header("Cámara")]
     [SerializeField] private Camera mainCamera;
     [SerializeField] private float zoomOutOrthoSize = 8f;
     [SerializeField] private float zoomToRouletteOrthoSize = 5f;
     [SerializeField] private float zoomDuration = 1f;
+
+    // ── Inspector: Visual general ─────────────────────────────────────────────
 
     [Header("Centro")]
     [SerializeField] private GameObject centerSprite;
@@ -58,85 +93,101 @@ public class RouletteShowDialogueSystem : MonoBehaviour
     [SerializeField] private float lightsPendulumDuration = 1.5f;
     [SerializeField] private bool lightsAlternateDirection = true;
 
+    // ── Inspector: Presentador ────────────────────────────────────────────────
+
     [Header("Presentador")]
     [SerializeField] private SpriteRenderer presenterSpriteRenderer;
     [SerializeField] private float presenterJumpHeight = 0.5f;
     [SerializeField] private float presenterJumpDuration = 0.25f;
     [SerializeField] private Transform presenterRouletteDestination;
+    [SerializeField] private float presenterReturnDuration = 0.6f;
+    [SerializeField] private Transform presenterCenterPosition;
 
-    [Header("Textos del dialogo")]
-    [Tooltip("GOs vac�os en la escena donde puede aparecer cada bloque de texto")]
+    // ── Inspector: Texto de diálogo ───────────────────────────────────────────
+
+    [Header("Texto de diálogo")]
+    [Tooltip("Puntos de spawn del texto en la escena (uno se elige al azar).")]
     [SerializeField] private Transform[] textSpawnPoints;
-    [Tooltip("Prefab con componente TextMeshPro (3D, NO UI)")]
+    [Tooltip("Prefab con TextMeshPro 3D (NO UI).")]
     [SerializeField] private TextMeshPro textPrefab;
     [SerializeField] private float textFadeInDuration = 0.2f;
     [SerializeField] private float textFadeOutDuration = 0.3f;
 
-    // ── Secuencias de dialogo ─────────────────────────────────────────────────
+    // ── Inspector: Secuencias de diálogo ──────────────────────────────────────
 
-    [Header("Dialogos de apertura (primera vez)")]
-    [Tooltip("Se elige 1 al azar. Se usa cuando es la primera ronda (no hay minijuego previo).")]
+    [Header("Diálogos de apertura (primera ronda / sin minijuego previo)")]
     [SerializeField] private DialogueSequence[] openingSequences;
 
-    [Header("Dialogos de retorno por minijuego")]
-    [Tooltip("Secuencias que se muestran segun el ultimo minijuego jugado. " +
-             "Si no hay entrada para ese minijuego, se usa openingSequences como fallback.")]
+    [Header("Diálogos de retorno por minijuego")]
     [SerializeField] private MinigameReturnDialogues[] returnSequencesByMinigame;
 
-    [Header("Dialogos de resultado")]
-    [SerializeField] private DialogueSequence[] resultSequences;
+    [Header("Diálogos de resultado de minijuego")]
+    [SerializeField] private MinigameResultDialogue[] minigameResultDialogues;
 
-    // ── Ruleta ────────────────────────────────────────────────────────────────
+    // Los diálogos de resultado de modificador viven en MinigameConfig.modifiers[i].resultDialogues
+    // No hay array genérico aquí — cada modificador tiene los suyos propios.
 
-    [Header("Ruleta")]
-    [SerializeField] private GameObject roulette;
+    // ── Inspector: Ruleta de minijuego ────────────────────────────────────────
+
+    [Header("Ruleta de minijuego")]
+    [SerializeField] private GameObject minigameRouletteRoot;
+    [SerializeField] private MinigameSpinner minigameSpinner;
     [SerializeField] private float rouletteDropDelay = 0f;
     [SerializeField] private float rouletteDropDuration = 1.2f;
     [SerializeField] private float rouletteBounceStrength = 0.5f;
     [SerializeField] private int rouletteBounceVibrato = 5;
     [SerializeField] private float rouletteBounceDuration = 0.8f;
-
-    [Header("Tapa de la ruleta")]
     [SerializeField] private GameObject rouletteCover;
     [SerializeField] private bool removeCoverAutomatically = true;
     [SerializeField] private float coverMoveAmount = 10f;
     [SerializeField] private float coverMoveDuration = 0.5f;
 
-    [Header("Objetos de resultado")]
+    // ── Inspector: Ruleta de modificadores ───────────────────────────────────
+
+    [Header("Ruleta de modificadores")]
+    [SerializeField] private GameObject modifierRouletteRoot;
+    [SerializeField] private ModifiersSpinner modifiersSpinner;
+
+    // ── Inspector: Resultado ──────────────────────────────────────────────────
+
+    [Header("Resultado visual")]
     [SerializeField] private GameObject[] resultColorObjects;
-    [SerializeField] private Color[] resultColors;
     [SerializeField] private float colorChangeDuration = 0.5f;
 
-    [Header("Referencias")]
-    [SerializeField] private MinigameSpinner minigameSpinner;
-    [SerializeField] private int[] minigameIds; // fallback si no hay spinner
+    // ── Inspector: Fallback ───────────────────────────────────────────────────
+
+    [Header("Fallback (sin spinner asignado)")]
+    [SerializeField] private MinigameID[] fallbackMinigameIds;
 
     // ── Estado interno ────────────────────────────────────────────────────────
 
-    private Sequence mainSequence;
+    private RoulettePhase currentPhase = RoulettePhase.Intro;
+
+    private MinigameID selectedMinigameId = MinigameID.None;
+    private int selectedModifierValue = 0;
+    private int selectedModifierIndex = 0; // índice dentro de MinigameConfig.modifiers
+
     private Vector3 rouletteDestination;
     private Vector3 coverOriginalPosition;
     private Vector3 presenterOriginalPosition;
-    private int selectedMinigameId;
-    private bool hasInitializedSpinner = false;
-    private TextMeshPro activeText;
 
-    // Sprite del presentador activo al terminar la secuencia de apertura
-    // (se guarda para mantenerlo si keepLastSprite = true)
-    private Sprite presenterSpriteAfterOpening = null;
+    private bool hasInitializedSpinner = false;
+    private TextMeshPro activeText = null;
+
+    // Tweens propios — solo matamos los nuestros, nunca KillAll
+    private readonly List<Tween> ownTweens = new();
+    private readonly List<Sequence> ownSequences = new();
 
     // ── Ciclo de vida ─────────────────────────────────────────────────────────
 
-    void Awake()
+    private void Awake()
     {
-        if (roulette != null)
+        ValidateReferences();
+
+        if (minigameRouletteRoot != null)
         {
-            rouletteDestination = roulette.transform.position;
-            roulette.transform.position = new Vector3(
-                rouletteDestination.x,
-                rouletteDestination.y + 50f,
-                rouletteDestination.z
-            );
+            rouletteDestination = minigameRouletteRoot.transform.position;
+            minigameRouletteRoot.transform.position = rouletteDestination + Vector3.up * 50f;
         }
 
         if (rouletteCover != null)
@@ -147,52 +198,102 @@ public class RouletteShowDialogueSystem : MonoBehaviour
 
         if (centerSprite != null)
             centerSprite.transform.localScale = Vector3.zero;
+
+        if (modifierRouletteRoot != null)
+            modifierRouletteRoot.SetActive(false);
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
-        if (minigameSpinner != null)
-            minigameSpinner.OnSpinComplete += HandleSpinComplete;
+        if (minigameSpinner != null) minigameSpinner.OnSpinComplete += HandleMinigameSpinComplete;
+        if (modifiersSpinner != null) modifiersSpinner.OnModifierComplete += HandleModifierComplete;
     }
 
-    void OnDisable()
+    private void OnDisable()
     {
-        if (minigameSpinner != null)
-            minigameSpinner.OnSpinComplete -= HandleSpinComplete;
+        if (minigameSpinner != null) minigameSpinner.OnSpinComplete -= HandleMinigameSpinComplete;
+        if (modifiersSpinner != null) modifiersSpinner.OnModifierComplete -= HandleModifierComplete;
     }
 
-    void Start()
+    private void Start()
     {
-        PlayShowSequence();
+        TransitionTo(RoulettePhase.Intro);
     }
 
-    // ── Secuencia principal ───────────────────────────────────────────────────
+    // ── Máquina de estados ────────────────────────────────────────────────────
 
-    private void PlayShowSequence()
+    private void TransitionTo(RoulettePhase next)
     {
-        mainSequence = DOTween.Sequence();
+        currentPhase = next;
+        Debug.Log($"[Roulette] → {next}");
 
+        switch (next)
+        {
+            case RoulettePhase.Intro:
+                StartCoroutine(RunIntro());
+                break;
+
+            case RoulettePhase.OpeningDialogue:
+                StartCoroutine(RunOpeningDialogue());
+                break;
+
+            case RoulettePhase.MinigameRoulette:
+                StartCoroutine(RunMinigameRoulette());
+                break;
+
+            case RoulettePhase.MinigameResultDialogue:
+                StartCoroutine(RunMinigameResultDialogue());
+                break;
+
+            case RoulettePhase.ModifierRoulette:
+                StartCoroutine(RunModifierRoulette());
+                break;
+
+            case RoulettePhase.ModifierResultDialogue:
+                StartCoroutine(RunModifierResultDialogue());
+                break;
+
+            case RoulettePhase.Loading:
+                LoadMinigame();
+                break;
+        }
+    }
+
+    // ── Fases ─────────────────────────────────────────────────────────────────
+
+    private IEnumerator RunIntro()
+    {
+        // Zoom out + pop del centro simultáneos
         if (mainCamera != null)
-            mainSequence.Append(mainCamera.DOOrthoSize(zoomOutOrthoSize, zoomDuration).SetEase(Ease.OutQuad));
+        {
+            Tween zoomTween = mainCamera.DOOrthoSize(zoomOutOrthoSize, zoomDuration).SetEase(Ease.OutQuad);
+            TrackTween(zoomTween);
+        }
 
         if (centerSprite != null)
-            mainSequence.Join(centerSprite.transform.DOScale(Vector3.one, centerSpritePopDuration).SetEase(Ease.OutElastic));
+        {
+            Tween popTween = centerSprite.transform.DOScale(Vector3.one, centerSpritePopDuration).SetEase(Ease.OutElastic);
+            TrackTween(popTween);
+        }
 
         StartLightsLoop();
-        StartCoroutine(PlayOpeningThenDrop());
-        mainSequence.Play();
+
+        yield return new WaitForSeconds(Mathf.Max(zoomDuration, centerSpritePopDuration));
+
+        TransitionTo(RoulettePhase.OpeningDialogue);
     }
 
-    private IEnumerator PlayOpeningThenDrop()
+    private IEnumerator RunOpeningDialogue()
     {
-        yield return null;
-
-        // Elegir secuencia de apertura segun si hay minijuego previo
         DialogueSequence chosen = PickOpeningSequence();
-
         if (chosen != null)
             yield return StartCoroutine(PlayDialogueSequence(chosen, isOpening: true));
 
+        TransitionTo(RoulettePhase.MinigameRoulette);
+    }
+
+    private IEnumerator RunMinigameRoulette()
+    {
         if (rouletteDropDelay > 0f)
             yield return new WaitForSeconds(rouletteDropDelay);
 
@@ -204,128 +305,201 @@ public class RouletteShowDialogueSystem : MonoBehaviour
             RemoveCover();
 
         if (mainCamera != null)
-            mainCamera.DOOrthoSize(zoomToRouletteOrthoSize, zoomDuration).SetEase(Ease.InOutQuad);
+        {
+            Tween zoomTween = mainCamera.DOOrthoSize(zoomToRouletteOrthoSize, zoomDuration).SetEase(Ease.InOutQuad);
+            TrackTween(zoomTween);
+            yield return zoomTween.WaitForCompletion();
+        }
 
-        SpinRoulette();
+        SpinMinigameRoulette();
+        // La fase siguiente se dispara por evento HandleMinigameSpinComplete
     }
 
-    // ── Elegir secuencia de apertura ──────────────────────────────────────────
-
-    /// Devuelve la secuencia de apertura correcta.
-    /// - Si hay un minijuego previo registrado y existe entrada en returnSequencesByMinigame, la usa.
-    /// - Si no, usa openingSequences como fallback.
-    private DialogueSequence PickOpeningSequence()
+    private IEnumerator RunMinigameResultDialogue()
     {
-        int lastMinigame = GetLastPlayedMinigame();
-
-        if (lastMinigame > 0 && returnSequencesByMinigame != null)
+        // Zoom out antes de mostrar resultado
+        if (mainCamera != null)
         {
-            Debug.Log($"[RouletteShow] LastPlayedMinigame = {lastMinigame}");
-            foreach (MinigameReturnDialogues entry in returnSequencesByMinigame)
+            Tween zoomTween = mainCamera.DOOrthoSize(zoomOutOrthoSize, zoomDuration).SetEase(Ease.InOutQuad);
+            TrackTween(zoomTween);
+            yield return zoomTween.WaitForCompletion();
+        }
+
+        // Subir la ruleta de minijuego
+        if (minigameRouletteRoot != null)
+        {
+            Tween exitTween = minigameRouletteRoot.transform
+                .DOMoveY(minigameRouletteRoot.transform.position.y + 50f, 1f)
+                .SetEase(Ease.InQuad);
+            TrackTween(exitTween);
+            yield return exitTween.WaitForCompletion();
+            minigameRouletteRoot.SetActive(false);
+        }
+
+        // Return presenter to center
+        if (presenterSpriteRenderer != null && presenterCenterPosition != null)
+        {
+            Tween moveBackTween = presenterSpriteRenderer.transform
+                .DOMove(presenterCenterPosition.position, presenterReturnDuration)
+                .SetEase(Ease.OutQuad);
+            TrackTween(moveBackTween);
+            yield return moveBackTween.WaitForCompletion();
+        }
+
+        DialogueSequence seq = PickResultDialogue(minigameResultDialogues, selectedMinigameId);
+        if (seq != null)
+            yield return StartCoroutine(PlayDialogueSequence(seq, isOpening: false));
+
+        TransitionTo(RoulettePhase.ModifierRoulette);
+    }
+
+    private IEnumerator RunModifierRoulette()
+    {
+        MovePresenterToRoulettePosition();
+
+        // Mostrar ruleta de modificadores
+        if (modifierRouletteRoot != null)
+        {
+            modifierRouletteRoot.SetActive(true);
+            Vector3 dest = modifierRouletteRoot.transform.position;
+            modifierRouletteRoot.transform.position = dest + Vector3.up * 50f;
+
+            Tween enterTween = modifierRouletteRoot.transform
+                .DOMove(dest, 1f)
+                .SetEase(Ease.OutBounce);
+            TrackTween(enterTween);
+            yield return enterTween.WaitForCompletion();
+        }
+
+        // Inicializar la ruleta de modificadores con el minijuego elegido
+        if (modifiersSpinner != null)
+            modifiersSpinner.Initialize(selectedMinigameId);
+        else
+            Debug.LogWarning("[Roulette] modifiersSpinner no asignado, se salta la fase de modificador.");
+
+        // La fase siguiente se dispara por evento HandleModifierComplete
+    }
+
+    private IEnumerator RunModifierResultDialogue()
+    {
+        DialogueSequence seq = PickModifierResultDialogue();
+
+        if (seq != null)
+            yield return StartCoroutine(PlayDialogueSequence(seq, isOpening: false));
+
+        TransitionTo(RoulettePhase.Loading);
+    }
+
+    /// Busca el diálogo específico del modificador elegido dentro del MinigameConfig.
+    private DialogueSequence PickModifierResultDialogue()
+    {
+        if (modifiersSpinner == null) return null;
+
+        MinigameConfig cfg = modifiersSpinner.GetConfig(selectedMinigameId);
+        if (cfg == null || cfg.modifiers == null) return null;
+
+        if (selectedModifierIndex < 0 || selectedModifierIndex >= cfg.modifiers.Length)
+            return null;
+
+        ModifierConfig mod = cfg.modifiers[selectedModifierIndex];
+        if (mod.resultDialogues == null || mod.resultDialogues.Length == 0)
+        {
+            Debug.LogWarning($"[Roulette] El modificador '{mod.displayName}' no tiene resultDialogues asignados.");
+            return null;
+        }
+
+        return mod.resultDialogues[Random.Range(0, mod.resultDialogues.Length)];
+    }
+
+    // ── Eventos de spinners ───────────────────────────────────────────────────
+
+    private void HandleMinigameSpinComplete(int winnerId)
+    {
+        if (currentPhase != RoulettePhase.MinigameRoulette)
+        {
+            Debug.LogWarning($"[Roulette] HandleMinigameSpinComplete recibido en fase inesperada: {currentPhase}");
+            return;
+        }
+
+        selectedMinigameId = (MinigameID)winnerId;
+        ApplyResultColor(selectedMinigameId);
+
+        TransitionTo(RoulettePhase.MinigameResultDialogue);
+    }
+
+    private void HandleModifierComplete(MinigameID minigame, int modifierEnumValue)
+    {
+        if (currentPhase != RoulettePhase.ModifierRoulette)
+        {
+            Debug.LogWarning($"[Roulette] HandleModifierComplete recibido en fase inesperada: {currentPhase}");
+            return;
+        }
+
+        selectedModifierValue = modifierEnumValue;
+
+        // Buscar el índice del modificador elegido dentro del MinigameConfig
+        // para poder acceder a sus diálogos específicos
+        MinigameConfig cfg = modifiersSpinner != null
+            ? modifiersSpinner.GetConfig(minigame)
+            : null;
+
+        if (cfg != null && cfg.modifiers != null)
+        {
+            for (int i = 0; i < cfg.modifiers.Length; i++)
             {
-                Debug.Log($"[RouletteShow] Entry id={entry.minigameId} | sequences={entry.sequences?.Length ?? 0}");
-                if (entry.minigameId == lastMinigame && entry.sequences != null && entry.sequences.Length > 0)
+                if (cfg.modifiers[i].enumValue == modifierEnumValue)
                 {
-                    
-                    Debug.Log($"[RouletteShow] Usando secuencias de retorno para minijuego {lastMinigame} ({entry.minigameName})");
-                    return entry.sequences[Random.Range(0, entry.sequences.Length)];
+                    selectedModifierIndex = i;
+                    break;
                 }
             }
-            Debug.Log($"[RouletteShow] No hay secuencias de retorno para minijuego {lastMinigame}, usando apertura generica");
         }
 
-        if (openingSequences != null && openingSequences.Length > 0)
-            return openingSequences[Random.Range(0, openingSequences.Length)];
-
-        return null;
+        TransitionTo(RoulettePhase.ModifierResultDialogue);
     }
 
-    /// Lee el ultimo minijuego jugado.
-    /// Primero intenta leerlo de PlayerPrefs ("LastPlayedMinigame"),
-    /// luego hace fallback a la lista de GameManager si existe.
-    private int GetLastPlayedMinigame()
-    {
-        // PlayerPrefs tiene prioridad (seteado desde cada manager al terminar)
-        int fromPrefs = PlayerPrefs.GetInt("LastPlayedMinigame", 0);
-        if (fromPrefs > 0)
-            return fromPrefs;
+    // ── Diálogos ──────────────────────────────────────────────────────────────
 
-        // Fallback: leer el ultimo de la lista de GameManager
-        if (GameManager.Instance != null)
-        {
-            List<int> played = GetPlayedMinigamesFromGameManager();
-            if (played != null && played.Count > 0)
-                return played[played.Count - 1];
-        }
-
-        return 0; // primera ronda, sin previo
-    }
-
-    /// Obtiene la lista de minijuegos jugados desde GameManager.
-    /// Usa reflexion para no depender de que el campo sea publico.
-    private List<int> GetPlayedMinigamesFromGameManager()
-    {
-        if (GameManager.Instance == null) return null;
-
-        // GameManager.playedMinigames es private. Si lo necesitas publico,
-        // agrega un getter en GameManager: public List<int> GetPlayedMinigames() => playedMinigames;
-        // Por ahora intentamos con el getter si existe, sino devolvemos null.
-        var method = GameManager.Instance.GetType().GetMethod("GetPlayedMinigames");
-        if (method != null)
-            return method.Invoke(GameManager.Instance, null) as List<int>;
-
-        return null;
-    }
-
-    // ── Dialogos ──────────────────────────────────────────────────────────────
-
-    /// isOpening = true para la secuencia de apertura (guarda el sprite final).
-    /// isOpening = false para la de resultado.
     private IEnumerator PlayDialogueSequence(DialogueSequence sequence, bool isOpening)
     {
-        if (sequence.lines == null || sequence.lines.Length == 0) yield break;
+        if (sequence == null || sequence.lines == null || sequence.lines.Length == 0)
+            yield break;
 
-        Sprite lastLineSprite = null;
+        Sprite lastSprite = null;
 
         for (int i = 0; i < sequence.lines.Length; i++)
         {
             DialogueLine line = sequence.lines[i];
 
-            Sprite spriteToUse = line.presenterSprite != null ? line.presenterSprite : sequence.defaultPresenterSprite;
+            Sprite spriteToUse = line.presenterSprite != null
+                ? line.presenterSprite
+                : sequence.defaultPresenterSprite;
+
             if (presenterSpriteRenderer != null && spriteToUse != null)
             {
                 presenterSpriteRenderer.sprite = spriteToUse;
-                lastLineSprite = spriteToUse;
+                lastSprite = spriteToUse;
             }
 
             PresenterJump();
             yield return StartCoroutine(ShowTextBlock(line));
 
+            // Inicializar spinner en el punto marcado como "final"
             if (line.isFinalDialogue && isOpening && !hasInitializedSpinner)
                 hasInitializedSpinner = true;
         }
 
-        // Manejar sprite post-secuencia
-        if (isOpening)
-        {
-            if (sequence.keepLastSprite)
-            {
-                // Mantener el ultimo sprite (no hacer nada)
-                presenterSpriteAfterOpening = lastLineSprite;
-            }
-            else
-            {
-                // Restaurar al sprite de cierre o al default
-                Sprite restoreSprite = sequence.postSequenceSprite != null
-                    ? sequence.postSequenceSprite
-                    : sequence.defaultPresenterSprite;
+        // Gestionar sprite post-secuencia
+        if (!isOpening) yield break;
 
-                if (presenterSpriteRenderer != null && restoreSprite != null)
-                    presenterSpriteRenderer.sprite = restoreSprite;
+        if (sequence.keepLastSprite) yield break;
 
-                presenterSpriteAfterOpening = restoreSprite;
-            }
-        }
+        Sprite restoreSprite = sequence.postSequenceSprite != null
+            ? sequence.postSequenceSprite
+            : sequence.defaultPresenterSprite;
+
+        if (presenterSpriteRenderer != null && restoreSprite != null)
+            presenterSpriteRenderer.sprite = restoreSprite;
     }
 
     // ── Texto ─────────────────────────────────────────────────────────────────
@@ -352,6 +526,7 @@ public class RouletteShowDialogueSystem : MonoBehaviour
         Sequence showSeq = DOTween.Sequence();
         showSeq.Join(instance.DOFade(1f, textFadeInDuration).SetEase(Ease.OutQuad));
         showSeq.Join(instance.transform.DOScale(Vector3.one, textFadeInDuration).SetEase(Ease.OutBack));
+        TrackSequence(showSeq);
         showSeq.Play();
 
         yield return new WaitForSeconds(line.displayDuration);
@@ -365,10 +540,10 @@ public class RouletteShowDialogueSystem : MonoBehaviour
         if (activeText == null) return;
         TextMeshPro captured = activeText;
         activeText = null;
-        captured.DOFade(0f, textFadeOutDuration).SetEase(Ease.InQuad).OnComplete(() =>
-        {
-            if (captured != null) Destroy(captured.gameObject);
-        });
+
+        Tween fadeTween = captured.DOFade(0f, textFadeOutDuration).SetEase(Ease.InQuad)
+            .OnComplete(() => { if (captured != null) Destroy(captured.gameObject); });
+        TrackTween(fadeTween);
     }
 
     // ── Presentador ───────────────────────────────────────────────────────────
@@ -383,13 +558,17 @@ public class RouletteShowDialogueSystem : MonoBehaviour
         Sequence jumpSeq = DOTween.Sequence();
         jumpSeq.Append(t.DOLocalMoveY(presenterOriginalPosition.y + presenterJumpHeight, presenterJumpDuration).SetEase(Ease.OutQuad));
         jumpSeq.Append(t.DOLocalMoveY(presenterOriginalPosition.y, presenterJumpDuration).SetEase(Ease.InQuad));
+        TrackSequence(jumpSeq);
         jumpSeq.Play();
     }
 
     private void MovePresenterToRoulettePosition()
     {
         if (presenterSpriteRenderer == null || presenterRouletteDestination == null) return;
-        presenterSpriteRenderer.transform.DOMove(presenterRouletteDestination.position, 0.5f).SetEase(Ease.OutQuad);
+        Tween moveTween = presenterSpriteRenderer.transform
+            .DOMove(presenterRouletteDestination.position, 0.5f)
+            .SetEase(Ease.OutQuad);
+        TrackTween(moveTween);
     }
 
     // ── Luces ─────────────────────────────────────────────────────────────────
@@ -401,126 +580,240 @@ public class RouletteShowDialogueSystem : MonoBehaviour
         for (int i = 0; i < lights.Length; i++)
         {
             GameObject light = lights[i];
+            if (light == null) continue;
+
             Vector3 originalPos = light.transform.localPosition;
-            float direction = (lightsAlternateDirection && i % 2 != 0) ? -1f : 1f;
+            float dir = (lightsAlternateDirection && i % 2 != 0) ? -1f : 1f;
 
             light.transform.localPosition = new Vector3(
-                originalPos.x + lightsPendulumAmount * direction,
+                originalPos.x + lightsPendulumAmount * dir,
                 originalPos.y,
                 originalPos.z
             );
 
-            light.transform.DOLocalMoveX(originalPos.x - lightsPendulumAmount * direction, lightsPendulumDuration * 2f)
+            Tween loopTween = light.transform
+                .DOLocalMoveX(originalPos.x - lightsPendulumAmount * dir, lightsPendulumDuration * 2f)
                 .SetEase(Ease.InOutSine)
                 .SetLoops(-1, LoopType.Yoyo);
+            TrackTween(loopTween);
         }
     }
 
-    // ── Ruleta ────────────────────────────────────────────────────────────────
+    // ── Ruleta de minijuego ───────────────────────────────────────────────────
 
     private IEnumerator DropRoulette()
     {
-        if (roulette == null) yield break;
+        if (minigameRouletteRoot == null) yield break;
 
-        bool dropDone = false;
+        bool done = false;
 
         Sequence dropSeq = DOTween.Sequence();
-        dropSeq.Append(roulette.transform.DOMove(rouletteDestination, rouletteDropDuration).SetEase(Ease.OutBounce));
-        dropSeq.Append(roulette.transform.DOPunchPosition(
-            Vector3.down * rouletteBounceStrength,
-            rouletteBounceDuration,
-            rouletteBounceVibrato
-        ).SetEase(Ease.OutElastic));
-        dropSeq.OnComplete(() => dropDone = true);
+        dropSeq.Append(minigameRouletteRoot.transform
+            .DOMove(rouletteDestination, rouletteDropDuration)
+            .SetEase(Ease.OutBounce));
+        dropSeq.Append(minigameRouletteRoot.transform
+            .DOPunchPosition(Vector3.down * rouletteBounceStrength, rouletteBounceDuration, rouletteBounceVibrato)
+            .SetEase(Ease.OutElastic));
+        dropSeq.OnComplete(() => done = true);
+        TrackSequence(dropSeq);
         dropSeq.Play();
 
-        yield return new WaitUntil(() => dropDone);
+        yield return new WaitUntil(() => done);
     }
 
     public void RemoveCover()
     {
         if (rouletteCover == null) return;
-        rouletteCover.transform.DOMoveX(coverOriginalPosition.x + coverMoveAmount, coverMoveDuration).SetEase(Ease.OutQuad);
+        Tween coverTween = rouletteCover.transform
+            .DOMoveX(coverOriginalPosition.x + coverMoveAmount, coverMoveDuration)
+            .SetEase(Ease.OutQuad);
+        TrackTween(coverTween);
     }
 
-    private void SpinRoulette()
+    private void SpinMinigameRoulette()
     {
         if (minigameSpinner != null)
             minigameSpinner.InitializeSpinner();
         else
-            FallbackSelectResult();
+            FallbackSelectMinigame();
     }
 
-    // ── Resultado ─────────────────────────────────────────────────────────────
-
-    private void HandleSpinComplete(int winnerId)
+    private void FallbackSelectMinigame()
     {
-        selectedMinigameId = winnerId;
-
-        int colorIndex = (winnerId - 1) % Mathf.Max(1, resultColors.Length);
-        if (resultColors.Length > 0)
-            ApplyResultColor(resultColors[colorIndex]);
-
-        if (mainCamera != null)
-            mainCamera.DOOrthoSize(zoomOutOrthoSize, zoomDuration).SetEase(Ease.InOutQuad).OnComplete(PlayResultDialogues);
+        if (fallbackMinigameIds != null && fallbackMinigameIds.Length > 0)
+            selectedMinigameId = fallbackMinigameIds[Random.Range(0, fallbackMinigameIds.Length)];
         else
-            PlayResultDialogues();
+            selectedMinigameId = MinigameID.DodgeDisk;
+
+        Debug.LogWarning($"[Roulette] Usando fallback: {selectedMinigameId}");
+        ApplyResultColor(selectedMinigameId);
+        TransitionTo(RoulettePhase.MinigameResultDialogue);
     }
 
-    private void FallbackSelectResult()
-    {
-        if (minigameIds == null || minigameIds.Length == 0) { LoadMinigame(); return; }
-        selectedMinigameId = minigameIds[Random.Range(0, minigameIds.Length)];
-        LoadMinigame();
-    }
+    // ── Resultado visual ──────────────────────────────────────────────────────
 
-    private void PlayResultDialogues()
+    private void ApplyResultColor(MinigameID minigame)
     {
-        if (resultSequences == null || resultSequences.Length == 0) { LoadMinigame(); return; }
-        DialogueSequence chosen = resultSequences[Random.Range(0, resultSequences.Length)];
-        StartCoroutine(PlayResultThenLoad(chosen));
-    }
+        if (resultColorObjects == null || resultColorObjects.Length == 0) return;
 
-    private IEnumerator PlayResultThenLoad(DialogueSequence sequence)
-    {
-        yield return StartCoroutine(PlayDialogueSequence(sequence, isOpening: false));
-        LoadMinigame();
-    }
+        // Buscar color en MinigameConfig del ModifiersSpinner si está disponible
+        Color color = GetColorForMinigame(minigame);
 
-    private void ApplyResultColor(Color color)
-    {
-        if (resultColorObjects == null) return;
-        foreach (var obj in resultColorObjects)
+        foreach (GameObject obj in resultColorObjects)
         {
+            if (obj == null) continue;
+
             SpriteRenderer sr = obj.GetComponent<SpriteRenderer>();
-            if (sr != null) sr.DOColor(color, colorChangeDuration).SetEase(Ease.InOutQuad);
+            if (sr != null)
+            {
+                Tween t = sr.DOColor(color, colorChangeDuration).SetEase(Ease.InOutQuad);
+                TrackTween(t);
+            }
 
             UnityEngine.UI.Image img = obj.GetComponent<UnityEngine.UI.Image>();
-            if (img != null) img.DOColor(color, colorChangeDuration).SetEase(Ease.InOutQuad);
+            if (img != null)
+            {
+                Tween t = img.DOColor(color, colorChangeDuration).SetEase(Ease.InOutQuad);
+                TrackTween(t);
+            }
         }
     }
 
-    // ── Carga ─────────────────────────────────────────────────────────────────
+    private Color GetColorForMinigame(MinigameID minigame)
+    {
+        // El color vive en MinigameConfig. ModifiersSpinner es quien los tiene.
+        // Si no hay acceso, devolvemos blanco como fallback.
+        if (modifiersSpinner == null) return Color.white;
+
+        // ModifiersSpinner expone FindConfigPublic para que otros puedan leerlo.
+        MinigameConfig cfg = modifiersSpinner.GetConfig(minigame);
+        return cfg != null ? cfg.resultColor : Color.white;
+    }
+
+    // ── Selección de secuencias ───────────────────────────────────────────────
+
+    private DialogueSequence PickOpeningSequence()
+    {
+        MinigameID lastMinigame = GetLastPlayedMinigame();
+
+        if (lastMinigame != MinigameID.None && returnSequencesByMinigame != null)
+        {
+            foreach (MinigameReturnDialogues entry in returnSequencesByMinigame)
+            {
+                if (entry.minigameId == lastMinigame &&
+                    entry.sequences != null &&
+                    entry.sequences.Length > 0)
+                {
+                    Debug.Log($"[Roulette] Usando retorno para {lastMinigame} ({entry.minigameName})");
+                    return entry.sequences[Random.Range(0, entry.sequences.Length)];
+                }
+            }
+        }
+
+        if (openingSequences != null && openingSequences.Length > 0)
+            return openingSequences[Random.Range(0, openingSequences.Length)];
+
+        return null;
+    }
+
+    /// <summary>
+    /// Busca una secuencia de resultado de minijuego para el ID indicado.
+    /// </summary>
+    private DialogueSequence PickResultDialogue(
+        MinigameResultDialogue[] pool,
+        MinigameID minigame)
+    {
+        if (pool == null) return null;
+
+        foreach (MinigameResultDialogue entry in pool)
+        {
+            if (entry.minigameId == minigame &&
+                entry.sequences != null &&
+                entry.sequences.Length > 0)
+            {
+                return entry.sequences[Random.Range(0, entry.sequences.Length)];
+            }
+        }
+        return null;
+    }
+
+    // ── Último minijuego jugado ───────────────────────────────────────────────
+
+    /// <summary>
+    /// Lee el último minijuego jugado desde GameManager.
+    /// No usa PlayerPrefs como canal de comunicación entre sistemas.
+    /// </summary>
+    private MinigameID GetLastPlayedMinigame()
+    {
+        if (GameManager.Instance == null) return MinigameID.None;
+
+        // GameManager.GetPlayedMinigames() debe ser público.
+        // Si no existe todavía, agregar: public List<int> GetPlayedMinigames() => playedMinigames;
+        List<int> played = GameManager.Instance.GetPlayedMinigames();
+        if (played == null || played.Count == 0) return MinigameID.None;
+
+        int lastId = played[played.Count - 1];
+        return System.Enum.IsDefined(typeof(MinigameID), lastId)
+            ? (MinigameID)lastId
+            : MinigameID.None;
+    }
+
+    // ── Carga de escena ───────────────────────────────────────────────────────
 
     private void LoadMinigame()
     {
-        KillAllTweens();
-        PlayerPrefs.SetInt("SelectedMinigame", selectedMinigameId);
+        KillOwnTweens();
 
-        if (SceneLoader.Instance != null)
-            SceneLoader.Instance.LoadSelectModifier();
+        // Pasar datos a GameManager
+        if (GameManager.Instance != null)
+            GameManager.Instance.SetSelectedMinigame((int)selectedMinigameId);
         else
-            UnityEngine.SceneManagement.SceneManager.LoadScene("Select_Modifier");
+            Debug.LogWarning("[Roulette] GameManager no encontrado al cargar minijuego.");
+
+        // Load the actual minigame directly now that Select_Modifier is integrated
+        if (SceneLoader.Instance != null)
+            SceneLoader.Instance.LoadMinigame((int)selectedMinigameId);
+        else
+            UnityEngine.SceneManagement.SceneManager.LoadScene("Minigame_" + (int)selectedMinigameId);
     }
 
-    private void KillAllTweens()
+    // ── Gestión de tweens propios ─────────────────────────────────────────────
+
+    /// Registra un Tween para poder matarlo en KillOwnTweens().
+    private void TrackTween(Tween t)
     {
-        mainSequence?.Kill();
-        DOTween.KillAll();
+        if (t != null) ownTweens.Add(t);
     }
 
-    void OnDestroy()
+    /// Registra una Sequence para poder matarla en KillOwnTweens().
+    private void TrackSequence(Sequence s)
     {
-        KillAllTweens();
+        if (s != null) ownSequences.Add(s);
+    }
+
+    private void KillOwnTweens()
+    {
+        foreach (Sequence s in ownSequences) s?.Kill();
+        foreach (Tween t in ownTweens) t?.Kill();
+        ownSequences.Clear();
+        ownTweens.Clear();
+    }
+
+    // ── Validaciones ──────────────────────────────────────────────────────────
+
+    private void ValidateReferences()
+    {
+        if (mainCamera == null) Debug.LogError("[Roulette] mainCamera no asignada.", this);
+        if (minigameSpinner == null) Debug.LogWarning("[Roulette] minigameSpinner no asignado — se usará fallback.", this);
+        if (modifiersSpinner == null) Debug.LogWarning("[Roulette] modifiersSpinner no asignado.", this);
+        if (SceneLoader.Instance == null) Debug.LogError("[Roulette] SceneLoader no encontrado en la escena.", this);
+        if (GameManager.Instance == null) Debug.LogError("[Roulette] GameManager no encontrado en la escena.", this);
+    }
+
+    // ── Destrucción ───────────────────────────────────────────────────────────
+
+    private void OnDestroy()
+    {
+        KillOwnTweens();
     }
 }
