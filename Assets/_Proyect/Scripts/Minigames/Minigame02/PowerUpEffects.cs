@@ -65,6 +65,7 @@ public class PowerUpEffects : MonoBehaviour
         if (zoneIndex < 0 || zoneIndex >= cagesByZone.Length)
             yield break;
 
+        AudioManager.Instance?.PlaySFX(SoundID.PUCaja);
         GameObject cage = cagesByZone[zoneIndex];
 
         SpriteRenderer[] renderers = cage.GetComponentsInChildren<SpriteRenderer>();
@@ -87,6 +88,7 @@ public class PowerUpEffects : MonoBehaviour
 
         while (timeLeft > 0)
         {
+
             timeLeft -= Time.deltaTime;
 
             // parpadeo suave en los últimos segundos
@@ -139,6 +141,7 @@ public class PowerUpEffects : MonoBehaviour
     // ESCUDO
     public IEnumerator ActivateShield(PlatformPlayerController user)
     {
+        AudioManager.Instance?.PlaySFX(SoundID.PUShield);
         int idx = GetPlayerIndex(user);
         GameObject vfx = idx == 1 ? shieldVFXPlayer1 : shieldVFXPlayer2;
         if (vfx != null) vfx.SetActive(true);
@@ -153,6 +156,7 @@ public class PowerUpEffects : MonoBehaviour
     // GANCHO
     public IEnumerator ActivateHook(PlatformPlayerController user, PlatformPlayerController target)
     {
+        AudioManager.Instance?.PlaySFX(SoundID.PUHook);
         Vector2 userPos = user.transform.position;
         Vector2 targetPos = target.transform.position;
         Vector2 dir = targetPos - userPos;
@@ -213,6 +217,7 @@ public class PowerUpEffects : MonoBehaviour
     // GRAVEDAD AUMENTADA
     public IEnumerator ActivateHeavyGravity(PlatformPlayerController target)
     {
+        AudioManager.Instance?.PlaySFX(SoundID.PUGravity);
         int idx = GetPlayerIndex(target);
         ParticleSystem vfx = idx == 1 ? heavyGravityVFXPlayer1 : heavyGravityVFXPlayer2;
         PlayVFX(vfx);
@@ -233,6 +238,7 @@ public class PowerUpEffects : MonoBehaviour
     {
         // ANTES: user.GetComponent
         // DESPUÉS: target.GetComponent
+        AudioManager.Instance?.PlaySFX(SoundID.PUMirror);
         AfterImageEffect afterImage = target.GetComponent<AfterImageEffect>();
         afterImage?.StartEffect(true);
 

@@ -267,6 +267,8 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             ApplyBetterGravity();
             return;
         }
+
+        bool wasJetpackFiring = jetpackFiring;
         jetpackFiring = false;
 
         // Detectar salto mantenido tanto en teclado como en gamepad
@@ -277,6 +279,9 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
         if (jetpackActive && (jumpHeldKeyboard || jumpHeldGamepad))
         {
+
+                AudioManager.Instance?.PlaySFX(SoundID.PUJetpack);
+
             jetpackFiring = true;
             rb.linearVelocity = new Vector2(
                 rb.linearVelocity.x,
@@ -290,6 +295,8 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             if (_jetpackAnimator != null)
                 _jetpackAnimator.SetBool("Fire", false);
         }
+
+
 
         animator.SetBool("JetpackFire", jetpackFiring);
 
@@ -595,7 +602,12 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         Debug.Log(gameObject.name + " recibio: " + type);
     }
 
-    public void SetShield(bool active, float multiplier) { shieldActive = active; shieldMultiplier = multiplier; }
+    public void SetShield(bool active, float multiplier) 
+    {
+
+        shieldActive = active; 
+        shieldMultiplier = multiplier; 
+    }
 
     public void SetDoubleJump(bool active)
     {
@@ -603,8 +615,18 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         usedDoubleJump = !active;
     }
 
-    public void SetHeavyGravity(bool active, float gravityValue) { heavyGravityActive = active; heavyGravityValue = gravityValue; }
-    public void SetMirrorControl(bool active, PlatformPlayerController target) { mirrorActive = active; mirrorTarget = target; }
+    public void SetHeavyGravity(bool active, float gravityValue) 
+    {
+
+        heavyGravityActive = active; 
+        heavyGravityValue = gravityValue; 
+    }
+    public void SetMirrorControl(bool active, PlatformPlayerController target) 
+    {
+
+        mirrorActive = active; 
+        mirrorTarget = target; 
+    }
     public void TriggerMirrorJump() { mirrorJumpPending = true; }
 
     private void ApplyMirrorControl()
@@ -630,6 +652,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             _jetpackAnimator = jetpackAnimator;
             _jetpackSR = _jetpackObject != null ? _jetpackObject.GetComponent<SpriteRenderer>() : null;
             if (_jetpackObject != null) _jetpackObject.SetActive(true);
+            AudioManager.Instance?.PlaySFX(SoundID.PUEJetpack);  
         }
         else
         {
