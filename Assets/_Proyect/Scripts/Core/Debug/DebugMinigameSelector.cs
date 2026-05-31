@@ -13,10 +13,10 @@ public class DebugMinigameSelector : MonoBehaviour
         debugPanel.SetActive(debug);
     }
 
-    // cada botón del panel llama esto con su id (1,2,3,4,5)
+    // cada botÃ³n del panel llama esto con su id (1,2,3,4,5)
     public void SelectMinigame(int id)
     {
         DebugManager.SetMinigame(id);
-        SceneLoader.Instance.LoadSelectModifier();
+        SceneLoader.Instance.LoadMinigame(id);
     }
 }

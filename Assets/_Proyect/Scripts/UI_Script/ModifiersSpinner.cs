@@ -1,148 +1,232 @@
 using UnityEngine;
-using System.Collections.Generic;
 
+/// <summary>
+/// Ruleta de modificadores. Recibe el MinigameConfig del minijuego seleccionado
+/// (pasado explícitamente por RouletteShowDialogueSystem) y elige un modificador
+/// al azar cuando la ruleta se detiene.
+///
+/// SETUP:
+///   - Rigidbody2D en el mismo GO (se configura en Awake)
+///   - SpriteRenderer en el mismo GO
+///   - sectionTexts: 3 TextMeshPro 3D hijos de la ruleta, uno por sector
+///   - Asignar los MinigameConfig en el Inspector (configs[])
+/// </summary>
 public class ModifiersSpinner : MonoBehaviour
 {
-    [Header("Configuraci�n Visual")]
+    // ── Inspector ─────────────────────────────────────────────────────────────
+
+    [Header("Física de la ruleta")]
     [SerializeField] private float minSpinPower = 40f;
     [SerializeField] private float maxSpinPower = 80f;
     [SerializeField] private float stopPower = 2f;
+    [SerializeField] private float settleDelay = 0.5f;   // segundos quieta antes de confirmar
 
-    [Header("Textos de secciones")]
-    [SerializeField] private TMPro.TextMeshPro[] sectionTexts; // 3 textos hijos de la ruleta
+    [Header("Textos de sección (3 hijos de la ruleta)")]
+    [SerializeField] private TMPro.TextMeshPro[] sectionTexts;
 
-    [Header("Sprites por minijuego")]
-    [SerializeField] private Sprite spriteKOH;
-    [SerializeField] private Sprite spriteDodgeDisk;
-    [SerializeField] private Sprite spriteSpace; // sprite para el Minigame_5
+    [Header("Configuraciones de minijuego")]
+    [Tooltip("Un MinigameConfig por minijuego. El correcto se busca por MinigameID.")]
+    [SerializeField] private MinigameConfig[] configs;
 
-    // indice del array = secci�n de la ruleta (0, 1, 2)
-    // El texto "Sin Modificador" en el slot 2 de Space mapea al enum None
-    private static readonly Dictionary<int, string[]> modifierNames = new()
-{
-    { 1, new[] { "Bonus Kill",    "Bonus Death",     "Bonus Winner"    } }, // DodgeDisk
-    { 2, new[] { "Comeback x3",  "Bonus Hardpoint", "Point Bleed"     } }, // KOH
-    { 3, new[] { "Mod 1", "Mod 2", "Mod 3" } },                           // DNA (Minigame_3) - completar después
-    { 4, new[] { "Golden Kill", "Combo Rounds", "Sin Modificador" } },   // Space (Minigame_4)
-};
+    // ── Eventos ───────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Se dispara cuando la ruleta se detiene y determina el resultado.
+    /// Parámetros: (MinigameID minijuego, int modifierEnumValue)
+    /// </summary>
+    public event System.Action<MinigameID, int> OnModifierComplete;
+
+    // ── Estado interno ────────────────────────────────────────────────────────
 
     private Rigidbody2D rb;
     private SpriteRenderer sr;
     private bool hasSpun = false;
     private float stoppedTimer = 0f;
-    private int targetMinigame = -1;
+    private MinigameID targetMinigame = MinigameID.None;
+    private MinigameConfig activeConfig = null;
 
-    private void Start()
+    // ── Ciclo de vida ─────────────────────────────────────────────────────────
+
+    private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
         rb.angularDamping = 0.2f;
+    }
 
-        targetMinigame = PlayerPrefs.GetInt("SelectedMinigame", 1);
-        UpdateSprite();
+    // ── API pública ───────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Inicializa la ruleta para el minijuego indicado y la hace girar.
+    /// Llamado por RouletteShowDialogueSystem en vez de leer PlayerPrefs.
+    /// </summary>
+    public void Initialize(MinigameID minigame)
+    {
+        targetMinigame = minigame;
+        activeConfig = FindConfig(minigame);
+
+        if (activeConfig == null)
+            Debug.LogWarning($"[ModifiersSpinner] No hay MinigameConfig para {minigame}.");
+
+        ApplySprite();
         UpdateSectionTexts();
-        SpinIt();
+        Spin();
     }
 
-    private void UpdateSprite()
+    public void Spin()
     {
-        if (sr == null) return;
-        if (targetMinigame == 1 && spriteDodgeDisk != null) sr.sprite = spriteDodgeDisk;
-        else if (targetMinigame == 2 && spriteKOH != null) sr.sprite = spriteKOH; 
-                                                                                  // targetMinigame == 3 (DNA) no tiene sprite todavía
-        else if (targetMinigame == 4 && spriteSpace != null) sr.sprite = spriteSpace;
-                                                                                      
-    }
-
-    private void UpdateSectionTexts()
-    {
-        if (sectionTexts == null) return;
-        string[] names = modifierNames.ContainsKey(targetMinigame)
-            ? modifierNames[targetMinigame]
-            : new[] { "?", "?", "?" };
-
-        for (int i = 0; i < sectionTexts.Length && i < names.Length; i++)
-        {
-            if (sectionTexts[i] != null)
-                sectionTexts[i].text = names[i];
-        }
-    }
-
-    public void SpinIt()
-    {
-        float randomPower = Random.Range(minSpinPower, maxSpinPower);
-        rb.AddTorque(randomPower, ForceMode2D.Impulse);
+        float power = Random.Range(minSpinPower, maxSpinPower);
+        rb.AddTorque(power, ForceMode2D.Impulse);
         hasSpun = true;
         stoppedTimer = 0f;
     }
+
+    // ── Update ────────────────────────────────────────────────────────────────
 
     private void Update()
     {
         if (!hasSpun) return;
 
-        if (rb.angularVelocity > 0)
+        // Frenar progresivamente
+        if (rb.angularVelocity > 0f)
         {
             rb.angularVelocity -= stopPower * Time.deltaTime;
-            if (rb.angularVelocity < 0) rb.angularVelocity = 0;
+            if (rb.angularVelocity < 0f) rb.angularVelocity = 0f;
         }
 
-        if (rb.angularVelocity <= 0)
+        // Cuando está quieta, esperar settleDelay antes de confirmar
+        if (rb.angularVelocity <= 0f)
         {
             stoppedTimer += Time.deltaTime;
-            if (stoppedTimer >= 0.5f)
+            if (stoppedTimer >= settleDelay)
             {
                 hasSpun = false;
                 stoppedTimer = 0f;
-                SelectedModifier();
+                ConfirmSelection();
             }
         }
     }
 
-    private void SelectedModifier()
+    // ── Lógica interna ────────────────────────────────────────────────────────
+
+    private void ApplySprite()
     {
-        int totalMods = 3;
+        // El sprite de la ruleta de modificadores se configura directamente
+        // en el SpriteRenderer del prefab. No se cambia por código.
+    }
+
+    private void UpdateSectionTexts()
+    {
+        if (sectionTexts == null)
+        {
+            Debug.LogWarning("[ModifiersSpinner] sectionTexts es null! Asigna los textos en el Inspector.");
+            return;
+        }
+
+        Debug.Log($"[ModifiersSpinner] UpdateSectionTexts: {sectionTexts.Length} textos, activeConfig={(activeConfig != null ? activeConfig.id.ToString() : "null")}");
+
+        for (int i = 0; i < sectionTexts.Length; i++)
+        {
+            if (sectionTexts[i] == null)
+            {
+                Debug.LogWarning($"[ModifiersSpinner] sectionTexts[{i}] es null!");
+                continue;
+            }
+
+            string label = "?";
+            if (activeConfig != null &&
+                activeConfig.modifiers != null &&
+                i < activeConfig.modifiers.Length)
+            {
+                label = activeConfig.modifiers[i].displayName;
+                Debug.Log($"[ModifiersSpinner] Texto {i}: {label}");
+            }
+
+            sectionTexts[i].text = label;
+        }
+    }
+
+    private void ConfirmSelection()
+    {
+        int sectorCount = (activeConfig != null && activeConfig.modifiers != null)
+            ? activeConfig.modifiers.Length
+            : 3;
+
+        sectorCount = Mathf.Max(1, sectorCount);
+
+        // Calcular sector a partir del ángulo actual
         float rawAngle = transform.rotation.eulerAngles.z;
         float normalizedAngle = (rawAngle + 90f) % 360f;
-        float degreesPerSlice = 360f / totalMods;
+        float degreesPerSlice = 360f / sectorCount;
         int modIndex = Mathf.FloorToInt(normalizedAngle / degreesPerSlice);
-        modIndex = Mathf.Clamp(modIndex, 0, totalMods - 1);
+        modIndex = Mathf.Clamp(modIndex, 0, sectorCount - 1);
 
-        string modName = modifierNames.ContainsKey(targetMinigame)
-            ? modifierNames[targetMinigame][modIndex] : "?";
-
-        Debug.Log($"Minijuego {targetMinigame} | Modificador: {modName}");
-
-        if (ModifierManager.Instance != null)
+        // Leer el valor del enum desde la config (o fallback: modIndex + 1)
+        int enumValue = modIndex + 1;
+        if (activeConfig != null &&
+            activeConfig.modifiers != null &&
+            modIndex < activeConfig.modifiers.Length)
         {
-            if (targetMinigame == 1)
-            {
-                // DodgeDisk: None=0, BonusKill=1, BonusDeath=2, BonusWinner=3
-                // los 3 slots siempre mapean a un mod real (no hay None)
-                ModifierManager.Instance.SetDodgeDiskModifier((ModifierManager.DodgeDiskModifier)(modIndex + 1));
-            }
-            else if (targetMinigame == 2)
-            {
-                // KOH: None=0, Comeback=1, Progressive=2, PointBleed=3
-                ModifierManager.Instance.SetKOHModifier((ModifierManager.KOHModifier)(modIndex + 1));
-            }
-            else if (targetMinigame == 3)
-            {
-                Debug.Log($"[ModifiersSpinner] DNA modifier {modIndex} seleccionado (sin implementar)");
-            }
-            else if (targetMinigame == 4)
-            {
-                // Space: None=0, GoldenKill=1, ComboRounds=2
-                // slot 0  GoldenKill (1)
-                // slot 1  ComboRounds (2)
-                // slot 2  Sin Modificador (0 = None)
-                int spaceEnumIndex = modIndex < 2 ? modIndex + 1 : 0;
-                ModifierManager.Instance.SetSpaceModifier(
-                    (ModifierManager.SpaceModifier)spaceEnumIndex);
-            }
+            enumValue = activeConfig.modifiers[modIndex].enumValue;
         }
-        PlayerPrefs.SetInt("SelectedModifier", modIndex); // 0, 1 o 2
-        PlayerPrefs.SetInt("SelectedModifierMinigame", targetMinigame);
 
-        SceneLoader.Instance.LoadMinigame(targetMinigame);
+        // Aplicar al ModifierManager
+        ApplyModifier(modIndex, enumValue);
+
+        Debug.Log($"[ModifiersSpinner] Minijuego={targetMinigame} | Sector={modIndex} | EnumValue={enumValue}");
+
+        // Notificar al sistema de ruleta
+        OnModifierComplete?.Invoke(targetMinigame, enumValue);
     }
+
+    private void ApplyModifier(int modIndex, int enumValue)
+    {
+        if (ModifierManager.Instance == null) return;
+
+        switch (targetMinigame)
+        {
+            case MinigameID.DodgeDisk:
+                ModifierManager.Instance.SetDodgeDiskModifier(
+                    (ModifierManager.DodgeDiskModifier)enumValue);
+                break;
+
+            case MinigameID.KingOfHill:
+                ModifierManager.Instance.SetKOHModifier(
+                    (ModifierManager.KOHModifier)enumValue);
+                break;
+
+            case MinigameID.Space:
+                ModifierManager.Instance.SetSpaceModifier(
+                    (ModifierManager.SpaceModifier)enumValue);
+                break;
+
+            case MinigameID.DNA:
+                Debug.Log($"[ModifiersSpinner] DNA modifier {modIndex} seleccionado (pendiente de implementar en ModifierManager).");
+                break;
+
+            case MinigameID.ChaseRun:
+                Debug.Log($"[ModifiersSpinner] ChaseRun modifier {modIndex} seleccionado (pendiente de implementar en ModifierManager).");
+                break;
+
+            default:
+                Debug.LogWarning($"[ModifiersSpinner] Minijuego sin switch: {targetMinigame}");
+                break;
+        }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private MinigameConfig FindConfig(MinigameID id)
+    {
+        if (configs == null) return null;
+        foreach (MinigameConfig cfg in configs)
+            if (cfg != null && cfg.id == id) return cfg;
+        return null;
+    }
+
+    /// <summary>
+    /// Permite que sistemas externos (ej. RouletteShowDialogueSystem) lean
+    /// la configuración de un minijuego sin depender de PlayerPrefs.
+    /// </summary>
+    public MinigameConfig GetConfig(MinigameID id) => FindConfig(id);
 }
