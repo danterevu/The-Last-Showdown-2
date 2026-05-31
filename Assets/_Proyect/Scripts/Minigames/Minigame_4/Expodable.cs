@@ -42,6 +42,16 @@ public class Explodable : MonoBehaviour
 
         // detener la nave completamente
         shipController?.ForceStop();
+        shipController?.HideAllParticles();
+
+        // detener el efecto de estela (after image)
+        AfterImageEffect afterImage = GetComponentInChildren<AfterImageEffect>();
+        afterImage?.StopEffect();
+
+        // desactivar el controlador de armas para que no siga disparando
+        WeaponController weaponController = GetComponentInChildren<WeaponController>();
+        if(weaponController != null)
+            weaponController.enabled = false;
 
         // instanciar cada pieza
         foreach (GameObject piecePrefab in piecePrefabs)
@@ -58,7 +68,7 @@ public class Explodable : MonoBehaviour
                 {
                     // angulo base distribuido uniformemente en 360 grados
                     float baseAngle = (360f / piecePrefabs.Length) * i;
-                    // pequeño random para que no sea perfecto
+                    // pequeï¿½o random para que no sea perfecto
                     float randomAngle = baseAngle + Random.Range(-30f, 30f);
                     float rad = randomAngle * Mathf.Deg2Rad;
                     Vector2 dir = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
@@ -93,6 +103,14 @@ public class Explodable : MonoBehaviour
             sr.enabled = true;
         foreach (Collider2D col in GetComponentsInChildren<Collider2D>())
             col.enabled = true;
+
+        // Reactivar el controlador de armas
+        WeaponController weaponController = GetComponentInChildren<WeaponController>();
+        if (weaponController != null)
+        {
+            weaponController.enabled = true;
+            weaponController.ResetToDefault();
+        }
 
         isDead = false;
     }

@@ -23,6 +23,7 @@
 
         [Header("UI")]
         [SerializeField] private TextMeshProUGUI timerText;
+        [SerializeField] private TextMeshProUGUI countdownText;
  
 
         [Header("Debug")]
@@ -58,16 +59,94 @@
         {
             gameTimer = gameDuration;
             pointTimer = pointInterval;
-            gameRunning = true;
 
             player1.transform.position = player1SpawnPoint.position;
             player2.transform.position = player2SpawnPoint.position;
 
             diskMovement.transform.position = diskSpawnPoint.position;
-            diskMovement.Launch();
             UpdateUI();
             CommentarySystem.Instance?.TriggerComment(CommentTrigger.DodgeDiskEntry);
-    }
+            StartCoroutine(InitialCountdown());
+        }
+
+        private IEnumerator InitialCountdown()
+        {
+            FreezePlayers(true);
+            gameRunning = false;
+
+            if (countdownText != null)
+                countdownText.gameObject.SetActive(true);
+
+            for (int i = 3; i >= 0; i--)
+            {
+                if (countdownText != null)
+                {
+                    if (i > 0)
+                    {
+                        countdownText.text = i.ToString();
+                        yield return StartCoroutine(AnimateCountdownText(countdownText));
+                    }
+                    else
+                    {
+                        countdownText.text = "Â¡Ya!";
+                    }
+                }
+                else if (i == 0)
+                {
+                    yield return null;
+                }
+
+                if (i > 0)
+                    yield return new WaitForSeconds(0.5f);
+            }
+
+            if (countdownText != null)
+                countdownText.gameObject.SetActive(false);
+
+            FreezePlayers(false);
+            gameRunning = true;
+            diskMovement.Launch();
+        }
+
+        private IEnumerator AnimateCountdownText(TextMeshProUGUI text)
+        {
+            Vector3 originalScale = text.transform.localScale;
+            Vector3 originalPos = text.transform.localPosition;
+            float duration = 0.5f;
+            float shakeAmount = 10f;
+            float scaleMultiplier = 1.3f;
+
+            for (float t = 0; t < duration; t += Time.deltaTime)
+            {
+                float progress = t / duration;
+
+                float scale = Mathf.Lerp(1f, scaleMultiplier, Mathf.PingPong(progress * 2, 1f));
+                text.transform.localScale = originalScale * scale;
+
+                float shakeX = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
+                float shakeY = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
+                text.transform.localPosition = originalPos + new Vector3(shakeX, shakeY, 0f);
+
+                yield return null;
+            }
+
+            text.transform.localScale = originalScale;
+            text.transform.localPosition = originalPos;
+        }
+
+        private void FreezePlayers(bool freeze)
+        {
+            if (player1 != null)
+            {
+                PlayerController controller1 = player1.GetComponent<PlayerController>();
+                controller1?.SetFrozen(freeze);
+            }
+            if (player2 != null)
+            {
+                PlayerController controller2 = player2.GetComponent<PlayerController>();
+                controller2?.SetFrozen(freeze);
+            }
+        }
 
         private void Update()
         {
@@ -116,7 +195,7 @@
     }
 
     private void RespawnPlayer(int player)
-    {// Cancelar efectos activos del jugador que murió
+    {// Cancelar efectos activos del jugador que muriï¿½
         PowerUpManager powerUpManager = FindFirstObjectByType<PowerUpManager>();
         powerUpManager?.CancelEffectsOnDeath(player);
         if (player == 1)

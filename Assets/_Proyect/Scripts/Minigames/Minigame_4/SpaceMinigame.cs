@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SpaceMinigame : MonoBehaviour
 {
@@ -21,8 +22,11 @@ public class SpaceMinigame : MonoBehaviour
     [SerializeField] private ZoneCameraController zoneCamera;
 
     [Header("Flash de transicion")]
-    [SerializeField] private Image flashImage;
-    [SerializeField] private float flashDuration = 0.8f;
+    [SerializeField] private Image fadeImage;
+    [SerializeField] private float fadeDuration = 0.8f;
+
+    [Header("Cuenta regresiva")]
+    [SerializeField] private TextMeshProUGUI countdownText;
 
     [Header("HUD")]
     [SerializeField] private HUDManager hudManager;
@@ -91,6 +95,89 @@ public class SpaceMinigame : MonoBehaviour
         ActivateZone(0);
         DoRespawn(player1, player1Spawns[0]);
         DoRespawn(player2, player2Spawns[0]);
+        yield return StartCoroutine(InitialCountdown());
+    }
+
+    private IEnumerator InitialCountdown()
+    {
+        FreezePlayers(true);
+        roundOver = true;
+
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(true);
+
+        for (int i = 3; i >= 0; i--)
+        {
+            if (countdownText != null)
+            {
+                if (i > 0)
+                {
+                    countdownText.text = i.ToString();
+                    yield return StartCoroutine(AnimateCountdownText(countdownText));
+                }
+                else
+                {
+                    countdownText.text = "¡Ya!";
+                }
+            }
+            else if (i == 0)
+            {
+                yield return null;
+            }
+
+            if (i > 0)
+                yield return new WaitForSeconds(0.5f);
+        }
+
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(false);
+
+        FreezePlayers(false);
+        roundOver = false;
+    }
+
+    private IEnumerator AnimateCountdownText(TextMeshProUGUI text)
+    {
+        Vector3 originalScale = text.transform.localScale;
+        Vector3 originalPos = text.transform.localPosition;
+        float duration = 0.5f;
+        float shakeAmount = 10f;
+        float scaleMultiplier = 1.3f;
+
+        for (float t = 0; t < duration; t += Time.deltaTime)
+        {
+            float progress = t / duration;
+
+            float scale = Mathf.Lerp(1f, scaleMultiplier, Mathf.PingPong(progress * 2, 1f));
+            text.transform.localScale = originalScale * scale;
+
+            float shakeX = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
+            float shakeY = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
+            text.transform.localPosition = originalPos + new Vector3(shakeX, shakeY, 0f);
+
+            yield return null;
+        }
+
+        text.transform.localScale = originalScale;
+        text.transform.localPosition = originalPos;
+    }
+
+    private void FreezePlayers(bool freeze)
+    {
+        if (player1 != null)
+        {
+            SpaceShipController ship1 = player1.GetComponent<SpaceShipController>();
+            if (ship1 != null) ship1.enabled = !freeze;
+            Rigidbody2D rb1 = player1.GetComponent<Rigidbody2D>();
+            if (rb1 != null) rb1.simulated = !freeze;
+        }
+        if (player2 != null)
+        {
+            SpaceShipController ship2 = player2.GetComponent<SpaceShipController>();
+            if (ship2 != null) ship2.enabled = !freeze;
+            Rigidbody2D rb2 = player2.GetComponent<Rigidbody2D>();
+            if (rb2 != null) rb2.simulated = !freeze;
+        }
     }
     public void RegisterKill(int killer, int victim)
     {
@@ -167,29 +254,140 @@ public class SpaceMinigame : MonoBehaviour
 
             gameOver = true;
             yield return new WaitForSeconds(respawnDelay);
-            yield return StartCoroutine(FlashTransition());
+            yield return StartCoroutine(FadeTransition());
             EndGame(gameWinner); // COMBO ROUNDS: pasamos el ganador
             yield break;
         }
 
         yield return new WaitForSeconds(respawnDelay);
-        yield return StartCoroutine(FlashTransition());
+        yield return StartCoroutine(ChangeZone(currentZoneIndex + 1));
+    }
 
-        ActivateZone(currentZoneIndex + 1);
+    private IEnumerator ChangeZone(int newZoneIndex)
+    {
+        FreezePlayers(true);
+        roundOver = true;
+
+        // Fade to black
+        yield return StartCoroutine(FadeToBlack());
+
+        // Activar nueva zona y respawnear jugadores
+        ActivateZone(newZoneIndex);
         ResetRoundKills();
 
-        DoRespawn(player1, player1Spawns[currentZoneIndex]);
-        DoRespawn(player2, player2Spawns[currentZoneIndex]);
+        DoRespawn(player1, player1Spawns[newZoneIndex]);
+        DoRespawn(player2, player2Spawns[newZoneIndex]);
 
         // Cambio de zona: ambos pierden arma y power up
         ClearPlayerLoadout(player1);
         ClearPlayerLoadout(player2);
         p1LosesLoadout = false;
         p2LosesLoadout = false;
-
         p1Invulnerable = false;
         p2Invulnerable = false;
+
+        // Cuenta regresiva + fade out
+        yield return StartCoroutine(CountdownFadeAndRelease());
+    }
+
+    private IEnumerator FadeToBlack()
+    {
+        if (fadeImage == null) yield break;
+
+        fadeImage.gameObject.SetActive(true);
+        Color c = fadeImage.color;
+        c.a = 0f;
+        fadeImage.color = c;
+
+        for (float t = 0; t < fadeDuration; t += Time.deltaTime)
+        {
+            c.a = Mathf.Clamp01(t / fadeDuration);
+            fadeImage.color = c;
+            yield return null;
+        }
+
+        c.a = 1f;
+        fadeImage.color = c;
+    }
+
+    private IEnumerator CountdownFadeAndRelease()
+    {
+        bool fadeDone = false;
+        bool countdownDone = false;
+
+        StartCoroutine(FadeFromBlackCoroutine(() => fadeDone = true));
+
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(true);
+
+        for (int i = 3; i >= 0; i--)
+        {
+            if (countdownText != null)
+            {
+                if (i > 0)
+                {
+                    countdownText.text = i.ToString();
+                    yield return StartCoroutine(AnimateCountdownText(countdownText));
+                }
+                else
+                {
+                    countdownText.text = "¡Ya!";
+                }
+            }
+            else if (i == 0)
+            {
+                yield return null;
+            }
+
+            if (i > 0)
+                yield return new WaitForSeconds(0.5f);
+        }
+
+        countdownDone = true;
+
+        while (!fadeDone)
+        {
+            yield return null;
+        }
+
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(false);
+
+        FreezePlayers(false);
         roundOver = false;
+    }
+
+    private IEnumerator FadeFromBlackCoroutine(System.Action onComplete)
+    {
+        if (fadeImage == null)
+        {
+            onComplete?.Invoke();
+            yield break;
+        }
+
+        Color c = fadeImage.color;
+        c.a = 1f;
+        fadeImage.color = c;
+
+        for (float t = 0; t < fadeDuration * 3.5f; t += Time.deltaTime)
+        {
+            c.a = Mathf.Clamp01(1f - t / (fadeDuration * 3.5f));
+            fadeImage.color = c;
+            yield return null;
+        }
+
+        c.a = 0f;
+        fadeImage.color = c;
+        fadeImage.gameObject.SetActive(false);
+
+        onComplete?.Invoke();
+    }
+
+    private IEnumerator FadeTransition()
+    {
+        yield return StartCoroutine(FadeToBlack());
+        yield return new WaitForSeconds(0.1f);
+        yield return StartCoroutine(FadeFromBlackCoroutine(null));
     }
 
     private IEnumerator RespawnBothDelayed()
@@ -286,38 +484,5 @@ public class SpaceMinigame : MonoBehaviour
             SceneLoader.Instance.LoadResults();
     }
 
-    private IEnumerator FlashTransition()
-    {
-        if (flashImage == null) yield break;
 
-        flashImage.enabled = true;
-        Color c = flashImage.color;
-        float half = flashDuration * 0.5f;
-        float elapsed = 0f;
-
-        while (elapsed < half)
-        {
-            c.a = Mathf.Lerp(0f, 1f, elapsed / half);
-            flashImage.color = c;
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        c.a = 1f;
-        flashImage.color = c;
-        yield return new WaitForSeconds(0.1f);
-
-        elapsed = 0f;
-        while (elapsed < half)
-        {
-            c.a = Mathf.Lerp(1f, 0f, elapsed / half);
-            flashImage.color = c;
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        c.a = 0f;
-        flashImage.color = c;
-        flashImage.enabled = false;
-    }
 }

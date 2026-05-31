@@ -64,15 +64,16 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [SerializeField] private bool canAttack = true;
     [SerializeField] private bool isAttacking = false;
     [SerializeField] private bool isKnockedBack = false;
+    [SerializeField] private bool isFrozen;
 
     [Header("PowerUp DNA")]
     [SerializeField] private DNAPowerUpPickup.DNAPowerUpType currentDNAPowerUp;
     [SerializeField] private bool hasDNAPowerUp = false;
 
     [Header("Shrink")]
-    private float shrinkScale = 0.7f;      // tamaño al que se achica
+    private float shrinkScale = 0.7f;      // tamaï¿½o al que se achica
     private float shrinkSpeedMult = 1.2f;  // multiplicador de velocidad
-    private float shrinkDuration = 2f;     // duración en segundos
+    private float shrinkDuration = 2f;     // duraciï¿½n en segundos
 
     [Header("Mine")]
     [SerializeField] private GameObject minePrefab;
@@ -89,9 +90,9 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [Header("SlimeShot")]
     [SerializeField] private GameObject slimeProjectilePrefab;
     [SerializeField] private float slimeDuration = 2f;
-    [SerializeField] private float slimeSpeedMult = 0.5f;      // 50% más lento
+    [SerializeField] private float slimeSpeedMult = 0.5f;      // 50% mï¿½s lento
     [SerializeField] private float slimeJumpForceReduction = 0.3f; // salta al 30% de lo normal
-    [SerializeField] private float slimeGravityMult = 2.5f;    // más pesado
+    [SerializeField] private float slimeGravityMult = 2.5f;    // mï¿½s pesado
     [SerializeField] private bool isSlimed = false;
     private Coroutine slimeCoroutine;
 
@@ -163,7 +164,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     private void Update()
     {
-        if (isDead) return;
+        if (isDead || isFrozen) return;
         if (moveAction == null) return;
 
         if (isStunned)
@@ -256,6 +257,11 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     private void FixedUpdate()
     {
+        if (isFrozen)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
         if (isStunned) return;
         rb.gravityScale = gravityScale;
 
@@ -268,7 +274,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     private void LateUpdate()
     {
-        if (punchHitbox != null) //para orientar la hitbox de la piña
+        if (punchHitbox != null) //para orientar la hitbox de la piï¿½a
         {
             // posicion
             Vector3 pos = punchHitbox.transform.localPosition;
@@ -368,13 +374,13 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         StartCoroutine(AttackCooldown());
     }
 
-    // Llamado por Animation Event cuando el puño conecta
+    // Llamado por Animation Event cuando el puï¿½o conecta
     public void ApplyAttackHit()
     {
         punchHitbox?.Activate();
     }
 
-    // Llamado por Animation Event al terminar la animación
+    // Llamado por Animation Event al terminar la animaciï¿½n
     public void OnAttackFinished()
     {
         isAttacking = false;
@@ -468,12 +474,12 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
                 heldCrate.Throw(new Vector2(dirX, 0f), playerSpeed);
             }
             heldCrate = null;
-            return; //  IMPORTANTE: salir aquí para no procesar power-up ni agarrar otra caja
+            return; //  IMPORTANTE: salir aquï¿½ para no procesar power-up ni agarrar otra caja
         }
 
         // Si no tengo caja, intento agarrar una cercana
         if (TryGrabNearbyCrate())
-            return; // si agarró caja, no usar power-up
+            return; // si agarrï¿½ caja, no usar power-up
 
         // Si no hay caja cerca, usar power-up (si lo tiene)
         if (hasDNAPowerUp)
@@ -505,7 +511,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         return false;
     }
 
-    // Power ups — implementar según el nuevo minijuego
+    // Power ups ï¿½ implementar segï¿½n el nuevo minijuego
     private void UsePowerUp()
     {
         if (!hasDNAPowerUp || heldCrate != null) return;
@@ -559,7 +565,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         jumpForce = baseJumpForce;
         gravityScale = baseGravityScale;
 
-        StopAllCoroutines(); // para el shrink si está activo
+        StopAllCoroutines(); // para el shrink si estï¿½ activo
         transform.localScale = originalScale;
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
         hasDNAPowerUp = false;
@@ -579,7 +585,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         }
 
         isSlimed = false;
-        jumpForce = // necesitás guardar el jumpForce original en Awake
+        jumpForce = // necesitï¿½s guardar el jumpForce original en Awake
         gravityScale = // mismo
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
     }
@@ -589,7 +595,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     public void Stun(float duration)
     {
         if (isInvulnerable) return;
-        // Si ya está stuneado, reiniciamos el timer al máximo entre el que le queda y el nuevo
+        // Si ya estï¿½ stuneado, reiniciamos el timer al mï¿½ximo entre el que le queda y el nuevo
         if (isStunned)
         {
             stunTimer = Mathf.Max(stunTimer, duration);
@@ -628,7 +634,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
         yield return new WaitForSeconds(shrinkDuration);
 
-        // Volver al tamaño original
+        // Volver al tamaï¿½o original
         transform.localScale = originalScale;
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
     }
@@ -664,7 +670,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     private void UseRemoteControl()
     {
         WallManager.Instance?.ActivateAll();
-        Debug.Log(gameObject.name + " activó el Remote Control");
+        Debug.Log(gameObject.name + " activï¿½ el Remote Control");
     }
 
     private IEnumerator BerserkEffect()
@@ -705,7 +711,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     {
         if (slimeProjectilePrefab == null) return;
 
-        // Dirección según para donde mira el jugador
+        // Direcciï¿½n segï¿½n para donde mira el jugador
         float dirX = IsFacingRight() ? 1f : -1f; //para donde veo? seguro que para el bulto de chori
         Vector2 direction = new Vector2(dirX, 0f);
 
@@ -770,11 +776,17 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         hasDNA = false;
         carriedDNA = null;
         moveSpeed = baseMoveSpeed;  // restaurar velocidad normal
-                                    // Si además tiene caja, la velocidad ya la maneja el agarre de caja (baseMoveSpeed * algo)
-                                    // Aquí no afecta a la caja.
+                                    // Si ademï¿½s tiene caja, la velocidad ya la maneja el agarre de caja (baseMoveSpeed * algo)
+                                    // Aquï¿½ no afecta a la caja.
     }
     public Transform GetCrateHoldPoint() => crateHoldPoint;
     public bool IsStunned() => isStunned;
     public DNA GetCarriedDNA() => carriedDNA;
     public bool IsBerserk() => isBerserk;
+
+    public void SetFrozen(bool frozen)
+    {
+        isFrozen = frozen;
+        if (frozen) rb.linearVelocity = Vector2.zero;
+    }
 }

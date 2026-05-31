@@ -111,7 +111,6 @@ public class KingOfHill : MonoBehaviour
     {
         gameTimer = gameDuration;
         zoneTimer = zoneChangeDuration;
-        gameRunning = true;
 
         // zona ya elegida en Start, solo activar
         ActivateZone(currentZoneIndex, teleport: false);
@@ -119,6 +118,46 @@ public class KingOfHill : MonoBehaviour
         hudPlayer1?.TrackPlayer(p1Controller);
         hudPlayer2?.TrackPlayer(p2Controller);
         UpdateUI();
+
+        StartCoroutine(InitialCountdown());
+    }
+
+    private IEnumerator InitialCountdown()
+    {
+        FreezePlayers(true);
+        gameRunning = false;
+
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(true);
+
+        for (int i = 3; i >= 0; i--)
+        {
+            if (countdownText != null)
+            {
+                if (i > 0)
+                {
+                    countdownText.text = i.ToString();
+                    yield return StartCoroutine(AnimateCountdownText(countdownText));
+                }
+                else
+                {
+                    countdownText.text = "¡Ya!";
+                }
+            }
+            else if (i == 0)
+            {
+                yield return null;
+            }
+
+            if (i > 0)
+                yield return new WaitForSeconds(0.5f);
+        }
+
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(false);
+
+        FreezePlayers(false);
+        gameRunning = true;
     }
 
     private void Update()
