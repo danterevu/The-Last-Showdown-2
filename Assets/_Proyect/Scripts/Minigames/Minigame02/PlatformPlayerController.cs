@@ -94,6 +94,11 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     private bool hasRawVelocityOverride = false;
     private Vector2 rawVelocityOverride = Vector2.zero;
 
+    private bool isBeingPulled = false;
+    private Vector2 pullVelocity = Vector2.zero;
+
+   
+
     [Header("PowerUp")]
     [SerializeField] private PowerUpPickup.PowerUpType currentPowerUp;
     [SerializeField] private bool hasPowerUp = false;
@@ -300,14 +305,19 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
         animator.SetBool("JetpackFire", jetpackFiring);
 
-        if (!isKnockedBack && !isStunned)
+
+
+        if (isBeingPulled)
+        {
+            rb.linearVelocity = pullVelocity;
+        }
+        else if (!isKnockedBack && !isStunned)
         {
             Vector2 inputToUse = isForcedMove ? forcedMoveInput : moveInput;
             rb.linearVelocity = new Vector2(inputToUse.x * moveSpeed, rb.linearVelocity.y);
-            isForcedMove = false;
         }
 
-        ApplyBetterGravity();
+            ApplyBetterGravity();
         ApplyMirrorControl();
     }
 
@@ -693,6 +703,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         isKnockedBack = false;
         isCrushed = false;
         animator?.SetBool("isCrushed", false);
+        SetPulled(false);
     }
 
     // Limpia power up en inventario + efectos activos (al morir)
@@ -715,5 +726,11 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             scale.x = IsFacingRight() ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
             punchHitbox.transform.localScale = scale;
         }
+    }
+
+    public void SetPulled(bool active, Vector2 velocity = default)
+    {
+        isBeingPulled = active;
+        pullVelocity = velocity;
     }
 }
