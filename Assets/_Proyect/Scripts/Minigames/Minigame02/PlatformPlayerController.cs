@@ -214,7 +214,9 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
         if (animator != null)
         {
-            animator.SetFloat("velocityX", Mathf.Abs(moveInput.x));
+            // Usar el input correcto para las animaciones (movimiento normal o forzado por espejo)
+            Vector2 inputForAnimations = isForcedMove ? forcedMoveInput : moveInput;
+            animator.SetFloat("velocityX", Mathf.Abs(inputForAnimations.x));
             animator.SetFloat("velocityY", rb.linearVelocity.y);
             animator.SetBool("isGrounded", isGrounded);
         }
@@ -245,8 +247,10 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
                 ExecuteJump();
         }
 
-        if (moveInput.x > 0.01f) sr.flipX = false;
-        else if (moveInput.x < -0.01f) sr.flipX = true;
+        // Usar el input correcto para el flip del sprite
+        Vector2 inputForFlip = isForcedMove ? forcedMoveInput : moveInput;
+        if (inputForFlip.x > 0.01f) sr.flipX = false;
+        else if (inputForFlip.x < -0.01f) sr.flipX = true;
        
         if (_jetpackSR != null)
         {
@@ -259,11 +263,15 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             _jetpackObject.transform.localPosition = pos;
         }
         if (_jetpackSR != null) _jetpackSR.flipX = sr.flipX;
+        
+        // Resetear movimiento forzado al final de Update (solo se mantiene 1 frame)
+        isForcedMove = false;
     }
 
     private void FixedUpdate()
     {
         if (isDead) return;
+        
         rb.gravityScale = heavyGravityActive ? heavyGravityValue : gravityScale;
         if (hasRawVelocityOverride)
         {
@@ -414,13 +422,13 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         StartCoroutine(AttackCooldown());
     }
 
-    // Llamado por Animation Event cuando el puño conecta
+    // Llamado por Animation Event cuando el puï¿½o conecta
     public void ApplyAttackHit()
     {
         punchHitbox?.Activate();
     }
 
-    // Llamado por Animation Event al terminar la animación
+    // Llamado por Animation Event al terminar la animaciï¿½n
     public void OnAttackFinished()
     {
         isAttacking = false;
@@ -457,7 +465,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         rb.linearVelocity = new Vector2(direction.x * knockbackForce, knockbackLift); // levantamiento
         StartCoroutine(KnockbackDuration());
 
-        if (!wasAttacking)             // solo stunearse si NO era golpe simultáneo
+        if (!wasAttacking)             // solo stunearse si NO era golpe simultï¿½neo
             StartCoroutine(StunDuration());
     }
 
@@ -484,19 +492,20 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Spike") && !isDead)
+        if (isDead) return;
+        
+        // Muerte por peligros
+        if (other.CompareTag("Spike"))
         {
             AudioManager.Instance?.PlaySFX(SoundID.LDeath);
             StartCoroutine(Die());
         }
-
-        else if (other.CompareTag("Saw") && !isDead)
+        else if (other.CompareTag("Saw"))
         {
             AudioManager.Instance?.PlaySFX(SoundID.SDeath);
             StartCoroutine(Die());
         }
     }
-
 
     public void SetCrushed(bool crushed)
     {
@@ -699,11 +708,20 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         SetHeavyGravity(false, 0f);
         SetMirrorControl(false, null);
         SetJetpack(false, 0f);
+        SetDoubleJump(false);
+        SetInvertControls(false);
         isStunned = false;
         isKnockedBack = false;
+        isAttacking = false;
+        canAttack = true;
         isCrushed = false;
+        isForcedMove = false;
+        forcedMoveInput = Vector2.zero;
+        moveInput = Vector2.zero;
         animator?.SetBool("isCrushed", false);
         SetPulled(false);
+        rb.linearVelocity = Vector2.zero;
+        rb.gravityScale = gravityScale;
     }
 
     // Limpia power up en inventario + efectos activos (al morir)

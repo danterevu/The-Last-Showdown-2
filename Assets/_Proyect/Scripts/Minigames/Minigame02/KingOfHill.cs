@@ -776,13 +776,32 @@ public class KingOfHill : MonoBehaviour
     public void EndMinigame()
     {
         gameRunning = false;
-        var (p1Round, p2Round) = GameManager.Instance.FinishMinigame();
-        GameManager.Instance.EndRound(2); // id del minijuego
-                                          // guardar para mostrar en Results
-        PlayerPrefs.SetInt("LastRoundP1", p1Round);
-        PlayerPrefs.SetInt("LastRoundP2", p2Round);
-        PlayerPrefs.SetInt("LastPlayedMinigame", 2);
-        SceneLoader.Instance.LoadResults();
-
+        
+        // Null check para GameManager
+        if (GameManager.Instance != null)
+        {
+            var (p1Round, p2Round) = GameManager.Instance.FinishMinigame();
+            GameManager.Instance.EndRound(2); // id del minijuego
+            // guardar para mostrar en Results
+            PlayerPrefs.SetInt("LastRoundP1", p1Round);
+            PlayerPrefs.SetInt("LastRoundP2", p2Round);
+            PlayerPrefs.SetInt("LastPlayedMinigame", 2);
+        }
+        
+        // Buscar SceneLoader si Instance es nulo
+        if (SceneLoader.Instance == null)
+        {
+            SceneLoader.Instance = FindObjectOfType<SceneLoader>();
+        }
+        
+        // Null check para SceneLoader antes de llamar LoadResults
+        if (SceneLoader.Instance != null)
+        {
+            SceneLoader.Instance.LoadResults();
+        }
+        else
+        {
+            Debug.LogError("SceneLoader.Instance es nulo y no se encontró en la escena!");
+        }
     }
 }
