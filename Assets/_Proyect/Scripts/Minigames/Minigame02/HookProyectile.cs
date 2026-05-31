@@ -49,12 +49,4 @@ public class HookProjectile : MonoBehaviour
             OnHit?.Invoke(HitType.None, transform.position, null);
         }
     }
-    public void ForceTimeout()
-    {
-        if (!hasHit)
-        {
-            hasHit = true;
-            OnHit?.Invoke(HitType.None, transform.position, null);
-        }
-    }
 }

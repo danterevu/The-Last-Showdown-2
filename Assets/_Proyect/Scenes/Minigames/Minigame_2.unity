@@ -71861,11 +71861,11 @@ MonoBehaviour:
   shieldKnockbackMultiplier: 3
   shieldVFXPlayer1: {fileID: 434580946}
   shieldVFXPlayer2: {fileID: 219081104}
-  hookProjectilePrefab: {fileID: 2909624683632604783, guid: c9292edcf213ddb4dba42cbdadc58a96, type: 3}
+  hookProjectilePrefab: {fileID: 1747720874}
   hookLaunchSpeed: 16
   hookMaxDistance: 12
   hookPullSpeed: 14
-  hookPullStopDist: 1.2
+  hookPullStopDist: 1.3
   hookGravityScale: 1.5
   hookLine: {fileID: 469884827}
   heavyGravityScale: 15
@@ -121543,6 +121543,11 @@ Transform:
   - {fileID: 1983583476}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1747720874 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2909624683632604783, guid: c9292edcf213ddb4dba42cbdadc58a96, type: 3}
+  m_PrefabInstance: {fileID: 1735241213}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1749683224
 GameObject:
   m_ObjectHideFlags: 0
