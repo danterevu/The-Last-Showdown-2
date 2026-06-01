@@ -1,26 +1,34 @@
-
 using UnityEngine;
 
 public class DNA : MonoBehaviour
 {
-    private SpriteRenderer sr;
-    private Collider2D triggerCol;   // detecta jugadores
-    private Collider2D physicsCol;   // rebota con paredes
-    private Rigidbody2D rb;
-
+    [Header("Configuración")]
+    [SerializeField] private float throwBaseForce = 3f;
+    [SerializeField] private float throwRunningForce = 10f;
+    [SerializeField] private float throwUpward = 2f;
     [SerializeField] private GameObject[] spawnPoints;
     [SerializeField] private float respawnDelay = 1f;
 
-    [Header("Física del golpe")]
-    [SerializeField] private float throwForceX = 6f;
-    [SerializeField] private float throwForceY = 8f;
+    [Header("Física del golpe (cuando es lanzado por golpe enemigo)")]
+    [SerializeField] private float hitThrowForceX = 6f;
+    [SerializeField] private float hitThrowForceY = 8f;
 
+    private SpriteRenderer sr;
+    private Collider2D triggerCol;
+    private Collider2D physicsCol;
+    private Rigidbody2D rb;
     private bool isPickedUp = false;
+    private PlayerControllerDNA holder;
+    private Vector3 originalScale;
+    private bool isThrown = false;
+    private float throwTime = 0f;
+    private int lastThrowerPlayer = -1; // opcional para saber quién lanzó
 
     private void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
+        originalScale = transform.localScale;
 
         foreach (var col in GetComponents<Collider2D>())
         {
@@ -32,22 +40,21 @@ public class DNA : MonoBehaviour
     public void SpawnDNA()
     {
         if (spawnPoints.Length == 0) return;
-
         int index = Random.Range(0, spawnPoints.Length);
-        Vector3 spawnPos = spawnPoints[index].transform.position;
-        spawnPos.z = 0f;
-        transform.position = spawnPos;
-        transform.rotation = Quaternion.identity; //  rotación siempre en 0
-
+        transform.position = spawnPoints[index].transform.position;
+        transform.rotation = Quaternion.identity;
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.linearVelocity = Vector2.zero;
         rb.angularVelocity = 0f;
-
         isPickedUp = false;
+        holder = null;
         sr.enabled = true;
         triggerCol.enabled = true;
         physicsCol.enabled = false;
+        isThrown = false;
+        lastThrowerPlayer = -1;
     }
+
     public void RespawnAfterDelay()
     {
         sr.enabled = false;
@@ -58,51 +65,118 @@ public class DNA : MonoBehaviour
         Invoke(nameof(SpawnDNA), respawnDelay);
     }
 
-    // Se llama desde PunchHitbox cuando golpea a alguien que tiene el DNA
-    public void ThrowDNA(Vector2 direction)
+    // Llamado desde PlayerControllerDNA cuando el jugador agarra el DNA
+    public void PickUp(PlayerControllerDNA newHolder)
     {
+        if (isPickedUp) return;
+        holder = newHolder;
+        isPickedUp = true;
+        sr.enabled = true;
+        triggerCol.enabled = false;
+        physicsCol.enabled = false;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.linearVelocity = Vector2.zero;
+        lastThrowerPlayer = -1;
+    }
+
+    // Llamado desde PlayerControllerDNA cuando suelta el DNA (por depósito o pérdida)
+    public void Drop()
+    {
+        if (!isPickedUp) return;
+        holder = null;
         isPickedUp = false;
+        transform.SetParent(null);
+        sr.enabled = true;
+        triggerCol.enabled = true;
+        physicsCol.enabled = false;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.linearVelocity = Vector2.zero;
+        // No desactivar el gameObject
+    }
+
+    // Lanzamiento voluntario (desde el jugador que lo tiene)
+    public void Throw(Vector2 direction, float playerSpeed, int throwerPlayer)
+    {
+        if (!isPickedUp) return;
+        holder = null;
+        isPickedUp = false;
+        isThrown = true;
+        throwTime = Time.time;
+        lastThrowerPlayer = throwerPlayer;
+
+        transform.SetParent(null);
         sr.enabled = true;
 
-        triggerCol.enabled = false; // mientras vuela no se puede agarrar inmediatamente
-        physicsCol.enabled = true;  // activa física para rebotar
+        float t = Mathf.Clamp01(playerSpeed / 10f);
+        float force = Mathf.Lerp(throwBaseForce, throwRunningForce, t);
+        Vector2 throwForce = new Vector2(direction.x * force, throwUpward);
 
         rb.bodyType = RigidbodyType2D.Dynamic;
-        Vector2 force = new Vector2(direction.x * throwForceX, throwForceY);
-        rb.AddForce(force, ForceMode2D.Impulse);
+        physicsCol.enabled = true;
+        triggerCol.enabled = false; // evitar re-agarre inmediato
+        rb.AddForce(throwForce, ForceMode2D.Impulse);
+        rb.angularVelocity = Random.Range(-360f, 360f);
 
-        // Después de un pequeño delay, habilitar el trigger para que se pueda agarrar
-        Invoke(nameof(EnableTriggerAfterThrow), 0.5f);
+        Invoke(nameof(EnableTrigger), 0.3f);
     }
 
-    private void EnableTriggerAfterThrow()
+    private void EnableTrigger()
     {
-        triggerCol.enabled = true;
-        physicsCol.enabled = true; // una vez que puede ser agarrado, desactivar física
-        rb.bodyType = RigidbodyType2D.Dynamic;
-        rb.linearVelocity = Vector2.zero;
+        if (!isPickedUp) triggerCol.enabled = true;
     }
+
+    // Lanzamiento forzado (cuando el jugador que lo lleva recibe un golpe)
+    public void ThrowByHit(Vector2 direction)
+    {
+        if (isPickedUp && holder != null)
+        {
+            holder.DropDNA(); // el jugador suelta el DNA
+        }
+        isPickedUp = false;
+        holder = null;
+        isThrown = true;
+        throwTime = Time.time;
+
+        transform.SetParent(null);
+        sr.enabled = true;
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        physicsCol.enabled = true;
+        triggerCol.enabled = false;
+        rb.AddForce(direction * new Vector2(hitThrowForceX, hitThrowForceY), ForceMode2D.Impulse);
+        rb.angularVelocity = Random.Range(-360f, 360f);
+        Invoke(nameof(EnableTrigger), 0.5f);
+    }
+
     public void SetSpinEffect()
     {
         rb.angularVelocity = Random.Range(200f, 400f) * (Random.value > 0.5f ? 1f : -1f);
     }
 
+    private void LateUpdate()
+    {
+        if (isPickedUp && holder != null && holder.GetDNAHoldPoint() != null)
+        {
+            Transform holdPoint = holder.GetDNAHoldPoint();
+            transform.position = holdPoint.position;
+            transform.rotation = holdPoint.rotation;
+            transform.localScale = originalScale;
+        }
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (isPickedUp) return;
+        if (isThrown && Time.time - throwTime < 0.2f) return;
 
         PlayerControllerDNA controller = collision.GetComponent<PlayerControllerDNA>();
         if (controller == null || controller.HasDNA()) return;
 
         controller.PickDNA(this);
-        isPickedUp = true;
-
-        sr.enabled = false;
-        triggerCol.enabled = false;
-        physicsCol.enabled = false; // asegurarse que no quede activo
-        rb.bodyType = RigidbodyType2D.Kinematic;
-        rb.linearVelocity = Vector2.zero;
-
-        Debug.Log("Jugador agarró DNA");
+        PickUp(controller);
     }
+
+    // Getters
+    public bool IsThrown() => isThrown;
+    public PlayerControllerDNA GetHolder() => holder;
+    public int GetLastThrower() => lastThrowerPlayer;
 }

@@ -147,7 +147,7 @@ public class Crate : MonoBehaviour
                     dna.transform.position = target.transform.position;
                     dna.gameObject.SetActive(true);
                     Vector2 randomDir = new Vector2(Random.Range(-1f, 1f), Random.Range(0.5f, 1f)).normalized;
-                    dna.ThrowDNA(randomDir);
+                    dna.ThrowByHit(randomDir);   // NUEVO MÉTODO
                     dna.SetSpinEffect();
                     target.DropDNA();
                 }

@@ -1,19 +1,31 @@
 fileFormatVersion: 2
-guid: 8d9a97677974c5c479d07503a972e708
+guid: 2d80bda9832d7db4a98fd5af98f08783
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5354762133386617334
-    second: Containtment for the Breach_0
+      213: 8037100124641077485
+    second: Shrink_P2_0
   - first:
-      213: -2769529468966055764
-    second: Containtment for the Breach_1
+      213: 4758134761577475403
+    second: Shrink_P2_1
   - first:
-      213: -1016723821910666800
-    second: Containtment for the Breach_2
+      213: -6803754279346694670
+    second: Shrink_P2_2
   - first:
-      213: -6103447814439760122
-    second: Containtment for the Breach_3
+      213: -8760952657089105422
+    second: Shrink_P2_3
+  - first:
+      213: -1678437855240261075
+    second: Shrink_P2_4
+  - first:
+      213: 6578221398070335732
+    second: Shrink_P2_5
+  - first:
+      213: 604229111657119846
+    second: Shrink_P2_6
+  - first:
+      213: -4180007597678827313
+    second: Shrink_P2_7
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -109,13 +121,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Containtment for the Breach_0
+      name: Shrink_P2_0
       rect:
         serializedVersion: 2
-        x: 270
-        y: 762
-        width: 138
-        height: 226
+        x: 7
+        y: 7
+        width: 172
+        height: 168
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -124,20 +136,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6f1e8312acfef4a40800000000000000
-      internalID: 5354762133386617334
+      spriteID: de8aa712bf3898f60800000000000000
+      internalID: 8037100124641077485
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Containtment for the Breach_1
+      name: Shrink_P2_1
       rect:
         serializedVersion: 2
-        x: 434
-        y: 783
-        width: 140
-        height: 234
+        x: 341
+        y: 128
+        width: 44
+        height: 8
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -146,20 +158,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ca05d4f1f97a099d0800000000000000
-      internalID: -2769529468966055764
+      spriteID: b4d63412b5a480240800000000000000
+      internalID: 4758134761577475403
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Containtment for the Breach_2
+      name: Shrink_P2_2
       rect:
         serializedVersion: 2
-        x: 1440
-        y: 768
-        width: 146
-        height: 229
+        x: 318
+        y: 4
+        width: 168
+        height: 120
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -168,20 +180,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0d15650221fd3e1f0800000000000000
-      internalID: -1016723821910666800
+      spriteID: 2f51f70e7853491a0800000000000000
+      internalID: -6803754279346694670
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Containtment for the Breach_3
+      name: Shrink_P2_3
       rect:
         serializedVersion: 2
-        x: 1595
-        y: 782
-        width: 169
-        height: 214
+        x: 346
+        y: 119
+        width: 21
+        height: 8
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -190,8 +202,96 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 60f0f2bdc823c4ba0800000000000000
-      internalID: -6103447814439760122
+      spriteID: 2f17034d9f7da6680800000000000000
+      internalID: -8760952657089105422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shrink_P2_4
+      rect:
+        serializedVersion: 2
+        x: 185
+        y: 49
+        width: 97
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d22f5d4d9adf4b8e0800000000000000
+      internalID: -1678437855240261075
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shrink_P2_5
+      rect:
+        serializedVersion: 2
+        x: 303
+        y: 56
+        width: 36
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f81bd532898a4b50800000000000000
+      internalID: 6578221398070335732
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shrink_P2_6
+      rect:
+        serializedVersion: 2
+        x: 308
+        y: 16
+        width: 25
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 660c54bfc27a26800800000000000000
+      internalID: 604229111657119846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shrink_P2_7
+      rect:
+        serializedVersion: 2
+        x: 298
+        y: 5
+        width: 53
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc86bed8c31adf5c0800000000000000
+      internalID: -4180007597678827313
       vertices: []
       indices: 
       edges: []
@@ -210,10 +310,14 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Containtment for the Breach_0: 5354762133386617334
-      Containtment for the Breach_1: -2769529468966055764
-      Containtment for the Breach_2: -1016723821910666800
-      Containtment for the Breach_3: -6103447814439760122
+      Shrink_P2_0: 8037100124641077485
+      Shrink_P2_1: 4758134761577475403
+      Shrink_P2_2: -6803754279346694670
+      Shrink_P2_3: -8760952657089105422
+      Shrink_P2_4: -1678437855240261075
+      Shrink_P2_5: 6578221398070335732
+      Shrink_P2_6: 604229111657119846
+      Shrink_P2_7: -4180007597678827313
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

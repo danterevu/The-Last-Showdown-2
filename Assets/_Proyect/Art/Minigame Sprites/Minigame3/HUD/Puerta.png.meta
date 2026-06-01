@@ -1,10 +1,19 @@
 fileFormatVersion: 2
-guid: f8e6cf2caedadc04f85ab434f2ffd02a
+guid: c638017e8edc8964297ed842a383072c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4247929405377335659
-    second: P2 Joystick_0
+      213: -8909987091062915374
+    second: Puerta_0
+  - first:
+      213: -7747228335304461618
+    second: Puerta_1
+  - first:
+      213: 263546889747250665
+    second: Puerta_2
+  - first:
+      213: 7131687584790241893
+    second: Puerta_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +109,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: P2 Joystick_0
+      name: Puerta_0
       rect:
         serializedVersion: 2
-        x: 1183
-        y: 142
-        width: 727
-        height: 645
+        x: 327
+        y: 387
+        width: 264
+        height: 213
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +124,74 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 59e2c8956b25c05c0800000000000000
-      internalID: -4247929405377335659
+      spriteID: 2def0e3a2fd595480800000000000000
+      internalID: -8909987091062915374
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Puerta_1
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 12
+        width: 209
+        height: 219
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec2365820e05c7490800000000000000
+      internalID: -7747228335304461618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Puerta_2
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 195
+        width: 95
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ed3b09ff7e48a300800000000000000
+      internalID: 263546889747250665
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Puerta_3
+      rect:
+        serializedVersion: 2
+        x: 327
+        y: 0
+        width: 264
+        height: 228
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5626c74b218d8f260800000000000000
+      internalID: 7131687584790241893
       vertices: []
       indices: 
       edges: []
@@ -135,7 +210,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      P2 Joystick_0: -4247929405377335659
+      Puerta_0: -8909987091062915374
+      Puerta_1: -7747228335304461618
+      Puerta_2: 263546889747250665
+      Puerta_3: 7131687584790241893
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

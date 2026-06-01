@@ -236,7 +236,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fd243a58a2db154391d5a8f67dcfeb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  firstScene: Minigame_2
+  firstScene: Menu
 --- !u!4 &1032805307
 Transform:
   m_ObjectHideFlags: 0
@@ -594,6 +594,7 @@ MonoBehaviour:
   player1RoundPoints: 0
   player2RoundPoints: 0
   currentRound: 1
+  selectedMinigameId: 0
   player1Multiplier: 1
   player2Multiplier: 1
 --- !u!4 &1839288748

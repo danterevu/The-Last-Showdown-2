@@ -20,7 +20,11 @@ public class PunchHitboxDNA : MonoBehaviour
         hitbox.enabled = false; // empieza desactivada
     }
 
-    public void Activate() => hitbox.enabled = true;
+    public void Activate()
+    {
+        if (owner.HasDNA()) return; // no activar si tiene ADN
+        hitbox.enabled = true;
+    }
     public void Deactivate() => hitbox.enabled = false;
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -68,8 +72,10 @@ public class PunchHitboxDNA : MonoBehaviour
             DNA dna = target.GetCarriedDNA();
             dna.transform.position = target.transform.position;
             dna.gameObject.SetActive(true);
-            Vector2 throwDir = new Vector2(dirX * Random.Range(-1f, 1f), Random.Range(0.5f, 1f)).normalized;
-            dna.ThrowDNA(throwDir);
+
+            // Dirección del lanzamiento: hacia donde mira el atacante + aleatorio vertical
+            Vector2 throwDir = new Vector2(dirX * Random.Range(0.8f, 1.2f), Random.Range(0.5f, 1f)).normalized;
+            dna.ThrowByHit(throwDir);
             dna.SetSpinEffect();
             target.DropDNA();
         }

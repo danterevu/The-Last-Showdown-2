@@ -117,7 +117,7 @@ public class Mine : MonoBehaviour
                 dirX * Random.Range(0.8f, 1.2f),
                 Random.Range(0.8f, 1.2f)
             );
-            dna.ThrowDNA(throwDir);
+            dna.ThrowByHit(throwDir);
             dna.SetSpinEffect();
             target.DropDNA();
         }

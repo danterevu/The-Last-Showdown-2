@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using UnityEngine.WSA;
 
 public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 {
@@ -11,7 +12,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float gravityScale = 4f;
     private float baseMoveSpeed;
-
 
     [Header("Salto")]
     private float baseJumpForce;
@@ -44,6 +44,10 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [Header("DNA")]
     private DNA carriedDNA;
     public bool hasDNA = false;
+    [SerializeField] private Transform dnaHoldPoint;   // Asignar en Inspector
+    [SerializeField] private Vector3 dnaHoldOffsetRight;
+    [SerializeField] private Vector3 dnaHoldOffsetLeft;
+
 
     [Header("Respawn")]
     [SerializeField] private float respawnDelay = 2f;
@@ -55,7 +59,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [SerializeField] private int playerIndex = 0;
 
     [Header("RemoteControl")]
-    [SerializeField] RemoteControl rc; 
+    [SerializeField] RemoteControl rc;
 
     [Header("Debug")]
     [SerializeField] private bool isGrounded;
@@ -69,6 +73,8 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [Header("PowerUp DNA")]
     [SerializeField] private DNAPowerUpPickup.DNAPowerUpType currentDNAPowerUp;
     [SerializeField] private bool hasDNAPowerUp = false;
+    public static event System.Action<PlayerControllerDNA, DNAPowerUpPickup.DNAPowerUpType> OnPowerUpGained;
+    public static event System.Action<PlayerControllerDNA> OnPowerUpUsed;
 
     [Header("Shrink")]
     private float shrinkScale = 0.7f;      // tama�o al que se achica
@@ -79,7 +85,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [SerializeField] private GameObject minePrefab;
 
     [Header("Berserk")]
-   // [SerializeField] private BerserkHitbox berserkHitbox;
+    // [SerializeField] private BerserkHitbox berserkHitbox;
     [SerializeField] private float berserkDuration = 2f;
     [SerializeField] private float berserkSpeedMult = 1.3f;
     [SerializeField] private float berserkScale = 1.25f;
@@ -179,7 +185,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             return; // No procesar movimiento ni ataques
         }
 
-            moveInput = ReadFilteredMove();
+        moveInput = ReadFilteredMove();
 
         Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
         if (gp != null)
@@ -253,6 +259,11 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
         if (moveInput.x > 0.01f) sr.flipX = false;
         else if (moveInput.x < -0.01f) sr.flipX = true;
+
+        if (dnaHoldPoint != null)
+        {
+            dnaHoldPoint.localPosition = IsFacingRight() ? dnaHoldOffsetRight : dnaHoldOffsetLeft;
+        }
     }
 
     private void FixedUpdate()
@@ -287,13 +298,13 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             punchHitbox.transform.localScale = scale;
 
         }
-       /* if (berserkHitbox != null) //para orientar la hitbox del berserk
-        {
-            Vector3 pos = berserkHitbox.transform.localPosition;
-            pos.x = IsFacingRight() ? Mathf.Abs(pos.x) : -Mathf.Abs(pos.x);
-            berserkHitbox.transform.localPosition = pos;
-        }*/
-        
+        /* if (berserkHitbox != null) //para orientar la hitbox del berserk
+         {
+             Vector3 pos = berserkHitbox.transform.localPosition;
+             pos.x = IsFacingRight() ? Mathf.Abs(pos.x) : -Mathf.Abs(pos.x);
+             berserkHitbox.transform.localPosition = pos;
+         }*/
+
     }
 
     private Vector2 ReadFilteredMove()
@@ -368,6 +379,11 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     private void TryAttack()
     {
+        if (hasDNA)
+        {
+            ThrowDNA();
+            return;
+        }
         if (!canAttack || isAttacking || hasDNA || isStunned || heldCrate != null) return;
         isAttacking = true;
         animator.SetTrigger("Attack");
@@ -511,11 +527,11 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         return false;
     }
 
-    // Power ups � implementar seg�n el nuevo minijuego
+    // Power ups a implementar segun el nuevo minijuego
     private void UsePowerUp()
     {
         if (!hasDNAPowerUp || heldCrate != null) return;
-        if (!hasDNAPowerUp) return;
+        OnPowerUpUsed?.Invoke(this);
         hasDNAPowerUp = false;
 
         switch (currentDNAPowerUp)
@@ -545,6 +561,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     {
         currentDNAPowerUp = type;
         hasDNAPowerUp = true;
+        OnPowerUpGained?.Invoke(this, type);
         Debug.Log(gameObject.name + " recibio DNA powerup: " + type);
     }
 
@@ -552,50 +569,52 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     {
         hasDNAPowerUp = false;
         ClearActivePowerUpEffects();
+        OnPowerUpUsed?.Invoke(this);
     }
 
     public void ClearActivePowerUpEffects()
     {
+        // Si tiene caja, soltarla
         if (heldCrate != null)
         {
             heldCrate.DropAtPlace();
             heldCrate = null;
         }
 
+        // Restaurar valores originales de salto y gravedad
         jumpForce = baseJumpForce;
         gravityScale = baseGravityScale;
 
-        StopAllCoroutines(); // para el shrink si est� activo
-        transform.localScale = originalScale;
-        moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
-        hasDNAPowerUp = false;
-
-        if (isBerserk)
-        {
-            isBerserk = false;
-            transform.localScale = originalScale;
-            moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
-            //berserkHitbox?.Deactivate();
-        }
-
+        // Detener solo las corrutinas específicas, NO todas (StopAllCoroutines es peligroso)
         if (slimeCoroutine != null)
         {
             StopCoroutine(slimeCoroutine);
             slimeCoroutine = null;
         }
 
+        // Restaurar escala y velocidad base
+        transform.localScale = originalScale;
+        moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
+
+        // Salir del modo Berserk si estaba activo
+        if (isBerserk)
+        {
+            isBerserk = false;
+            // No es necesario volver a restaurar escala y velocidad porque ya se hizo arriba
+        }
+
         isSlimed = false;
         jumpForce = // necesit�s guardar el jumpForce original en Awake
         gravityScale = // mismo
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
-    }
+    } 
 
     //CAJAAAAAAA (Crate)
 
     public void Stun(float duration)
     {
         if (isInvulnerable) return;
-        // Si ya est� stuneado, reiniciamos el timer al m�ximo entre el que le queda y el nuevo
+        // Si ya esta stuneado, reiniciamos el timer al m�ximo entre el que le queda y el nuevo
         if (isStunned)
         {
             stunTimer = Mathf.Max(stunTimer, duration);
@@ -634,7 +653,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
         yield return new WaitForSeconds(shrinkDuration);
 
-        // Volver al tama�o original
+        // Volver al tamanio original
         transform.localScale = originalScale;
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
     }
@@ -676,21 +695,13 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     private IEnumerator BerserkEffect()
     {
         isBerserk = true;
-
-        // Crecer sprite
         transform.localScale = originalScale * berserkScale;
-
-        // Aumentar velocidad
-        float previousSpeed = moveSpeed;
         moveSpeed = baseMoveSpeed * berserkSpeedMult;
-
-
         yield return new WaitForSeconds(berserkDuration);
-
-        // Volver a normal
         isBerserk = false;
         transform.localScale = originalScale;
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
+       // ClearPowerUpState();  // Esto limpia el estado y notifica al HUD
     }
 
     public void ReceiveBerserkHit(Vector2 direction)
@@ -758,31 +769,47 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     public void PickDNA(DNA dna)
     {
         // Si tiene caja, soltarla antes de agarrar ADN, MODIFICAR linea EN TryPickUp() de la clase Crate
-       /* if (heldCrate != null) 
-        {
-            heldCrate.DropAtPlace();
-            heldCrate = null;
-        }*/
+        /* if (heldCrate != null) 
+         {
+             heldCrate.DropAtPlace();
+             heldCrate = null;
+         }*/
 
         if (hasDNA) return;
         hasDNA = true;
         carriedDNA = dna;
+        dna.PickUp(this);
         moveSpeed = baseMoveSpeed * 0.6f;
     }
-
     public void DropDNA()
     {
         if (!hasDNA) return;
+        Debug.Log($"{gameObject.name} DropDNA - antes: hasDNA={hasDNA}, moveSpeed={moveSpeed}");
         hasDNA = false;
+        if (carriedDNA != null)
+        {
+            carriedDNA.Drop();
+            carriedDNA = null;
+        }
+        moveSpeed = baseMoveSpeed;
+        Debug.Log($"{gameObject.name} DropDNA - después: hasDNA={hasDNA}, moveSpeed={moveSpeed}");
+    }
+    private void ThrowDNA()
+    {
+        if (!hasDNA) return;
+        float playerSpeed = Mathf.Abs(rb.linearVelocity.x);
+        float dirX = IsFacingRight() ? 1f : -1f;
+        Vector2 direction = new Vector2(dirX, 0f);
+        carriedDNA.Throw(direction, playerSpeed, playerIndex + 1); // playerIndex 0->1, 1->2
         carriedDNA = null;
-        moveSpeed = baseMoveSpeed;  // restaurar velocidad normal
-                                    // Si adem�s tiene caja, la velocidad ya la maneja el agarre de caja (baseMoveSpeed * algo)
-                                    // Aqu� no afecta a la caja.
+        hasDNA = false;
+        moveSpeed = baseMoveSpeed;
     }
     public Transform GetCrateHoldPoint() => crateHoldPoint;
     public bool IsStunned() => isStunned;
     public DNA GetCarriedDNA() => carriedDNA;
     public bool IsBerserk() => isBerserk;
+    public Transform GetDNAHoldPoint() => dnaHoldPoint;
 
     public void SetFrozen(bool frozen)
     {
