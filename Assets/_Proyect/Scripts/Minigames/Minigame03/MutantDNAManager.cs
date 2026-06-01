@@ -5,7 +5,7 @@ using System.Collections;
 
 public class MutantDNAManager : MonoBehaviour
 {
-    [Header("Configuraci�n")]
+    [Header("Configuracion")]
     [SerializeField] private float gameDuration = 120f;
 
     [Header("Jugadores")]
@@ -15,15 +15,12 @@ public class MutantDNAManager : MonoBehaviour
     [Header("DNA")]
     [SerializeField] private DNA dnaPickup;
 
-    [Header("Dep�sitos")]
+    [Header("Depositos")]
     [SerializeField] private Deposit deposit1; // el que solo acepta P1
     [SerializeField] private Deposit deposit2; // el que solo acepta P2
 
     [Header("UI")]
-    [SerializeField] private TextMeshProUGUI timerText;
-    [SerializeField] private TextMeshProUGUI player1ScoreText;
-    [SerializeField] private TextMeshProUGUI player2ScoreText;
-    [SerializeField] private TextMeshProUGUI countdownText;
+    [SerializeField] private MutantDNAHUD hud;  // arrastra el objeto con el script HUD
 
     [Header("Debug")]
     [SerializeField] private float gameTimer;
@@ -35,89 +32,33 @@ public class MutantDNAManager : MonoBehaviour
         p2Controller = player2.GetComponent<PlayerControllerDNA>();
 
         StartMinigame();
+
+        if (hud != null)
+        {
+            hud.UpdateTimer(gameTimer);
+        }
     }
 
     private void StartMinigame()
     {
         gameTimer = gameDuration;
-        StartCoroutine(InitialCountdown());
+        FreezePlayers(true);  // Congelar antes del countdown
+        hud.StartCountdown(OnCountdownFinished);
     }
 
-    private IEnumerator InitialCountdown()
+    private void OnCountdownFinished()
     {
-        FreezePlayers(true);
-        gameRunning = false;
-
-        if (countdownText != null)
-            countdownText.gameObject.SetActive(true);
-
-        for (int i = 3; i >= 0; i--)
-        {
-            if (countdownText != null)
-            {
-                if (i > 0)
-                {
-                    countdownText.text = i.ToString();
-                    yield return StartCoroutine(AnimateCountdownText(countdownText));
-                }
-                else
-                {
-                    countdownText.text = "¡Ya!";
-                }
-            }
-            else if (i == 0)
-            {
-                yield return null;
-            }
-
-            if (i > 0)
-                yield return new WaitForSeconds(0.5f);
-        }
-
-        if (countdownText != null)
-            countdownText.gameObject.SetActive(false);
-
-        FreezePlayers(false);
+        FreezePlayers(false); // Descongelar al terminar
         gameRunning = true;
         dnaPickup.SpawnDNA();
     }
 
-    private IEnumerator AnimateCountdownText(TextMeshProUGUI text)
-    {
-        Vector3 originalScale = text.transform.localScale;
-        Vector3 originalPos = text.transform.localPosition;
-        float duration = 0.5f;
-        float shakeAmount = 10f;
-        float scaleMultiplier = 1.3f;
-
-        for (float t = 0; t < duration; t += Time.deltaTime)
-        {
-            float progress = t / duration;
-
-            float scale = Mathf.Lerp(1f, scaleMultiplier, Mathf.PingPong(progress * 2, 1f));
-            text.transform.localScale = originalScale * scale;
-
-            float shakeX = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
-            float shakeY = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
-            text.transform.localPosition = originalPos + new Vector3(shakeX, shakeY, 0f);
-
-            yield return null;
-        }
-
-        text.transform.localScale = originalScale;
-        text.transform.localPosition = originalPos;
-    }
-
     private void FreezePlayers(bool freeze)
     {
-        if (p1Controller != null)
-        {
-            p1Controller.SetFrozen(freeze);
-        }
-        if (p2Controller != null)
-        {
-            p2Controller.SetFrozen(freeze);
-        }
+        PlayerControllerDNA p1 = player1.GetComponent<PlayerControllerDNA>();
+        PlayerControllerDNA p2 = player2.GetComponent<PlayerControllerDNA>();
+        if (p1 != null) p1.SetFrozen(freeze);
+        if (p2 != null) p2.SetFrozen(freeze);
     }
 
     private void Update()
@@ -131,26 +72,17 @@ public class MutantDNAManager : MonoBehaviour
             gameTimer = 0f;
             EndMinigame();
         }
+        if (!gameRunning) return;
+        gameTimer -= Time.deltaTime;
+        if (hud != null) hud.UpdateTimer(gameTimer);
+        
 
         //UpdateUI();
     }
-
-    private void UpdateUI()
-    {
-        int minutes = Mathf.FloorToInt(gameTimer / 60f);
-        int seconds = Mathf.FloorToInt(gameTimer % 60f);
-        if (timerText) timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
-
-        if (player1ScoreText)
-            player1ScoreText.text = "" + GameManager.Instance.player1RoundPoints;
-        if (player2ScoreText)
-            player2ScoreText.text = "" + GameManager.Instance.player2RoundPoints;
-    }
-
     public void EndMinigame()
     {
         gameRunning = false;
-
+        if (hud != null) hud.StopTimerEffects();
         var (p1Round, p2Round) = GameManager.Instance.FinishMinigame();
         GameManager.Instance.EndRound(3); // id del minijuego DNA
         PlayerPrefs.SetInt("LastPlayedMinigame", 3);
