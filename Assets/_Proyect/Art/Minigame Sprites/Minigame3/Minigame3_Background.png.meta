@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: edd3d79022584964db72e6c437561e39
+guid: eface002bb2367d4db8eb17514d98593
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2721265025371518739
-    second: Mina_P1_0
+      213: -7095983676253442764
+    second: Minigame3_Background_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Mina_P1_0
+      name: Minigame3_Background_0
       rect:
         serializedVersion: 2
-        x: 11
+        x: 0
         y: 0
-        width: 410
-        height: 394
+        width: 3840
+        height: 2160
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: de8490790ef1c3ad0800000000000000
-      internalID: -2721265025371518739
+      spriteID: 43d61fc4170068d90800000000000000
+      internalID: -7095983676253442764
       vertices: []
       indices: 
       edges: []
@@ -125,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -134,8 +134,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      Mina_P1_0: -2721265025371518739
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
