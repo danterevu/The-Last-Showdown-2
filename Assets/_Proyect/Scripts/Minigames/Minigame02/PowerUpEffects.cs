@@ -158,162 +158,120 @@ public class PowerUpEffects : MonoBehaviour
     }
 
     // GANCHO
-   
 
     public IEnumerator ActivateHook(PlatformPlayerController user, PlatformPlayerController target)
     {
         AudioManager.Instance?.PlaySFX(SoundID.PUHook);
 
         Vector2 origin = user.transform.position;
-        Vector2 targetPos = target.transform.position;
-        Vector2 dir = (targetPos - origin).normalized;
+        Vector2 targetPos = target.transform.position; // convertir a Vector2 explícitamente
+        Vector2 directionToTarget = (targetPos - origin).normalized;
 
-        GameObject projGO = Instantiate(hookProjectilePrefab, origin, Quaternion.identity);
-        HookProjectile proj = projGO.GetComponent<HookProjectile>();
+        // Instanciar el proyectil
+        GameObject hookGO = Instantiate(hookProjectilePrefab, origin, Quaternion.identity);
+        HookProjectile hookProj = hookGO.GetComponent<HookProjectile>();
 
-        Physics2D.IgnoreCollision(projGO.GetComponent<Collider2D>(), user.GetCollider());
-        Physics2D.IgnoreCollision(projGO.GetComponent<Collider2D>(), target.GetCollider());
+        // Ignorar colisiones con el jugador que lanza
+        Collider2D userCollider = user.GetCollider();
+        Collider2D hookCollider = hookGO.GetComponent<Collider2D>();
+        Physics2D.IgnoreCollision(hookCollider, userCollider, true);
 
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        projGO.transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        // Rotación visual (opcional)
+        float angle = Mathf.Atan2(directionToTarget.y, directionToTarget.x) * Mathf.Rad2Deg;
+        hookGO.transform.rotation = Quaternion.Euler(0, 0, angle);
 
+        // Configurar línea de gancho
         if (hookLine != null)
         {
             hookLine.enabled = true;
             hookLine.positionCount = 2;
         }
 
-        Rigidbody2D projRb = projGO.GetComponent<Rigidbody2D>();
-        if (projRb != null) projRb.gravityScale = 0f;
+        // Lanzamiento con gravedad
+        Rigidbody2D hookRb = hookGO.GetComponent<Rigidbody2D>();
+        hookRb.gravityScale = hookGravityScale;
+        Vector2 launchVelocity = directionToTarget * hookLaunchSpeed;
+        hookProj.Launch(launchVelocity, hookMaxDistance, origin);
 
         HookProjectile.HitType hitResult = HookProjectile.HitType.None;
-        Vector2 hitPosition = Vector2.zero;
+        Vector2 hitPoint = Vector2.zero;
         Collider2D hitCollider = null;
-        bool hitReceived = false;
-        float distToTarget = Vector2.Distance(origin, targetPos);
-        bool guaranteedHit = distToTarget <= hookMaxDistance;
+        bool hitOccurred = false;
 
-        proj.OnHit += (type, pos, col) =>
+        hookProj.OnHit += (type, point, col) =>
         {
             hitResult = type;
-            hitPosition = pos;
+            hitPoint = point;
             hitCollider = col;
-            hitReceived = true;
+            hitOccurred = true;
         };
 
-        proj.Launch(dir * hookLaunchSpeed);
-
-        float traveled = 0f;
-        while (!hitReceived)
+        // Actualizar línea mientras el gancho existe
+        while (!hitOccurred && hookGO != null)
         {
-            if (proj == null) break;
-
-            traveled = Vector2.Distance(origin, (Vector2)proj.transform.position);
-
             if (hookLine != null)
             {
                 hookLine.SetPosition(0, user.transform.position);
-                hookLine.SetPosition(1, proj.transform.position);
+                hookLine.SetPosition(1, hookGO.transform.position);
             }
-
-            if (traveled >= hookMaxDistance)
-            {
-                if (guaranteedHit)
-                {
-                    hitResult = HookProjectile.HitType.Player;
-                    hitPosition = target.transform.position;
-                    hitCollider = target.GetCollider();
-                }
-                else
-                {
-                    if (projRb != null) projRb.gravityScale = hookGravityScale;
-                    hitResult = HookProjectile.HitType.None;
-                }
-                hitReceived = true;
-                break;
-            }
-
             yield return null;
         }
 
-        if (hitResult == HookProjectile.HitType.None && proj != null)
+        if (hookGO == null || !hitOccurred)
         {
-            float fallTime = 0.4f;
-            float t = 0f;
-            while (t < fallTime && proj != null)
-            {
-                t += Time.deltaTime;
-                if (hookLine != null)
-                {
-                    hookLine.SetPosition(0, user.transform.position);
-                    hookLine.SetPosition(1, proj.transform.position);
-                }
-                yield return null;
-            }
-
-            for (int i = 0; i < 4; i++)
-            {
-                if (hookLine != null) hookLine.enabled = !hookLine.enabled;
-                yield return new WaitForSeconds(0.07f);
-            }
-
-            if (proj != null) Destroy(proj.gameObject);
             if (hookLine != null) hookLine.enabled = false;
             yield break;
         }
 
+        // --- Arrastre según resultado ---
         if (hitResult == HookProjectile.HitType.Ground)
         {
-            Vector2 hookPos = hitPosition;
-            if (proj != null) Destroy(proj.gameObject);
-
-            float pullElapsed = 0f;
-            while (pullElapsed < 1.0f)
+            float pullTime = 0f;
+            float maxPullTime = 1.2f;
+            while (pullTime < maxPullTime)
             {
-                float dist = Vector2.Distance(user.transform.position, hookPos);
-                if (dist < 0.8f) break;
+                float dist = Vector2.Distance(user.transform.position, hitPoint);
+                if (dist < hookPullStopDist) break;
 
-                Vector2 pullDir = (hookPos - (Vector2)user.transform.position).normalized;
+                Vector2 pullDir = (hitPoint - (Vector2)user.transform.position).normalized;
                 user.SetPulled(true, pullDir * hookPullSpeed);
 
                 if (hookLine != null)
-                {
                     hookLine.SetPosition(0, user.transform.position);
-                    hookLine.SetPosition(1, hookPos);
-                }
+                    hookLine.SetPosition(1, hitPoint);
 
-                pullElapsed += Time.deltaTime;
+               
+
+                pullTime += Time.deltaTime;
                 yield return null;
             }
             user.SetPulled(false);
         }
         else if (hitResult == HookProjectile.HitType.Player)
         {
-            if (proj != null) Destroy(proj.gameObject);
-
-            float pullElapsed = 0f;
-            while (pullElapsed < 1.0f)
+            float pullTime = 0f;
+            float maxPullTime = 1.2f;
+            while (pullTime < maxPullTime)
             {
-                float dist = Vector2.Distance(user.transform.position, target.transform.position);
+                float dist = Vector2.Distance(target.transform.position, user.transform.position);
                 if (dist < hookPullStopDist) break;
 
+                // AMBOS operandos convertidos a Vector2 explícitamente
                 Vector2 pullDir = ((Vector2)user.transform.position - (Vector2)target.transform.position).normalized;
                 target.SetPulled(true, pullDir * hookPullSpeed);
 
                 if (hookLine != null)
-                {
                     hookLine.SetPosition(0, user.transform.position);
                     hookLine.SetPosition(1, target.transform.position);
-                }
 
-                pullElapsed += Time.deltaTime;
+                pullTime += Time.deltaTime;
                 yield return null;
             }
             target.SetPulled(false);
         }
 
-        if (proj != null) Destroy(proj.gameObject);
-        if (hookLine != null) hookLine.enabled = false;
+        if (hookLine != null)
+            hookLine.enabled = false;
     }
 
     // GRAVEDAD AUMENTADA

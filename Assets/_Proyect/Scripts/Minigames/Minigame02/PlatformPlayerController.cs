@@ -318,6 +318,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         if (isBeingPulled)
         {
             rb.linearVelocity = pullVelocity;
+            return;
         }
         else if (!isKnockedBack && !isStunned)
         {

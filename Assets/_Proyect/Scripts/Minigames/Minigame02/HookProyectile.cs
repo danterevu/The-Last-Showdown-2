@@ -7,110 +7,104 @@ public class HookProjectile : MonoBehaviour
 
     public event System.Action<HitType, Vector2, Collider2D> OnHit;
 
-    [Header("Config")]
-    [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private LayerMask playerLayer;
-    [SerializeField] private float blinkInterval = 0.1f;
-    [SerializeField] private int blinkCount = 6;
+    [Header("Parpadeo")]
+    [SerializeField] private float blinkInterval = 0.08f;
+    [SerializeField] private int blinkCount = 5;
 
     private Rigidbody2D rb;
     private Collider2D col;
-    private Vector2 lastPosition;
+    private SpriteRenderer sr;
     private bool hasHit = false;
     private bool isMissed = false;
-    private float maxDistance = 20f;
-    private Vector2 origin;
-    private SpriteRenderer spriteRenderer;
+    private float maxDistance;
+    private Vector2 startPosition;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<Collider2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        sr = GetComponent<SpriteRenderer>();
     }
 
-    public void Launch(Vector2 velocity, float maxDist, Vector2 startPoint)
+    public void Launch(Vector2 initialVelocity, float maxDist, Vector2 origin)
     {
-        rb.linearVelocity = velocity;
+        rb.linearVelocity = initialVelocity;
         maxDistance = maxDist;
-        origin = startPoint;
-        lastPosition = transform.position;
-        StartCoroutine(CheckDistanceAndTimeout());
+        startPosition = origin;
+        StartCoroutine(MonitorDistance());
     }
 
-    // Marca el gancho como “errado” (alcanzó distancia máxima sin golpear nada).l
-    public void Miss()
+    // Llamado cuando el gancho alcanza la distancia máxima sin golpear nada
+    public void MarkAsMissed()
     {
         if (hasHit) return;
         isMissed = true;
-        // Sigue con físicas, pero ya no procesará colisiones para arrastrar
+        // Ahora el gancho caerá libremente y al chocar se destruirá sin arrastrar
     }
 
-    private void FixedUpdate()
+    private void OnCollisionEnter2D(Collision2D collision)
     {
         if (hasHit) return;
 
-        // Raycast desde la posición anterior a la actual
-        Vector2 currentPos = transform.position;
-        RaycastHit2D hit = Physics2D.Linecast(lastPosition, currentPos, groundLayer | playerLayer);
+        // Determinar qué se golpeó
+        HitType type = HitType.None;
+        string tag = collision.collider.tag;
 
-        if (hit.collider != null)
+        if (tag == "Player1" || tag == "Player2")
         {
-            // Evitar colisionar con el lanzador o el rival si ya lo ignoramos (se hace al instanciar)
-            // pero por si acaso:
-            if (hit.collider.CompareTag("Player1") || hit.collider.CompareTag("Player2"))
+            type = HitType.Player;
+        }
+        else
+        {
+            // Verificar si es suelo (puedes usar capa también)
+            if (collision.collider.CompareTag("Ground") ||
+                collision.collider.gameObject.layer == LayerMask.NameToLayer("Ground"))
             {
-                // Si es un jugador y NO estamos en modo "missed", procesamos
-                if (!isMissed)
-                {
-                    RegisterHit(HitType.Player, hit.point, hit.collider);
-                }
-                else
-                {
-                    // Si errado, igual golpea al player pero no arrastra  solo desaparece con parpadeo
-                    RegisterHit(HitType.None, hit.point, hit.collider);
-                }
+                type = HitType.Ground;
             }
-            else if (((1 << hit.collider.gameObject.layer) & groundLayer) != 0)
+            else
             {
-                // Es suelo
-                if (!isMissed)
-                    RegisterHit(HitType.Ground, hit.point, hit.collider);
-                else
-                    RegisterHit(HitType.None, hit.point, hit.collider); // errado toca suelo  desaparece
+                type = HitType.None; // cualquier otra cosa no cuenta
             }
         }
 
-        lastPosition = currentPos;
+        // Si el gancho ya estaba marcado como "fallo", lo tratamos como None
+        if (isMissed) type = HitType.None;
+
+        RegisterHit(type, collision.contacts[0].point, collision.collider);
     }
 
-    private void RegisterHit(HitType type, Vector2 point, Collider2D col)
+    private void RegisterHit(HitType type, Vector2 point, Collider2D hitCollider)
     {
         if (hasHit) return;
         hasHit = true;
         rb.linearVelocity = Vector2.zero;
-        // rb.isKinematic = true; // detener físicas
+        rb.isKinematic = true;
         transform.position = point;
-        OnHit?.Invoke(type, point, col);
+
+        OnHit?.Invoke(type, point, hitCollider);
+
         if (type == HitType.None)
         {
+            // Fallo: parpadeo y destrucción
             StartCoroutine(BlinkAndDestroy());
         }
         else
         {
-            Destroy(gameObject, 0.1f); // se destruye después del evento (el evento arrastra)
+            // Éxito: se destruye después de que el arrastre comience (para no interferir)
+            Destroy(gameObject, 0.1f);
         }
     }
 
-    private IEnumerator CheckDistanceAndTimeout()
+    private IEnumerator MonitorDistance()
     {
         float traveled = 0f;
         while (!hasHit)
         {
-            traveled = Vector2.Distance(origin, transform.position);
+            traveled = Vector2.Distance(startPosition, (Vector2)transform.position);
             if (traveled >= maxDistance && !hasHit && !isMissed)
             {
-                Miss(); // activa modo errado, ahora cae libremente
+                MarkAsMissed();
                 break;
             }
             yield return new WaitForFixedUpdate();
@@ -119,10 +113,11 @@ public class HookProjectile : MonoBehaviour
 
     private IEnumerator BlinkAndDestroy()
     {
-        // Parpadeo rápido (alternar visibilidad)
+        // Parpadeo para dar feedback visual
         for (int i = 0; i < blinkCount; i++)
         {
-            spriteRenderer.enabled = !spriteRenderer.enabled;
+            if (sr != null)
+                sr.enabled = !sr.enabled;
             yield return new WaitForSeconds(blinkInterval);
         }
         Destroy(gameObject);
