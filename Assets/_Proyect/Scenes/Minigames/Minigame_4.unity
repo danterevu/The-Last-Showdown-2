@@ -18202,6 +18202,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1242106391100818709, guid: 6d52c6e58cede52429c1c49ef69766e9, type: 3}
   m_PrefabInstance: {fileID: 537174682}
   m_PrefabAsset: {fileID: 0}
+--- !u!198 &541527712 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 4119993419427796378, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
+  m_PrefabInstance: {fileID: 1669866203}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &561576937
 GameObject:
   m_ObjectHideFlags: 0
@@ -33916,6 +33921,11 @@ Transform:
   - {fileID: 1019569188}
   m_Father: {fileID: 1323686167}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!198 &1198900487 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 7864370536725242605, guid: 2f292d60e57846e42a76267c42628cea, type: 3}
+  m_PrefabInstance: {fileID: 1647416891}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1200225925
 GameObject:
   m_ObjectHideFlags: 0
@@ -56488,6 +56498,10 @@ PrefabInstance:
       propertyPath: chargeBarRoot
       value: 
       objectReference: {fileID: 775134819}
+    - target: {fileID: 1778783235791037253, guid: 2f292d60e57846e42a76267c42628cea, type: 3}
+      propertyPath: propulsionParticles
+      value: 
+      objectReference: {fileID: 1198900487}
     - target: {fileID: 5622894836061713576, guid: 2f292d60e57846e42a76267c42628cea, type: 3}
       propertyPath: firePoint
       value: 
@@ -57105,14 +57119,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 74449296643626116, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
+      propertyPath: propulsionParticles
+      value: 
+      objectReference: {fileID: 541527712}
     - target: {fileID: 1291368465912546691, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
       propertyPath: m_Name
       value: Player2
       objectReference: {fileID: 0}
-    - target: {fileID: 1583068847820849429, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
-      propertyPath: firePoint
-      value: 
-      objectReference: {fileID: 1706612969}
     - target: {fileID: 1583068847820849429, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
       propertyPath: rivalTransform
       value: 
@@ -57812,11 +57826,6 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 1242106391100818709, guid: 6d52c6e58cede52429c1c49ef69766e9, type: 3}
   m_PrefabInstance: {fileID: 1692717287}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &1706612969 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 2820423276534160297, guid: 52019981d96d51a4ca53d01a6dddab83, type: 3}
-  m_PrefabInstance: {fileID: 1669866203}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1712769469
 GameObject:

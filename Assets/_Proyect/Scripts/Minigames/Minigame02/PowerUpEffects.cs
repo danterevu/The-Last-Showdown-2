@@ -51,7 +51,7 @@ public class PowerUpEffects : MonoBehaviour
     private void PlayVFX(ParticleSystem ps)
     {
         if (ps == null) return;
-        ps.gameObject.SetActive(true);  // asegurarse que esté activo
+        ps.gameObject.SetActive(true);  // asegurarse que estï¿½ activo
         ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         ps.Play();
     }
@@ -95,7 +95,7 @@ public class PowerUpEffects : MonoBehaviour
 
             timeLeft -= Time.deltaTime;
 
-            // parpadeo suave en los últimos segundos
+            // parpadeo suave en los ï¿½ltimos segundos
             if (timeLeft <= warningTime)
             {
                 float blinkSpeed = 6f;
@@ -164,7 +164,7 @@ public class PowerUpEffects : MonoBehaviour
         AudioManager.Instance?.PlaySFX(SoundID.PUHook);
 
         Vector2 origin = user.transform.position;
-        Vector2 targetPos = target.transform.position; // convertir a Vector2 explícitamente
+        Vector2 targetPos = target.transform.position; // convertir a Vector2 explï¿½citamente
         Vector2 directionToTarget = (targetPos - origin).normalized;
 
         // Instanciar el proyectil
@@ -176,11 +176,11 @@ public class PowerUpEffects : MonoBehaviour
         Collider2D hookCollider = hookGO.GetComponent<Collider2D>();
         Physics2D.IgnoreCollision(hookCollider, userCollider, true);
 
-        // Rotación visual (opcional)
+        // Rotaciï¿½n visual (opcional)
         float angle = Mathf.Atan2(directionToTarget.y, directionToTarget.x) * Mathf.Rad2Deg;
         hookGO.transform.rotation = Quaternion.Euler(0, 0, angle);
 
-        // Configurar línea de gancho
+        // Configurar lï¿½nea de gancho
         if (hookLine != null)
         {
             hookLine.enabled = true;
@@ -206,7 +206,7 @@ public class PowerUpEffects : MonoBehaviour
             hitOccurred = true;
         };
 
-        // Actualizar línea mientras el gancho existe
+        // Actualizar lï¿½nea mientras el gancho existe
         while (!hitOccurred && hookGO != null)
         {
             if (hookLine != null)
@@ -223,7 +223,7 @@ public class PowerUpEffects : MonoBehaviour
             yield break;
         }
 
-        // --- Arrastre según resultado ---
+        // --- Arrastre segï¿½n resultado ---
         if (hitResult == HookProjectile.HitType.Ground)
         {
             float pullTime = 0f;
@@ -256,7 +256,7 @@ public class PowerUpEffects : MonoBehaviour
                 float dist = Vector2.Distance(target.transform.position, user.transform.position);
                 if (dist < hookPullStopDist) break;
 
-                // AMBOS operandos convertidos a Vector2 explícitamente
+                // AMBOS operandos convertidos a Vector2 explï¿½citamente
                 Vector2 pullDir = ((Vector2)user.transform.position - (Vector2)target.transform.position).normalized;
                 target.SetPulled(true, pullDir * hookPullSpeed);
 
@@ -296,8 +296,9 @@ public class PowerUpEffects : MonoBehaviour
     // CONTROL ESPEJO
     public IEnumerator ActivateMirrorControl(PlatformPlayerController user, PlatformPlayerController target)
     {
+        Debug.Log($"[PowerUpEffects] ActivateMirrorControl: user={user.gameObject.name}, target={target.gameObject.name}");
         // ANTES: user.GetComponent
-        // DESPUÉS: target.GetComponent
+        // DESPUÃ‰S: target.GetComponent
         AudioManager.Instance?.PlaySFX(SoundID.PUMirror);
         AfterImageEffect afterImage = target.GetComponent<AfterImageEffect>();
         afterImage?.StartEffect(true);
@@ -321,7 +322,7 @@ public class PowerUpEffects : MonoBehaviour
         user.SetJetpack(true, jetpackForce, jetpackObj, jetpackAnim);
 
         float timeLeft = jetpackDuration;
-        float blinkStart = 2.0f; // últimos 2 segundos
+        float blinkStart = 2.0f; // ï¿½ltimos 2 segundos
 
         bool visible = true;
         Color originalColor = sr != null ? sr.color : Color.white;

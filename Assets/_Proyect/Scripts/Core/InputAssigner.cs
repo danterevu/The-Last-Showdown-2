@@ -94,6 +94,12 @@ public class InputAssigner : MonoBehaviour
         ResetSlot(player2Slot);
         UpdateUI();
         InitializeVisuals();
+        
+        // Inicializar assignedPlayers con 2 elementos
+        while (assignedPlayers.Count < 2)
+        {
+            assignedPlayers.Add(new PlayerSlotData());
+        }
     }
     // AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
     private void Start()
@@ -106,6 +112,12 @@ public class InputAssigner : MonoBehaviour
         ResetSlot(player2Slot);
         UpdateUI();
         InitializeVisuals();
+        
+        // Inicializar assignedPlayers con 2 elementos
+        while (assignedPlayers.Count < 2)
+        {
+            assignedPlayers.Add(new PlayerSlotData());
+        }
     }
 
     private void InitializeVisuals()
@@ -473,16 +485,16 @@ public class InputAssigner : MonoBehaviour
         if (slot.statusText != null)
             slot.statusText.text = "¡Listo!";
 
-        var slotData = new PlayerSlotData
+        // Asegurarnos de que assignedPlayers tiene al menos 2 elementos
+        while (assignedPlayers.Count < 2)
         {
-            inputType = slot.assignedInput,
-            gamepad = slot.assignedGamepad
-        };
+            assignedPlayers.Add(new PlayerSlotData());
+        }
 
-        if (assignedPlayers.Count <= slot.playerIndex)
-            assignedPlayers.Add(slotData);
-        else
-            assignedPlayers[slot.playerIndex] = slotData;
+        // Asignar a índice fijo: player1Slot = 0, player2Slot = 1
+        int index = slot == player1Slot ? 0 : 1;
+        assignedPlayers[index].inputType = slot.assignedInput;
+        assignedPlayers[index].gamepad = slot.assignedGamepad;
     }
 
     private void CancelSelection(PlayerSlot slot)
@@ -534,17 +546,17 @@ public class InputAssigner : MonoBehaviour
         MoveVisualToCenter(slot, slot.isUsingSecondKeyboard);
 
         ResetSlot(slot);
-        assignedPlayers.Clear();
-        if (player1Slot.assignedInput != InputType.None)
+
+        // Asegurarnos de que assignedPlayers tiene al menos 2 elementos
+        while (assignedPlayers.Count < 2)
         {
-            var data1 = new PlayerSlotData { inputType = player1Slot.assignedInput, gamepad = player1Slot.assignedGamepad };
-            assignedPlayers.Add(data1);
+            assignedPlayers.Add(new PlayerSlotData());
         }
-        if (player2Slot.assignedInput != InputType.None)
-        {
-            var data2 = new PlayerSlotData { inputType = player2Slot.assignedInput, gamepad = player2Slot.assignedGamepad };
-            assignedPlayers.Add(data2);
-        }
+
+        // Limpiar el índice correspondiente
+        int index = slot == player1Slot ? 0 : 1;
+        assignedPlayers[index].inputType = InputType.None;
+        assignedPlayers[index].gamepad = null;
     }
 
     private void ResetSlot(PlayerSlot slot)
@@ -620,6 +632,12 @@ public class InputAssigner : MonoBehaviour
         if (currentPhase == SelectionPhase.WaitingForAnyInput)
         {
             StartPlayerSelection();
+        }
+
+        // Asegurarnos de que assignedPlayers tiene al menos 2 elementos
+        while (assignedPlayers.Count < 2)
+        {
+            assignedPlayers.Add(new PlayerSlotData());
         }
 
         // Asignar teclado a Player 1 (A/D)

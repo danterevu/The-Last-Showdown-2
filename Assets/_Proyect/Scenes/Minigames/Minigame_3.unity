@@ -1057,6 +1057,9 @@ MonoBehaviour:
     m_Bits: 0
   punchHitbox: {fileID: 2042593315}
   hasDNA: 0
+  dnaHoldPoint: {fileID: 0}
+  dnaHoldOffsetRight: {x: 0, y: 0, z: 0}
+  dnaHoldOffsetLeft: {x: 0, y: 0, z: 0}
   respawnDelay: 2
   invulnerableTime: 2
   inputActions: {fileID: -944628639613478452, guid: 2eefc3655699b6b4c94338e68a1d94bb, type: 3}
@@ -2950,6 +2953,9 @@ MonoBehaviour:
     m_Bits: 131072
   punchHitbox: {fileID: 708058474}
   hasDNA: 0
+  dnaHoldPoint: {fileID: 0}
+  dnaHoldOffsetRight: {x: 0, y: 0, z: 0}
+  dnaHoldOffsetLeft: {x: 0, y: 0, z: 0}
   respawnDelay: 2
   invulnerableTime: 2
   inputActions: {fileID: -944628639613478452, guid: e3270181fb3993c478a2ddab4e8b288a, type: 3}
@@ -3026,7 +3032,7 @@ Transform:
   m_GameObject: {fileID: 772619567}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -1, w: 0}
-  m_LocalPosition: {x: -8.58, y: -9.12, z: 0.072500594}
+  m_LocalPosition: {x: -8.52, y: -8.8, z: 0.072500594}
   m_LocalScale: {x: 3.2128372, y: 0.6897, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4856,6 +4862,18 @@ MonoBehaviour:
   player1ScoreText: {fileID: 474913887}
   player2ScoreText: {fileID: 67752874}
   timerText: {fileID: 363494856}
+  player1PowerUpIcon: {fileID: 0}
+  player2PowerUpIcon: {fileID: 0}
+  berserkSpriteP1: {fileID: 0}
+  berserkSpriteP2: {fileID: 0}
+  shrinkSpriteP1: {fileID: 0}
+  shrinkSpriteP2: {fileID: 0}
+  mineSpriteP1: {fileID: 0}
+  mineSpriteP2: {fileID: 0}
+  remoteSpriteP1: {fileID: 0}
+  remoteSpriteP2: {fileID: 0}
+  slimeSpriteP1: {fileID: 0}
+  slimeSpriteP2: {fileID: 0}
   player1Color: {r: 0, g: 0, b: 1, a: 1}
   player2Color: {r: 1, g: 0, b: 0, a: 1}
   timerNormalColor: {r: 1, g: 1, b: 1, a: 1}
@@ -5251,7 +5269,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   allowedPlayer: 1
-  dna: {fileID: 0}
 --- !u!212 &1153030217
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -5360,6 +5377,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 994e120af3df9224ca9292be65035b6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  throwBaseForce: 3
+  throwRunningForce: 10
+  throwUpward: 2
   spawnPoints:
   - {fileID: 1496406533}
   - {fileID: 1112091207}
@@ -5370,8 +5390,8 @@ MonoBehaviour:
   - {fileID: 541398702}
   - {fileID: 1091538458}
   respawnDelay: 1.5
-  throwForceX: 6
-  throwForceY: 8
+  hitThrowForceX: 6
+  hitThrowForceY: 8
 --- !u!70 &1160438726
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -6357,10 +6377,7 @@ MonoBehaviour:
   dnaPickup: {fileID: 1160438725}
   deposit1: {fileID: 1153030216}
   deposit2: {fileID: 1985852394}
-  timerText: {fileID: 0}
-  player1ScoreText: {fileID: 0}
-  player2ScoreText: {fileID: 0}
-  countdownText: {fileID: 0}
+  hud: {fileID: 1107869585}
   gameTimer: 0
   gameRunning: 0
 --- !u!1 &1404634666
@@ -6623,6 +6640,9 @@ MonoBehaviour:
     m_Bits: 0
   punchHitbox: {fileID: 1761684557}
   hasDNA: 0
+  dnaHoldPoint: {fileID: 0}
+  dnaHoldOffsetRight: {x: 0, y: 0, z: 0}
+  dnaHoldOffsetLeft: {x: 0, y: 0, z: 0}
   respawnDelay: 2
   invulnerableTime: 2
   inputActions: {fileID: -944628639613478452, guid: e3270181fb3993c478a2ddab4e8b288a, type: 3}
@@ -6990,6 +7010,9 @@ MonoBehaviour:
     m_Bits: 131072
   punchHitbox: {fileID: 1585737176}
   hasDNA: 0
+  dnaHoldPoint: {fileID: 0}
+  dnaHoldOffsetRight: {x: 0, y: 0, z: 0}
+  dnaHoldOffsetLeft: {x: 0, y: 0, z: 0}
   respawnDelay: 2
   invulnerableTime: 2
   inputActions: {fileID: -944628639613478452, guid: 2eefc3655699b6b4c94338e68a1d94bb, type: 3}
@@ -10675,7 +10698,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   allowedPlayer: 2
-  dna: {fileID: 0}
 --- !u!1 &1986104064
 GameObject:
   m_ObjectHideFlags: 0

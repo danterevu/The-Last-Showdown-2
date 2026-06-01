@@ -4,10 +4,10 @@ using UnityEngine;
 public class InteractiveAsteroid : MonoBehaviour
 {
     [Header("Velocidad necesaria para matar")]
-    [SerializeField] private float lethalSpeed = 10f;
+    [SerializeField] private float lethalSpeed = 15f;
 
     [Header("Seguridad: No matar a quien lo empujó")]
-    [SerializeField] private float safetyTime = 1f;
+    [SerializeField] private float safetyTime = 2f;
 
     [Header("Bordes")]
     [SerializeField] private float bounceBreakSpeed = 15f;
@@ -24,6 +24,7 @@ public class InteractiveAsteroid : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        Debug.Log($"[INTERACTIVE ASTEROID] {gameObject.name} initialized with safetyTime={safetyTime}s");
     }
 
     public void SetLastPusher(int playerIndex)
@@ -73,13 +74,17 @@ public class InteractiveAsteroid : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[INTERACTIVE ASTEROID] Chocó con jugador {hitPlayer} | Último empujador: {lastPusherPlayerIndex} | Tiempo desde último empuje: {(Time.time - lastPushTime):F2}s | Safety time: {safetyTime}s");
         
         // Si el jugador acaba de empujar el meteorito, no lo matamos
-        if (hitPlayer == lastPusherPlayerIndex && Time.time - lastPushTime < safetyTime)
-        {
-            Debug.Log("[INTERACTIVE ASTEROID] No matamos: es el último empujador y está dentro del safety time");
-            return;
+        if (hitPlayer == lastPusherPlayerIndex) {
+            Debug.Log($"[INTERACTIVE ASTEROID] hitPlayer == lastPusherPlayerIndex");
+            float timeSincePush = Time.time - lastPushTime;
+            if (timeSincePush < safetyTime) {
+                Debug.Log($"[INTERACTIVE ASTEROID] No matamos: es el último empujador y está dentro del safety time (t={timeSincePush:F2}s < {safetyTime}s");
+                return;
+            } else {
+                Debug.Log($"[INTERACTIVE ASTEROID] Sí matamos: es el último empujador pero se pasó el safety time (t={timeSincePush:F2}s >= {safetyTime}s");
+            }
         }
 
         // Calcular velocidad de CIERRE para determinar si mata (solo si el asteroide se acerca al jugador)

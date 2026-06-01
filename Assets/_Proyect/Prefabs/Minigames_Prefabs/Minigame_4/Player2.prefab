@@ -292,11 +292,10 @@ MonoBehaviour:
   playerIndex: 1
   isPlayer1: 0
   rocketParticles: {fileID: 582124230564520445, guid: 3406d020ea333524190601ab2d74ec61, type: 3}
+  explosionVfxPrefab: {fileID: 7298288805043694994, guid: d55748e8395e90c47b0d094778876503, type: 3}
   propulsionParticles: {fileID: 0}
   minSpeedForParticles: 2
   maxEmissionRate: 50
-  lethalSpeed: 5
-  explosionVfxPrefab: {fileID: 7298288805043694994, guid: d55748e8395e90c47b0d094778876503, type: 3}
 --- !u!114 &329191533805698590
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -365,7 +364,7 @@ MonoBehaviour:
   isPlayer1: 0
   playerIndex: 1
   rivalTransform: {fileID: 0}
-  firePoint: {fileID: 6627180801854422485}
+  firePoint: {fileID: 2820423276534160297}
 --- !u!114 &5482207157584957221
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -455,7 +454,7 @@ Transform:
   m_GameObject: {fileID: 4869360334214476004}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.54, y: 0.04, z: 0}
+  m_LocalPosition: {x: 3.08, y: 0.04, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

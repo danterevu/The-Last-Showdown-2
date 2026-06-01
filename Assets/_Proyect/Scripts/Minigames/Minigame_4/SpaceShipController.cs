@@ -162,6 +162,7 @@ public class SpaceShipController : MonoBehaviour
         // Resetear velocidad antes de morir
         SlowField.RemoveShipFromAllSlowFields(this);
         ResetSpeedToOriginal();
+        DeactivateRocketSabotage(); // Desactivar el sabotaje al morir
         
         GetComponent<Explodable>()?.Explode();
 

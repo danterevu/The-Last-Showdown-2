@@ -176,17 +176,24 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             // Salto
             if (gp.buttonSouth.wasPressedThisFrame)
             {
+                Debug.Log($"{gameObject.name} (gamepad) saltó! mirrorActive={mirrorActive}, mirrorTarget={(mirrorTarget != null ? mirrorTarget.gameObject.name : "NULL")}");
                 jumpHeld = true;
                 if (isGrounded || coyoteTimeCounter > 0f)
                 {
                     ExecuteJump();
-                    if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
+                    if (mirrorActive && mirrorTarget != null) {
+                        Debug.Log($"{gameObject.name} TriggerMirrorJump en {mirrorTarget.gameObject.name}!");
+                        mirrorTarget.TriggerMirrorJump();
+                    }
                 }
                 else if (doubleJumpEnabled && !usedDoubleJump)
                 {
                     ExecuteJump();
                     usedDoubleJump = true;
-                    if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
+                    if (mirrorActive && mirrorTarget != null) {
+                        Debug.Log($"{gameObject.name} TriggerMirrorJump (double jump) en {mirrorTarget.gameObject.name}!");
+                        mirrorTarget.TriggerMirrorJump();
+                    }
                 }
                 else
                 {
@@ -263,9 +270,6 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             _jetpackObject.transform.localPosition = pos;
         }
         if (_jetpackSR != null) _jetpackSR.flipX = sr.flipX;
-        
-        // Resetear movimiento forzado al final de Update (solo se mantiene 1 frame)
-        isForcedMove = false;
     }
 
     private void FixedUpdate()
@@ -317,14 +321,23 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
         if (isBeingPulled)
         {
+            Debug.Log($"{gameObject.name} FixedUpdate: isBeingPulled, pullVelocity={pullVelocity}");
             rb.linearVelocity = pullVelocity;
+            isForcedMove = false; // Resetear por si acaso
             return;
         }
         else if (!isKnockedBack && !isStunned)
         {
             Vector2 inputToUse = isForcedMove ? forcedMoveInput : moveInput;
+            Debug.Log($"{gameObject.name} FixedUpdate: isForcedMove={isForcedMove}, inputToUse={inputToUse}, moveInput={moveInput}, forcedMoveInput={forcedMoveInput}");
             rb.linearVelocity = new Vector2(inputToUse.x * moveSpeed, rb.linearVelocity.y);
         }
+        
+        // Resetear movimiento forzado DESPUÉS de usarlo en FixedUpdate
+        if (isForcedMove) {
+            Debug.Log($"{gameObject.name} FixedUpdate: reseteando isForcedMove a false");
+        }
+        isForcedMove = false;
 
             ApplyBetterGravity();
         ApplyMirrorControl();
@@ -340,7 +353,11 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             Vector2 stick = gp.leftStick.ReadValue();
             Vector2 dpad = gp.dpad.ReadValue();
             result = stick.sqrMagnitude > dpad.sqrMagnitude ? stick : dpad;
-            if (result.sqrMagnitude > 0.01f) return result;
+            if (result.sqrMagnitude > 0.01f) 
+            {
+                Debug.Log(gameObject.name + " ReadFilteredMove (gamepad): " + result);
+                return result;
+            }
         }
 
         if (Keyboard.current != null)
@@ -359,6 +376,10 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
                 if (Keyboard.current.upArrowKey.isPressed) result.y += 1f;
                 if (Keyboard.current.downArrowKey.isPressed) result.y -= 1f;
             }
+            if (result.sqrMagnitude > 0.01f)
+            {
+                Debug.Log(gameObject.name + " ReadFilteredMove (keyboard): " + result);
+            }
         }
 
         return result.sqrMagnitude > 0.01f ? result.normalized : Vector2.zero;
@@ -376,18 +397,25 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     {
         if (!IsCorrectDevice(context.control.device)) return;
         if (isDead || isStunned) return;
+        Debug.Log($"{gameObject.name} (teclado) saltó! mirrorActive={mirrorActive}, mirrorTarget={(mirrorTarget != null ? mirrorTarget.gameObject.name : "NULL")}");
         jumpHeld = true;
 
         if (isGrounded || coyoteTimeCounter > 0f)
         {
             ExecuteJump();
-            if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
+            if (mirrorActive && mirrorTarget != null) {
+                Debug.Log($"{gameObject.name} TriggerMirrorJump (teclado) en {mirrorTarget.gameObject.name}!");
+                mirrorTarget.TriggerMirrorJump();
+            }
         }
         else if (doubleJumpEnabled && !usedDoubleJump)
         {
             ExecuteJump();
             usedDoubleJump = true;
-            if (mirrorActive && mirrorTarget != null) mirrorTarget.TriggerMirrorJump();
+            if (mirrorActive && mirrorTarget != null) {
+                Debug.Log($"{gameObject.name} TriggerMirrorJump (double jump teclado) en {mirrorTarget.gameObject.name}!");
+                mirrorTarget.TriggerMirrorJump();
+            }
         }
         else
         {
@@ -607,6 +635,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             return;
         }
         Debug.Log(gameObject.name + " usando: " + currentPowerUp);
+        Debug.Log("otherPlayer es: " + (otherPlayer != null ? otherPlayer.gameObject.name : "NULL"));
         hasPowerUp = false;
         manager.ActivatePowerUp(currentPowerUp, this, otherPlayer);
     }
@@ -643,7 +672,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     }
     public void SetMirrorControl(bool active, PlatformPlayerController target) 
     {
-
+        Debug.Log(gameObject.name + " SetMirrorControl: active=" + active + ", target=" + (target != null ? target.gameObject.name : "NULL"));
         mirrorActive = active; 
         mirrorTarget = target; 
     }
@@ -651,11 +680,21 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
     private void ApplyMirrorControl()
     {
-        if (!mirrorActive || mirrorTarget == null) return;
-        mirrorTarget.ForceMove(moveInput);
+        if (mirrorActive) {
+            if (mirrorTarget == null) {
+                Debug.LogWarning($"{gameObject.name} ApplyMirrorControl: mirrorTarget es NULL!");
+                return;
+            }
+            Debug.Log($"{gameObject.name} ApplyMirrorControl: forcing move on {mirrorTarget.gameObject.name} with input {moveInput}");
+            mirrorTarget.ForceMove(moveInput);
+        }
     }
 
-    public void ForceMove(Vector2 input) { isForcedMove = true; forcedMoveInput = input; }
+    public void ForceMove(Vector2 input) { 
+        Debug.Log($"{gameObject.name} ForceMove: isForcedMove=true, forcedMoveInput={input}");
+        isForcedMove = true; 
+        forcedMoveInput = input; 
+    }
     public void ForceJump() { if (isGrounded) ExecuteJump(); }
     public void ForceVelocity(Vector2 velocity) { isForcedMove = true; rb.linearVelocity = velocity; }
     public void ForceVelocityRaw(Vector2 velocity) { hasRawVelocityOverride = true; rawVelocityOverride = velocity; }
@@ -687,7 +726,10 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     public Rigidbody2D GetRigidbody() => rb;
 
     public void SetSpawnPoint(Vector3 point) { spawnPoint = point; }
-    public void SetOtherPlayer(PlatformPlayerController other) { otherPlayer = other; }
+    public void SetOtherPlayer(PlatformPlayerController other) { 
+        otherPlayer = other; 
+        Debug.Log($"{gameObject.name} (index {playerIndex}) tiene otro jugador: {(other != null ? other.gameObject.name : "NULL")}");
+    }
     public void SetManager(KingOfHill m) { manager = m; }
     public void ForceRespawn() { if (!isDead) StartCoroutine(Die()); }
 

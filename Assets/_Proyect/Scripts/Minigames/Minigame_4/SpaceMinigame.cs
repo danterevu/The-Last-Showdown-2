@@ -418,7 +418,10 @@ public class SpaceMinigame : MonoBehaviour
         player.rotation = spawnPoint.rotation;
 
         var ship = player.GetComponent<SpaceShipController>();
-        if (ship != null) ship.ForceStop();
+        if (ship != null) {
+            ship.ForceStop();
+            ship.DeactivateRocketSabotage(); // Desactivar sabotaje al respawnear
+        }
 
         var rb = player.GetComponent<Rigidbody2D>();
         if (rb != null)
