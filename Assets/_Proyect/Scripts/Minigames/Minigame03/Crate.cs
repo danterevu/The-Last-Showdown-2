@@ -9,6 +9,8 @@ public class Crate : MonoBehaviour
     [SerializeField] private float stunDuration = 1f;
     [SerializeField] private float minSpeedToStun = 5f;
     [SerializeField] private float stunCooldown = 1f;
+    private PlayerControllerDNA lastThrower;   // quien lanzó la caja
+    private float ignoreThrowerUntil = 0f;     // tiempo hasta ignorar al lanzador
 
     private Rigidbody2D rb;
     private Collider2D physicsCollider;
@@ -62,28 +64,26 @@ public class Crate : MonoBehaviour
     public bool TryPickUp(PlayerControllerDNA newHolder)
     {
         if (isHeld) return false;
-        //if (newHolder.HasDNA()) return false; esta linea se descomenta si se quiere que la caja se suelte cuando se agarra el dna
         if (newHolder.IsStunned()) return false;
-        if (newHolder.GetCrateHoldPoint() == null)
-        {
-            Debug.LogError("El jugador " + newHolder.name + " no tiene CrateHoldPoint.");
-            return false;
-        }
+        if (newHolder.GetCrateHoldPoint() == null) return false;
+
+        // Al agarrar, también limpiamos el lanzador
+        lastThrower = null;
+        ignoreThrowerUntil = 0f;
 
         holder = newHolder;
         isHeld = true;
         wasThrown = false;
-
-        // Desactivar física y collider mientras está agarrada
         SetPhysicsEnabled(false);
         sr.enabled = true;
-
         return true;
     }
 
     public void Throw(Vector2 direction, float playerVelocityMagnitude)
     {
         if (!isHeld) return;
+        lastThrower = holder;
+        ignoreThrowerUntil = Time.time + 0.3f;
 
         isHeld = false;
         holder = null;
@@ -105,6 +105,9 @@ public class Crate : MonoBehaviour
     {
         if (!isHeld) return;
         if (holder == null) return;
+
+        lastThrower = null;
+        ignoreThrowerUntil = 0f;
 
         // Separar la caja del hold point (si estaba siguiendo al jugador)
         transform.SetParent(null);
@@ -134,27 +137,31 @@ public class Crate : MonoBehaviour
         if (Time.time - lastStunTime < stunCooldown) return;
 
         PlayerControllerDNA target = collision.gameObject.GetComponent<PlayerControllerDNA>();
-        if (target != null && target != holder)
-        {
-            target.Stun(stunDuration);
-            lastStunTime = Time.time;
+        if (target == null) return;
 
-            if (target.HasDNA())
+        // CORRECCIÓN: ignorar al lanzador durante la ventana de exclusión
+        if (target == lastThrower && Time.time < ignoreThrowerUntil) return;
+
+        // Aplicar stun
+        target.Stun(stunDuration);
+        lastStunTime = Time.time;
+
+        if (target.HasDNA())
+        {
+            DNA dna = target.GetCarriedDNA();
+            if (dna != null)
             {
-                DNA dna = target.GetCarriedDNA();
-                if (dna != null)
-                {
-                    dna.transform.position = target.transform.position;
-                    dna.gameObject.SetActive(true);
-                    Vector2 randomDir = new Vector2(Random.Range(-1f, 1f), Random.Range(0.5f, 1f)).normalized;
-                    dna.ThrowByHit(randomDir);   // NUEVO MÉTODO
-                    dna.SetSpinEffect();
-                    target.DropDNA();
-                }
+                dna.transform.position = target.transform.position;
+                dna.gameObject.SetActive(true);
+                Vector2 randomDir = new Vector2(Random.Range(-1f, 1f), Random.Range(0.5f, 1f)).normalized;
+                dna.ThrowByHit(randomDir);
+                dna.SetSpinEffect();
+                target.DropDNA();
             }
-            rb.linearVelocity = rb.linearVelocity * 0.5f;
-            wasThrown = false;
         }
+        rb.linearVelocity = rb.linearVelocity * 0.5f;
+        wasThrown = false;
+    
     }
 
     public void DestroyCrate()
