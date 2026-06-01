@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: edd3d79022584964db72e6c437561e39
+guid: 155a16d4cef0da841be856d76a273f5e
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2721265025371518739
-    second: Mina_P1_0
+      213: 4217392108033900160
+    second: Deposito_P1_0
+  - first:
+      213: -1847710787748017323
+    second: Deposito_P1_1
+  - first:
+      213: 6614210511482823329
+    second: Deposito_P1_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +106,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Mina_P1_0
+      name: Deposito_P1_0
       rect:
         serializedVersion: 2
-        x: 11
-        y: 0
-        width: 410
-        height: 394
+        x: 95
+        y: 517
+        width: 8
+        height: 7
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +121,52 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: de8490790ef1c3ad0800000000000000
-      internalID: -2721265025371518739
+      spriteID: 08e75ed07cf278a30800000000000000
+      internalID: 4217392108033900160
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Deposito_P1_1
+      rect:
+        serializedVersion: 2
+        x: 154
+        y: 86
+        width: 492
+        height: 628
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55b4f9004dc9b56e0800000000000000
+      internalID: -1847710787748017323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Deposito_P1_2
+      rect:
+        serializedVersion: 2
+        x: 697
+        y: 517
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a2a696aa656acb50800000000000000
+      internalID: 6614210511482823329
       vertices: []
       indices: 
       edges: []
@@ -135,7 +185,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Mina_P1_0: -2721265025371518739
+      Deposito_P1_0: 4217392108033900160
+      Deposito_P1_1: -1847710787748017323
+      Deposito_P1_2: 6614210511482823329
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
