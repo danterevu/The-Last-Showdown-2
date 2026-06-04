@@ -75,7 +75,7 @@ public class PunchHitboxDNA : MonoBehaviour
 
             // Dirección del lanzamiento: hacia donde mira el atacante + aleatorio vertical
             Vector2 throwDir = new Vector2(dirX * Random.Range(0.8f, 1.2f), Random.Range(0.5f, 1f)).normalized;
-            dna.ThrowByHit(throwDir);
+            dna.ThrowByHit(throwDir, owner.playerIndex + 1);
             dna.SetSpinEffect();
             target.DropDNA();
         }

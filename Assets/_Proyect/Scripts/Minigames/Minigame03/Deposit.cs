@@ -35,10 +35,24 @@ public class Deposit : MonoBehaviour
         DNA dna = collision.GetComponent<DNA>();
         if (dna != null && dna.IsThrown() && dna.GetHolder() == null)
         {
-            GameManager.Instance.AddPoints(allowedPlayer, 50);
-            OnAnyDeposit?.Invoke();
-            dna.RespawnAfterDelay();
-            Debug.Log($"DNA lanzado depositado en depósito {allowedPlayer}");
+            int thrower = dna.GetLastThrower(); // devuelve 1 o 2, o -1 si no tiene
+                                                // Solo depositar si el lanzador es el dueño del depósito
+            if (thrower == allowedPlayer)
+            {
+                GameManager.Instance.AddPoints(allowedPlayer, 50);
+                OnAnyDeposit?.Invoke();
+                dna.RespawnAfterDelay();
+                Debug.Log($"DNA lanzado depositado correctamente por el jugador {thrower} en su depósito.");
+            }
+            else
+            {
+                // Opcional: el DNA no se deposita, puede rebotar o simplemente no pasar.
+                // Aquí lo ignoramos y no se destruye.
+                Debug.Log($"DNA lanzado por jugador {thrower} intentó depositar en depósito del jugador {allowedPlayer} -> rechazado.");
+                // No llamamos a RespawnAfterDelay, el DNA seguirá su trayectoria.
+                // Podrías añadir una fuerza de rebote para que se aleje.
+            }
+            return;
         }
     }
 }

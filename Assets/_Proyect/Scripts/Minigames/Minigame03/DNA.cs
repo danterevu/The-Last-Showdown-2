@@ -126,16 +126,17 @@ public class DNA : MonoBehaviour
     }
 
     // Lanzamiento forzado (cuando el jugador que lo lleva recibe un golpe)
-    public void ThrowByHit(Vector2 direction)
+    public void ThrowByHit(Vector2 direction, int throwerPlayer)
     {
         if (isPickedUp && holder != null)
         {
-            holder.DropDNA(); // el jugador suelta el DNA
+            holder.DropDNA();
         }
         isPickedUp = false;
         holder = null;
         isThrown = true;
         throwTime = Time.time;
+        lastThrowerPlayer = throwerPlayer;   //  asignar quién causó el lanzamiento
 
         transform.SetParent(null);
         sr.enabled = true;
