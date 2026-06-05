@@ -56,7 +56,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [Header("Input")]
     [SerializeField] private InputActionAsset inputActions;
     [SerializeField] private string actionMapName = "Player1_Platform";
-    [SerializeField] private int playerIndex = 0;
+    [SerializeField] public int playerIndex = 0;
 
     [Header("RemoteControl")]
     [SerializeField] RemoteControl rc;

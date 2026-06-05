@@ -146,15 +146,19 @@ public class Crate : MonoBehaviour
         target.Stun(stunDuration);
         lastStunTime = Time.time;
 
+        int throwerPlayer = (lastThrower != null) ? (lastThrower.CompareTag("Player1") ? 1 : 2) : 0;
+
+
         if (target.HasDNA())
         {
             DNA dna = target.GetCarriedDNA();
+
             if (dna != null)
             {
                 dna.transform.position = target.transform.position;
                 dna.gameObject.SetActive(true);
                 Vector2 randomDir = new Vector2(Random.Range(-1f, 1f), Random.Range(0.5f, 1f)).normalized;
-                dna.ThrowByHit(randomDir);
+                dna.ThrowByHit(randomDir, throwerPlayer);
                 dna.SetSpinEffect();
                 target.DropDNA();
             }

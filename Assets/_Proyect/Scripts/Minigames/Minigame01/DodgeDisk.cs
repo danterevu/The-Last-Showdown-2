@@ -244,8 +244,8 @@
 
     private void GivePointsToBothPlayers()
         {
-            //GameManager.Instance.AddResult(1, true);
-            //GameManager.Instance.AddResult(2, true);
+            GameManager.Instance.AddResult(1, true);
+            GameManager.Instance.AddResult(2, true);
         }
     private void UpdateUI()
     {

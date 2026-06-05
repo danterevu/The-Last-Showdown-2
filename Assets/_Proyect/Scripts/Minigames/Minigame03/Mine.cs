@@ -117,7 +117,8 @@ public class Mine : MonoBehaviour
                 dirX * Random.Range(0.8f, 1.2f),
                 Random.Range(0.8f, 1.2f)
             );
-            dna.ThrowByHit(throwDir);
+            //  Pasar el ownerPlayer como lanzador (el que puso la mina)
+            dna.ThrowByHit(throwDir, ownerPlayer);
             dna.SetSpinEffect();
             target.DropDNA();
         }
