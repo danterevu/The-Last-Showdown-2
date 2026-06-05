@@ -24,11 +24,13 @@ public class HardPoint : MonoBehaviour
     [SerializeField] private float disputedSpeed = 0.4f;
 
     private ParticleSystem.MainModule particleMain;
+    private KingOfHill _kingOfHill;
 
     private void Awake()
     {
         if (pointParticles != null)
             particleMain = pointParticles.main;
+        _kingOfHill = FindFirstObjectByType<KingOfHill>();
     }
 
     private void Update()
@@ -73,10 +75,15 @@ public class HardPoint : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player1"))
+        {
             IsPlayer1Inside = true;
-
+            if (_kingOfHill != null) _kingOfHill.OnPlayerEnteredZone(1);
+        }
         else if (other.CompareTag("Player2"))
+        {
             IsPlayer2Inside = true;
+            if (_kingOfHill != null) _kingOfHill.OnPlayerEnteredZone(2);
+        }
     }
 
     private void OnTriggerExit2D(Collider2D other)

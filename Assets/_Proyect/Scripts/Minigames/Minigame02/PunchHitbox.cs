@@ -28,6 +28,7 @@ public class PunchHitbox : MonoBehaviour
         Vector2 knockDir = new Vector2(dirX, 0.3f).normalized;
         AudioManager.Instance?.PlaySFX(SoundID.Punch);
 
+        target.MarkNextDeathAsPunch();
         // Knockback al rival
         target.ReceiveKnockback(knockDir);
 

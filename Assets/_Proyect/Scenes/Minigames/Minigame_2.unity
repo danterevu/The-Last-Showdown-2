@@ -87762,6 +87762,9 @@ MonoBehaviour:
   gameTimer: 0
   zoneTimer: 0
   gameRunning: 0
+  comebackMinDiff: 10
+  awareChangeZoneWarning: 8
+  alertEndGameSeconds: 10
 --- !u!4 &1461512305
 Transform:
   m_ObjectHideFlags: 0
@@ -126442,8 +126445,50 @@ MonoBehaviour:
   - {fileID: 455869675}
   - {fileID: 1165333505}
   pools:
-  - trigger: 0
-    comments: []
+  - trigger: 3
+    comments:
+    - Creo que produccion se paso con la dificultad...
+    - Fijate por donde estas yendo
+    - "\xBFTan dificil es no morir?"
+    displayDuration: 0
+  - trigger: 4
+    comments:
+    - No te olvides de quedarte ahi lo maximo posible
+    - Ya era hora...
+    displayDuration: 0
+  - trigger: 5
+    comments:
+    - Diganle adios a esta seccion!
+    - Nuevo seccion, nuevas chances de remontar!
+    - Preparense para que cambie todo!
+    displayDuration: 0
+  - trigger: 7
+    comments:
+    - "\xA1Les queda cada vez menos para demostrar quien es mejor!"
+    - "\xA1Queda poco tiempo, haganlo valer!"
+    - "\xA1Juegan tan mal, que el publico pide el corte comercial!"
+    displayDuration: 0
+  - trigger: 8
+    comments:
+    - "Wowowowow, \xA1que paliza!"
+    - "\xA1A veces se gana, y a veces se humilla!"
+    - Nos equivocamos con el emparejamiento...
+    displayDuration: 0
+  - trigger: 9
+    comments:
+    - "NO LO PUEDO CREER pero que pu\xF1etazo!"
+    - Esto es perfecto para nuestro canal de clips!
+    - Se que te mato, pero debes admitir que es un gran golpe!
+    - Si! mas golpes asi! por el rating!
+    - Duele mas el golpe? o saber que podias esquivarlo?
+    displayDuration: 0
+  - trigger: 6
+    comments:
+    - "\xA1Esto se pone todavia mas interesante!"
+    - Espero que hayan apostado por tal remontada!
+    - Ya era hora, crei que te gustaba perder..
+    - "\xA1Lo que facil viene, facil se va!"
+    - "\xBFQue se siente pasar de ganar a perder en tan poco tiempo?"
     displayDuration: 0
 --- !u!4 &1966026244
 Transform:

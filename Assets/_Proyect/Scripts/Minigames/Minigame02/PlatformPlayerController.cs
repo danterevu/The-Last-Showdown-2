@@ -118,6 +118,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     private SpriteRenderer _jetpackSR;
     private KingOfHill manager;
     private bool jetpackFiring = false;
+    private bool _nextDeathByPunch = false;
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -580,6 +581,8 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     private IEnumerator Die()
     {
         isDead = true;
+        manager?.OnPlayerDied(_nextDeathByPunch);
+        _nextDeathByPunch = false;
         isKnockedBack = false;
         isStunned = false;
         isAttacking = false;
@@ -794,4 +797,6 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         isBeingPulled = active;
         pullVelocity = velocity;
     }
+
+    public void MarkNextDeathAsPunch() => _nextDeathByPunch = true;
 }

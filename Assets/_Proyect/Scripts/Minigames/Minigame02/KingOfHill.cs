@@ -64,6 +64,12 @@ public class KingOfHill : MonoBehaviour
     [SerializeField] private float zoneTimer;
     [SerializeField] private bool gameRunning;
 
+    [Header("Comentarista")]
+    [SerializeField] private int comebackMinDiff = 10;   // pts de ventaja mínima
+    [SerializeField] private float awareChangeZoneWarning = 8f;   // seg antes del cambio
+    [SerializeField] private float alertEndGameSeconds = 10f;  // seg restantes al final
+
+
     private float pointAccumulator1 = 0f;
     private float pointAccumulator2 = 0f;
     private PlatformPlayerController p1Controller;
@@ -73,6 +79,13 @@ public class KingOfHill : MonoBehaviour
     private float pointBleedTimer2 = 0f;
     private float[] hardpointTimeInZone = new float[2]; // [0]=p1, [1]=p2
     private int[] hardpointMultiplier = new int[] { 1, 1 }; // x1 x2 x3 x4
+
+    // --- Comentarista ---
+    private bool alertEndGameTriggered = false;
+    private bool awareChangeZoneTriggered = false;
+    private bool humilliateTriggered = false;  // reset al cambiar zona
+    private bool comebackTriggered = false;  // reset al cambiar zona
+    private int lastLeader = 0;
 
     private void Start()
     {
@@ -118,6 +131,9 @@ public class KingOfHill : MonoBehaviour
         hudPlayer1?.TrackPlayer(p1Controller);
         hudPlayer2?.TrackPlayer(p2Controller);
         UpdateUI();
+
+        ResetCommentaryFlags();
+        alertEndGameTriggered = false;
 
         StartCoroutine(InitialCountdown());
     }
@@ -168,6 +184,7 @@ public class KingOfHill : MonoBehaviour
         zoneTimer -= Time.deltaTime;
 
         HandleHardPointPoints();
+        UpdateCommentaryChecks();
 
         if (zoneTimer <= 0f)
         {
@@ -189,6 +206,7 @@ public class KingOfHill : MonoBehaviour
     {
         Debug.Log("ChangeZone() iniciado");
         gameRunning = false;
+        ResetCommentaryFlags();
 
         int oldZoneIndex = currentZoneIndex;
         int newZoneIndex;
@@ -770,6 +788,105 @@ public class KingOfHill : MonoBehaviour
         if (time >= 10f) return 3;
         if (time >= 5f) return 2;
         return 1;
+    }
+
+    private void TryComment(CommentTrigger trigger, float chance = 1f)
+    {
+        if (CommentarySystem.Instance == null) return;
+        if (Random.value <= chance)
+            CommentarySystem.Instance.TriggerComment(trigger);
+    }
+
+    public void OnPlayerDied(bool diedByPunch = false)
+    {
+        if (!gameRunning) return;
+
+        if (diedByPunch)
+            TryComment(CommentTrigger.PunchDeathRival, 0.80f);
+        else
+            TryComment(CommentTrigger.PlayerDeath, 0.55f);
+    }
+
+    public void OnPlayerEnteredZone(int playerIndex)
+    {
+        if (!gameRunning) return;
+
+        // Solo comenta en ~45 % de los casos para no saturar
+        TryComment(CommentTrigger.EnterZone, 0.45f);
+    }
+
+    private void UpdateCommentaryChecks()
+    {
+        if (!gameRunning || GameManager.Instance == null) return;
+
+        int p1 = GameManager.Instance.player1RoundPoints;
+        int p2 = GameManager.Instance.player2RoundPoints;
+
+        // AwareChangeZone 
+        if (!awareChangeZoneTriggered && zoneTimer <= awareChangeZoneWarning)
+        {
+            awareChangeZoneTriggered = true;
+            TryComment(CommentTrigger.AwareChangeZone, 0.70f);
+        }
+
+        // AlertEndGame 
+        if (!alertEndGameTriggered && gameTimer <= alertEndGameSeconds)
+        {
+            alertEndGameTriggered = true;
+            TryComment(CommentTrigger.AlertEndGame, 0.85f);
+        }
+
+        //  HumilliateRival 
+        // Dispara cuando alguien tiene el doble o más de puntos que el otro
+        if (!humilliateTriggered)
+        {
+            bool p1Dominates = p2 > 0 && p1 >= p2 * 2;
+            bool p2Dominates = p1 > 0 && p2 >= p1 * 2;
+
+            if (p1Dominates || p2Dominates)
+            {
+                humilliateTriggered = true;
+                TryComment(CommentTrigger.HumilliateRival, 0.75f);
+            }
+        }
+
+        // Comeback
+        // Condición: uno tenía ventaja de comebackMinDiff o más puntos,
+        // y el otro lo alcanza (empate) o lo supera.
+        //
+        // Seguimos quién lideraba con ventaja suficiente en el frame anterior.
+        // Si el líder cambia (o hay empate cuando antes había diferencia >= min),
+        // es un comeback.
+        if (!comebackTriggered)
+        {
+            int diff = p1 - p2;  // positivo = P1 gana, negativo = P2 gana
+
+            int currentLeader = diff > 0 ? 1 : (diff < 0 ? 2 : 0);
+
+            // Solo actualizamos el lastLeader si la diferencia es suficientemente
+            // grande para que "cuente" como ventaja real
+            if (Mathf.Abs(diff) >= comebackMinDiff)
+            {
+                if (lastLeader == 0)
+                    lastLeader = currentLeader; // primera vez que alguien saca ventaja
+            }
+
+            // Comeback: había un líder claro y ahora el otro lo alcanzó o superó
+            if (lastLeader != 0 && currentLeader != lastLeader)
+            {
+                comebackTriggered = true;
+                TryComment(CommentTrigger.Comeback, 0.80f);
+            }
+        }
+    }
+
+    private void ResetCommentaryFlags()
+    {
+        awareChangeZoneTriggered = false;
+        humilliateTriggered = false;
+        comebackTriggered = false;
+        lastLeader = 0;
+        // alertEndGameTriggered NO se resetea (una sola vez por partida)
     }
 
     // EndMinigame actualizado
