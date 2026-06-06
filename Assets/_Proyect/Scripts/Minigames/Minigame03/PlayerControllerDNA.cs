@@ -476,8 +476,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         }
         rb.linearVelocity = new Vector2(-dirX * selfKnockback, selfKnockback * 0.3f);
         StartCoroutine(KnockbackDuration());
-        animator?.SetTrigger("Hurt");
-        StartCoroutine(ResetHurtTrigger());
     }
 
     private IEnumerator KnockbackDuration()
