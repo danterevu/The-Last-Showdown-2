@@ -112,6 +112,15 @@ public class RouletteShowDialogueSystem : MonoBehaviour
     [SerializeField] private TextMeshPro textPrefab;
     [SerializeField] private float textFadeInDuration = 0.2f;
     [SerializeField] private float textFadeOutDuration = 0.3f;
+    [SerializeField] private float typewriterSpeed = 0.05f;
+
+    [Header("Auto-Tipo y Controles")]
+    [Tooltip("Texto UI para mostrar las instrucciones (Espacio/ESC)")]
+    [SerializeField] private TextMeshProUGUI hintText;
+    [Tooltip("Texto de ayuda: \"(Espacio para ir al siguiente dialogo o ESC para saltear)\"")]
+    [SerializeField] private string hintTextContent = "(Espacio para ir al siguiente dialogo o ESC para saltear)";
+    [Tooltip("Texto UI para mostrar si el auto-tipo está activado (ON/OFF)")]
+    [SerializeField] private TextMeshProUGUI autoTypeStatusText;
 
     // ── Inspector: Secuencias de diálogo ──────────────────────────────────────
 
@@ -173,6 +182,12 @@ public class RouletteShowDialogueSystem : MonoBehaviour
 
     private bool hasInitializedSpinner = false;
     private TextMeshPro activeText = null;
+    private bool isTyping = false;
+    private bool skipRequested = false;
+    private bool nextRequested = false;
+    private DialogueSequence currentDialogueSequence;
+    private int currentDialogueIndex = 0;
+    private bool isOpeningDialogue = false;
 
     // Tweens propios — solo matamos los nuestros, nunca KillAll
     private readonly List<Tween> ownTweens = new();
@@ -217,7 +232,63 @@ public class RouletteShowDialogueSystem : MonoBehaviour
 
     private void Start()
     {
+        if (hintText != null)
+        {
+            hintText.text = hintTextContent;
+            hintText.gameObject.SetActive(false);
+        }
+
+        UpdateHintTextVisibility();
         TransitionTo(RoulettePhase.Intro);
+    }
+
+    private void Update()
+    {
+        // Manejar teclas solo si estamos en una fase de diálogo
+        if (currentPhase == RoulettePhase.OpeningDialogue || currentPhase == RoulettePhase.MinigameResultDialogue || currentPhase == RoulettePhase.ModifierResultDialogue)
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                if (isTyping)
+                {
+                    // Si está escribiendo, saltar el efecto de máquina de escribir
+                    skipRequested = true;
+                }
+                else
+                {
+                    // Si ya terminó, ir al siguiente diálogo
+                    nextRequested = true;
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                // Saltar toda la secuencia de diálogos
+                skipRequested = true;
+                nextRequested = true;
+            }
+            
+            // Tecla para togglear auto-tipo
+            if (Input.GetKeyDown(KeyCode.T))
+            {
+                SettingsManager.ToggleAutoType();
+                UpdateHintTextVisibility();
+            }
+        }
+    }
+
+    private void UpdateHintTextVisibility()
+    {
+        if (hintText != null)
+        {
+            hintText.gameObject.SetActive(SettingsManager.AutoTypeEnabled);
+        }
+
+        if (autoTypeStatusText != null)
+        {
+            autoTypeStatusText.text = SettingsManager.AutoTypeEnabled ? "AUTO-TIPO: ON (T para OFF)" : "AUTO-TIPO: OFF (T para ON)";
+            autoTypeStatusText.gameObject.SetActive(true);
+        }
     }
 
     // ── Máquina de estados ────────────────────────────────────────────────────
@@ -465,11 +536,17 @@ public class RouletteShowDialogueSystem : MonoBehaviour
         if (sequence == null || sequence.lines == null || sequence.lines.Length == 0)
             yield break;
 
+        currentDialogueSequence = sequence;
+        currentDialogueIndex = 0;
+        isOpeningDialogue = isOpening;
         Sprite lastSprite = null;
+        
+        // Mostrar texto de ayuda si auto-tipo está activado
+        UpdateHintTextVisibility();
 
-        for (int i = 0; i < sequence.lines.Length; i++)
+        while (currentDialogueIndex < sequence.lines.Length)
         {
-            DialogueLine line = sequence.lines[i];
+            DialogueLine line = sequence.lines[currentDialogueIndex];
 
             Sprite spriteToUse = line.presenterSprite != null
                 ? line.presenterSprite
@@ -483,10 +560,42 @@ public class RouletteShowDialogueSystem : MonoBehaviour
 
             PresenterJump();
             yield return StartCoroutine(ShowTextBlock(line));
+            
+            // Resetear requests
+            nextRequested = false;
+            skipRequested = false;
 
             // Inicializar spinner en el punto marcado como "final"
             if (line.isFinalDialogue && isOpening && !hasInitializedSpinner)
                 hasInitializedSpinner = true;
+
+            currentDialogueIndex++;
+            
+            // Si no es el último diálogo y auto-tipo está activado, continuar automáticamente
+            if (SettingsManager.AutoTypeEnabled && currentDialogueIndex < sequence.lines.Length)
+            {
+                // Esperar un poquito antes del siguiente
+                yield return new WaitForSeconds(0.2f);
+            }
+            else if (!SettingsManager.AutoTypeEnabled && currentDialogueIndex < sequence.lines.Length)
+            {
+                // Esperar a que el usuario presione espacio para el siguiente
+                while (!nextRequested)
+                {
+                    yield return null;
+                }
+            }
+        }
+
+        // Ocultar textos de ayuda y estado
+        if (hintText != null)
+        {
+            hintText.gameObject.SetActive(false);
+        }
+
+        if (autoTypeStatusText != null)
+        {
+            autoTypeStatusText.gameObject.SetActive(false);
         }
 
         // Gestionar sprite post-secuencia
@@ -507,6 +616,7 @@ public class RouletteShowDialogueSystem : MonoBehaviour
     private IEnumerator ShowTextBlock(DialogueLine line)
     {
         ClearActiveText();
+        skipRequested = false;
 
         if (textSpawnPoints == null || textSpawnPoints.Length == 0 || textPrefab == null)
         {
@@ -516,20 +626,61 @@ public class RouletteShowDialogueSystem : MonoBehaviour
 
         Transform spawnPoint = textSpawnPoints[Random.Range(0, textSpawnPoints.Length)];
         TextMeshPro instance = Instantiate(textPrefab, spawnPoint.position, spawnPoint.rotation, spawnPoint);
-        instance.text = line.text;
-
+        instance.text = "";
+        
         Color c = instance.color;
         instance.color = new Color(c.r, c.g, c.b, 0f);
         instance.transform.localScale = Vector3.one * 0.8f;
         activeText = instance;
 
+        // Fade in and scale
         Sequence showSeq = DOTween.Sequence();
         showSeq.Join(instance.DOFade(1f, textFadeInDuration).SetEase(Ease.OutQuad));
         showSeq.Join(instance.transform.DOScale(Vector3.one, textFadeInDuration).SetEase(Ease.OutBack));
         TrackSequence(showSeq);
         showSeq.Play();
+        
+        // Wait for fade in
+        yield return new WaitForSeconds(textFadeInDuration);
+        
+        // Typewriter effect
+        isTyping = true;
+        string fullText = line.text;
+        for (int i = 0; i <= fullText.Length; i++)
+        {
+            if (skipRequested)
+            {
+                instance.text = fullText;
+                break;
+            }
+            instance.text = fullText.Substring(0, i);
+            yield return new WaitForSeconds(typewriterSpeed);
+        }
+        isTyping = false;
 
-        yield return new WaitForSeconds(line.displayDuration);
+        // Esperar a que termine la duración o que el usuario presione espacio
+        if (SettingsManager.AutoTypeEnabled)
+        {
+            // Si auto-tipo está activado, esperar el tiempo normal
+            float remainingTime = line.displayDuration - (fullText.Length * typewriterSpeed);
+            if (remainingTime > 0)
+            {
+                float timeWaited = 0f;
+                while (timeWaited < remainingTime && !nextRequested)
+                {
+                    timeWaited += Time.deltaTime;
+                    yield return null;
+                }
+            }
+        }
+        else
+        {
+            // Si auto-tipo está desactivado, esperar hasta que el usuario presione espacio
+            while (!nextRequested)
+            {
+                yield return null;
+            }
+        }
 
         ClearActiveText();
         yield return new WaitForSeconds(textFadeOutDuration);

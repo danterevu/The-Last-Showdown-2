@@ -68,6 +68,7 @@ public class InputAssigner : MonoBehaviour
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI promptText;
     [SerializeField] private GameObject startButton;
+    [SerializeField] private GameObject controlsPanel;
     [SerializeField] private string initialPrompt = "Aprieta cualquier tecla en el teclado o en el Mando";
 
     [Header("Visual Objects")]
@@ -83,6 +84,7 @@ public class InputAssigner : MonoBehaviour
     private SelectionPhase currentPhase = SelectionPhase.WaitingForAnyInput;
     private bool keyboardAlreadyUsed = false;
     private List<Gamepad> usedGamepads = new List<Gamepad>();
+    private bool isControlsPanelManuallyClosed = false;
 
     private void OnEnable()
     {
@@ -92,6 +94,8 @@ public class InputAssigner : MonoBehaviour
         currentPhase = SelectionPhase.WaitingForAnyInput;
         ResetSlot(player1Slot);
         ResetSlot(player2Slot);
+        isControlsPanelManuallyClosed = false;
+        if (controlsPanel != null) controlsPanel.SetActive(false);
         UpdateUI();
         InitializeVisuals();
         
@@ -110,6 +114,8 @@ public class InputAssigner : MonoBehaviour
         currentPhase = SelectionPhase.WaitingForAnyInput;
         ResetSlot(player1Slot);
         ResetSlot(player2Slot);
+        isControlsPanelManuallyClosed = false;
+        if (controlsPanel != null) controlsPanel.SetActive(false);
         UpdateUI();
         InitializeVisuals();
         
@@ -602,7 +608,7 @@ public class InputAssigner : MonoBehaviour
                 promptText.text = initialPrompt;
         }
 
-        // Show/hide start button
+        // Show/hide start button and controls panel
         bool bothAssigned = player1Slot.assignedInput != InputType.None && 
                            player2Slot.assignedInput != InputType.None;
 
@@ -616,6 +622,11 @@ public class InputAssigner : MonoBehaviour
                     .OnComplete(() => startButton.transform.DOScale(Vector3.one, 0.2f));
             }
         }
+
+        if (controlsPanel != null)
+        {
+            controlsPanel.SetActive(bothAssigned && !isControlsPanelManuallyClosed);
+        }
     }
 
     public void LoadNextScene()
@@ -623,7 +634,26 @@ public class InputAssigner : MonoBehaviour
         if (player1Slot.assignedInput != InputType.None && 
             player2Slot.assignedInput != InputType.None)
         {
+            if (controlsPanel != null) controlsPanel.SetActive(false);
             SceneLoader.Instance.LoadRuleta();
+        }
+    }
+
+    public void CloseControlsPanel()
+    {
+        if (controlsPanel != null)
+        {
+            isControlsPanelManuallyClosed = true;
+            controlsPanel.SetActive(false);
+        }
+    }
+
+    public void OpenControlsPanel()
+    {
+        if (controlsPanel != null)
+        {
+            isControlsPanelManuallyClosed = false;
+            UpdateUI();
         }
     }
 

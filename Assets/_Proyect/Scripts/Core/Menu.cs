@@ -1,11 +1,17 @@
 using UnityEngine;
 using DG.Tweening;
+using TMPro;
 
 public class Menu : MonoBehaviour
 {
+    private static bool hasPlayedIntro = false;
+    
     [Header("Intro Settings")]
     [SerializeField] private LogoIntroSequence logoIntroSequence;
     [SerializeField] private bool playIntroOnStart = true;
+
+    [Header("Botón de Auto-Tipo")]
+    [SerializeField] private TextMeshProUGUI autoTypeButtonLabel;
 
     [Header("Menu Elements")]
     [SerializeField] private RectTransform menuOptionsContainer;
@@ -57,14 +63,31 @@ public class Menu : MonoBehaviour
 
     void Start()
     {
-        if (logoIntroSequence != null && playIntroOnStart)
+        UpdateAutoTypeButtonLabel();
+        
+        if (logoIntroSequence != null && playIntroOnStart && !hasPlayedIntro)
         {
+            hasPlayedIntro = true;
             logoIntroSequence.PlayIntroSequence();
         }
         else
         {
             AudioManager.Instance?.PlayMusic(SoundID.MenuMusic);
             PlayMenuAnimations();
+        }
+    }
+
+    public void ToggleAutoType()
+    {
+        SettingsManager.ToggleAutoType();
+        UpdateAutoTypeButtonLabel();
+    }
+
+    private void UpdateAutoTypeButtonLabel()
+    {
+        if (autoTypeButtonLabel != null)
+        {
+            autoTypeButtonLabel.text = SettingsManager.AutoTypeEnabled ? "AUTO-TIPO: ON" : "AUTO-TIPO: OFF";
         }
     }
     
