@@ -11,18 +11,20 @@ public class MutantDNAHUD : MonoBehaviour
     [SerializeField] private TextMeshProUGUI timerText;
 
     [Header("Power-Up Icons")] 
-    [SerializeField] private Image player1PowerUpIcon;   // <-- NUEVO
-    [SerializeField] private Image player2PowerUpIcon;   // <-- NUEVO
-    [SerializeField] private Sprite berserkSpriteP1;
+    [SerializeField] private Image player1PowerUpIcon;   // imagen donde cambiara el sprite
+    [SerializeField] private Image player2PowerUpIcon;   
+    [SerializeField] private Sprite berserkSpriteP1;     //power up 1
     [SerializeField] private Sprite berserkSpriteP2;
-    [SerializeField] private Sprite shrinkSpriteP1;
+    [SerializeField] private Sprite shrinkSpriteP1;      //power up 2
     [SerializeField] private Sprite shrinkSpriteP2;
-    [SerializeField] private Sprite mineSpriteP1;
+    [SerializeField] private Sprite mineSpriteP1;       //power up 3
     [SerializeField] private Sprite mineSpriteP2;
-    [SerializeField] private Sprite remoteSpriteP1;
+    [SerializeField] private Sprite remoteSpriteP1;    //power up 4
     [SerializeField] private Sprite remoteSpriteP2;
-    [SerializeField] private Sprite slimeSpriteP1;
+    [SerializeField] private Sprite slimeSpriteP1;     //power up 5
     [SerializeField] private Sprite slimeSpriteP2;
+    [SerializeField] private Sprite shieldSpriteP1;    //power up 6
+    [SerializeField] private Sprite shieldSpriteP2;
 
     [Header("Tema visual (colores)")]
     [SerializeField] private Color player1Color = Color.blue;
@@ -281,7 +283,7 @@ public class MutantDNAHUD : MonoBehaviour
         Image targetIcon = isPlayer1 ? player1PowerUpIcon : player2PowerUpIcon;
         if (targetIcon == null) return;
 
-        Sprite selectedSprite = null;
+        Sprite selectedSprite = null; //se le asigna un valor depende el power up que se tenga
 
         switch (type)
         {
@@ -299,6 +301,9 @@ public class MutantDNAHUD : MonoBehaviour
                 break;
             case DNAPowerUpPickup.DNAPowerUpType.SlimeShot:
                 selectedSprite = isPlayer1 ? slimeSpriteP1 : slimeSpriteP2;
+                break;
+            case DNAPowerUpPickup.DNAPowerUpType.Shield:
+                selectedSprite = shieldSpriteP1; // o según jugador
                 break;
             default:
                 return;

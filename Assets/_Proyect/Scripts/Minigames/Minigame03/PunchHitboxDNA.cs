@@ -64,7 +64,7 @@ public class PunchHitboxDNA : MonoBehaviour
         }
 
         // Aplicar knockback
-        target.ReceiveKnockback(knockDir, finalKnockbackForce);
+        target.ReceiveKnockback(knockDir, finalKnockbackForce, owner);
 
         // Si tiene DNA, lanzarlo
         if (target.HasDNA() && target.GetCarriedDNA() != null)

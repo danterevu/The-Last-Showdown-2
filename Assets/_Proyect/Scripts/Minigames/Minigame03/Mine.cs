@@ -5,7 +5,7 @@ public class Mine : MonoBehaviour
     [Header("Configuración")]
     [SerializeField] private float armDelay = 1f;           // tiempo tras golpear pared para volverse invisible
     [SerializeField] private float knockbackForce = 15f;
-    [SerializeField] private float stunDuration = 1.5f;
+    private float stunDuration = 0.7f;
     [SerializeField] private float armedAlpha = 0.15f;      // transparencia cuando armada
 
     [Header("DNA")]
@@ -98,6 +98,7 @@ public class Mine : MonoBehaviour
 
         PlayerControllerDNA target = other.GetComponent<PlayerControllerDNA>();
         if (target == null) return;
+        if (target.IsShieldActive()) return; // No pasa nada
 
         // Dirección de la explosión (aleatoria X, siempre hacia arriba)
         float dirX = Random.value > 0.5f ? 1f : -1f;
