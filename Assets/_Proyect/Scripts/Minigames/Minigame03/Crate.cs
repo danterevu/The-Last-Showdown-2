@@ -138,6 +138,7 @@ public class Crate : MonoBehaviour
 
         PlayerControllerDNA target = collision.gameObject.GetComponent<PlayerControllerDNA>();
         if (target == null) return;
+        if (target.IsShieldActive()) return;
 
         // CORRECCIÓN: ignorar al lanzador durante la ventana de exclusión
         if (target == lastThrower && Time.time < ignoreThrowerUntil) return;

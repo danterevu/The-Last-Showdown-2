@@ -673,11 +673,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 80.11
+      value: 84.14
       objectReference: {fileID: 0}
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 44.61
+      value: 40.54
       objectReference: {fileID: 0}
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2907,9 +2907,45 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1693196554907768951, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      propertyPath: m_Size.x
+      value: 1.2553295
+      objectReference: {fileID: 0}
+    - target: {fileID: 1693196554907768951, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      propertyPath: m_Size.y
+      value: 0.28065166
+      objectReference: {fileID: 0}
+    - target: {fileID: 1693196554907768951, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      propertyPath: m_Offset.x
+      value: -0.055703223
+      objectReference: {fileID: 0}
+    - target: {fileID: 1693196554907768951, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      propertyPath: m_Offset.y
+      value: 0.53264844
+      objectReference: {fileID: 0}
+    - target: {fileID: 1693196554907768951, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2397895827337248385, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
       propertyPath: m_Name
       value: Player1 Platform
+      objectReference: {fileID: 0}
+    - target: {fileID: 4006530679248446586, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      propertyPath: m_Size.x
+      value: 1.8188773
+      objectReference: {fileID: 0}
+    - target: {fileID: 4006530679248446586, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      propertyPath: m_Size.y
+      value: 0.40417233
+      objectReference: {fileID: 0}
+    - target: {fileID: 4006530679248446586, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      propertyPath: m_Offset.x
+      value: -0.079915345
+      objectReference: {fileID: 0}
+    - target: {fileID: 4006530679248446586, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      propertyPath: m_Offset.y
+      value: 0.062226877
       objectReference: {fileID: 0}
     - target: {fileID: 4939416960762940520, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
       propertyPath: m_SortingOrder
@@ -3063,10 +3099,10 @@ MonoBehaviour:
   currentDNAPowerUp: 0
   hasDNAPowerUp: 0
   minePrefab: {fileID: 6330901432080582623, guid: 0de3aa73b60fec541bc4bac158ef1fd5, type: 3}
-  berserkDuration: 2
-  berserkSpeedMult: 1.3
+  berserkDuration: 3
+  berserkSpeedMult: 1.2
   berserkScale: 1.25
-  berserkStunDuration: 1
+  berserkStunDuration: 1.5
   isBerserk: 0
   slimeProjectilePrefab: {fileID: 8008164126039924098, guid: c8ef6efe1f8010047a9bd9da28bb8b9f, type: 3}
   slimeDuration: 2
@@ -4983,6 +5019,8 @@ MonoBehaviour:
   remoteSpriteP2: {fileID: 21300000, guid: c638017e8edc8964297ed842a383072c, type: 3}
   slimeSpriteP1: {fileID: -5630502798958424282, guid: da9ad574217e0d04fb198d97d4c964ac, type: 3}
   slimeSpriteP2: {fileID: -5630502798958424282, guid: da9ad574217e0d04fb198d97d4c964ac, type: 3}
+  shieldSpriteP1: {fileID: 21300000, guid: 3c0375f3d6c547540aef7a57d6027966, type: 3}
+  shieldSpriteP2: {fileID: 21300000, guid: 3c0375f3d6c547540aef7a57d6027966, type: 3}
   player1Color: {r: 0, g: 0, b: 1, a: 1}
   player2Color: {r: 1, g: 0, b: 0, a: 1}
   timerNormalColor: {r: 1, g: 1, b: 1, a: 1}
@@ -6480,7 +6518,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01837fac8c2a4704e91edc46d7ea0f74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameDuration: 200
+  gameDuration: 500
   player1: {fileID: 708058471}
   player2: {fileID: 1585737173}
   dnaPickup: {fileID: 1160438725}
@@ -7061,6 +7099,42 @@ PrefabInstance:
       propertyPath: m_Name
       value: 'Player2 Platform '
       objectReference: {fileID: 0}
+    - target: {fileID: 2910705578339716691, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: m_Size.x
+      value: 1.9901917
+      objectReference: {fileID: 0}
+    - target: {fileID: 2910705578339716691, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: m_Size.y
+      value: 0.35073978
+      objectReference: {fileID: 0}
+    - target: {fileID: 2910705578339716691, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: m_Offset.x
+      value: 0.07148564
+      objectReference: {fileID: 0}
+    - target: {fileID: 2910705578339716691, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: m_Offset.y
+      value: 0.17155519
+      objectReference: {fileID: 0}
+    - target: {fileID: 6084257064785893855, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: m_Size.x
+      value: 1.2675289
+      objectReference: {fileID: 0}
+    - target: {fileID: 6084257064785893855, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: m_Size.y
+      value: 0.3802793
+      objectReference: {fileID: 0}
+    - target: {fileID: 6084257064785893855, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: m_Offset.x
+      value: -0.18558665
+      objectReference: {fileID: 0}
+    - target: {fileID: 6084257064785893855, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: m_Offset.y
+      value: 0.58246183
+      objectReference: {fileID: 0}
+    - target: {fileID: 6084257064785893855, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 3732607951623789684, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
     - {fileID: 5012171423441400107, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
@@ -7149,10 +7223,10 @@ MonoBehaviour:
   currentDNAPowerUp: 0
   hasDNAPowerUp: 0
   minePrefab: {fileID: 6330901432080582623, guid: 0de3aa73b60fec541bc4bac158ef1fd5, type: 3}
-  berserkDuration: 2
-  berserkSpeedMult: 1.3
+  berserkDuration: 3
+  berserkSpeedMult: 1.2
   berserkScale: 1.25
-  berserkStunDuration: 1
+  berserkStunDuration: 1.5
   isBerserk: 0
   slimeProjectilePrefab: {fileID: 8008164126039924098, guid: c8ef6efe1f8010047a9bd9da28bb8b9f, type: 3}
   slimeDuration: 2
@@ -7192,11 +7266,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 79.79
+      value: 84.06
       objectReference: {fileID: 0}
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 43.47
+      value: 39.22
       objectReference: {fileID: 0}
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -8260,11 +8334,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 79.11
+      value: 84.1
       objectReference: {fileID: 0}
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 44.45
+      value: 39.97
       objectReference: {fileID: 0}
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -17226,11 +17300,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 79.68
+      value: 84.13
       objectReference: {fileID: 0}
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 45.47
+      value: 41.1
       objectReference: {fileID: 0}
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -17395,11 +17469,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 79.04
+      value: 84.03
       objectReference: {fileID: 0}
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 43.76
+      value: 38.51
       objectReference: {fileID: 0}
     - target: {fileID: 6215213833495466611, guid: 38689b91e4d76ad48b8e191f1ca7b12e, type: 3}
       propertyPath: m_LocalPosition.z

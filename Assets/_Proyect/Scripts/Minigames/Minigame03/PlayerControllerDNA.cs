@@ -86,21 +86,26 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     [Header("Berserk")]
     // [SerializeField] private BerserkHitbox berserkHitbox;
-    [SerializeField] private float berserkDuration = 2f;
-    [SerializeField] private float berserkSpeedMult = 1.3f;
+    [SerializeField] private float berserkDuration = 3f;
+    [SerializeField] private float berserkSpeedMult = 1.2f;
     [SerializeField] private float berserkScale = 1.25f;
-    [SerializeField] private float berserkStunDuration = 1f;
+    [SerializeField] private float berserkStunDuration = 1.5f;
     [SerializeField] private bool isBerserk = false;
 
 
     [Header("SlimeShot")]
     [SerializeField] private GameObject slimeProjectilePrefab;
     [SerializeField] private float slimeDuration = 2f;
-    [SerializeField] private float slimeSpeedMult = 0.5f;      // 50% m�s lento
+    [SerializeField] private float slimeSpeedMult = 0.5f;      // 50% mas lento
     [SerializeField] private float slimeJumpForceReduction = 0.3f; // salta al 30% de lo normal
-    [SerializeField] private float slimeGravityMult = 2.5f;    // m�s pesado
+    [SerializeField] private float slimeGravityMult = 2.5f;    // mas pesado
     [SerializeField] private bool isSlimed = false;
     private Coroutine slimeCoroutine;
+
+    [Header("Shield")]
+    private bool shieldActive = false;
+    private float shieldMultiplier = 1f;
+    private float shieldDuration = 3f;
 
     private Vector3 originalScale;
 
@@ -419,11 +424,60 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         StartCoroutine(KnockbackDuration());
     }
 
+    public void ReceiveKnockback(Vector2 direction, float force, PlayerControllerDNA attacker)
+    {
+        if (isInvulnerable) return;
+
+        // Si el escudo está activo y hay un atacante, redirigir el knockback hacia él
+        if (shieldActive && attacker != null && attacker != this)
+        {
+            // Aplicar knockback al atacante SIN activar su animación "Hurt" (solo impulso)
+            attacker.ApplyForcedKnockback(-direction, force * shieldMultiplier);
+            // El defensor no recibe knockback ni stun
+            return;
+        }
+
+        // --- Comportamiento normal (sin escudo o sin atacante) ---
+        // INTERRUMPIR ATAQUE si estaba atacando
+        if (isAttacking)
+        {
+            isAttacking = false;
+            punchHitbox?.Deactivate();
+            // Opcional: detener animación de ataque si es necesario
+            animator.ResetTrigger("Attack");
+        }
+
+        animator?.SetTrigger("Hurt");
+        StartCoroutine(ResetHurtTrigger());
+        rb.linearVelocity = direction * force;
+        StartCoroutine(KnockbackDuration());
+    }
+
+    // Aplica solo fuerza de knockback, sin animación, sin stun, sin afectar canAttack
+    public void ApplyForcedKnockback(Vector2 direction, float force)
+    {
+        if (isAttacking)
+        {
+            isAttacking = false;
+            punchHitbox?.Deactivate();
+            animator.ResetTrigger("Attack");
+        }
+        rb.linearVelocity = direction * force;
+        StartCoroutine(KnockbackDuration());
+    }
+
     public void ApplySelfKnockback(float dirX)
     {
+        if (isAttacking)
+        {
+            isAttacking = false;
+            punchHitbox?.Deactivate();
+            animator.ResetTrigger("Attack");
+        }
         rb.linearVelocity = new Vector2(-dirX * selfKnockback, selfKnockback * 0.3f);
-        //Debug.Log($"SelfKnockback ejecutado | velocidad aplicada: {-dirX * selfKnockback}, {selfKnockback * 0.3f}");
-        StartCoroutine(KnockbackDuration()); // isKnockedBack = true para que FixedUpdate no lo pise
+        StartCoroutine(KnockbackDuration());
+        animator?.SetTrigger("Hurt");
+        StartCoroutine(ResetHurtTrigger());
     }
 
     private IEnumerator KnockbackDuration()
@@ -551,6 +605,9 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             case DNAPowerUpPickup.DNAPowerUpType.SlimeShot:
                 ShootSlime();
                 break;
+            case DNAPowerUpPickup.DNAPowerUpType.Shield:
+                StartCoroutine(ShieldEffect());
+                break;
         }
     }
 
@@ -604,10 +661,18 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         }
 
         isSlimed = false;
-        jumpForce = // necesit�s guardar el jumpForce original en Awake
-        gravityScale = // mismo
+        jumpForce = baseJumpForce;
+        gravityScale = baseGravityScale;
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
-    } 
+
+        SetShield(false, 1f);
+    }
+
+    private IEnumerator ResetHurtTrigger()
+    {
+        yield return new WaitForSeconds(0.1f); // Ajusta según la duración de la animación de daño
+        animator?.ResetTrigger("Hurt");
+    }
 
     //CAJAAAAAAA (Crate)
 
@@ -643,6 +708,11 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     //POWER UPS EFFECTS
 
+    public void SetShield(bool active, float multiplier)
+    {
+        shieldActive = active;
+        shieldMultiplier = multiplier;
+    }
     private IEnumerator ShrinkEffect()
     {
         // Achicarse
@@ -658,6 +728,13 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
     }
 
+    private IEnumerator ShieldEffect()
+    {
+        SetShield(true, 1.5f);   // multiplicador 1.5, puedes ajustarlo
+        yield return new WaitForSeconds(shieldDuration);
+        SetShield(false, 1f);
+    }
+
     private void PlaceMine()
     {
         if (minePrefab == null) return;
@@ -669,6 +746,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     {
         if (isInvulnerable) return;
         animator?.SetTrigger("Hurt");
+        StartCoroutine(ResetHurtTrigger());
         rb.linearVelocity = direction * force;
         StartCoroutine(MineKnockback(stunDuration));
     }
@@ -707,6 +785,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     public void ReceiveBerserkHit(Vector2 direction)
     {
         animator?.SetTrigger("Hurt");
+        StartCoroutine(ResetHurtTrigger());
         rb.linearVelocity = direction * knockbackForce;
         StartCoroutine(BerserkStun());
     }
@@ -810,6 +889,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     public DNA GetCarriedDNA() => carriedDNA;
     public bool IsBerserk() => isBerserk;
     public Transform GetDNAHoldPoint() => dnaHoldPoint;
+    public bool IsShieldActive() => shieldActive;
 
     public void SetFrozen(bool frozen)
     {

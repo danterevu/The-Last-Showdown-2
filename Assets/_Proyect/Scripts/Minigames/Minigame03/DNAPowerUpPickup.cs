@@ -8,7 +8,8 @@ public class DNAPowerUpPickup : MonoBehaviour
         Mine,    // deja una mina que se arma y despues explota
         RemoteControl, // Activa paredes
         Berserk, //se vuelve loco y ataca hacia adelante
-        SlimeShot //baba babosa que relentiza y no deja saltar al rival por unos segundos
+        SlimeShot, //baba babosa que relentiza y no deja saltar al rival por unos segundos
+        Shield
     }
 
     [SerializeField] private DNAPowerUpType type;
