@@ -1315,6 +1315,7 @@ GameObject:
   - component: {fileID: 238070972}
   - component: {fileID: 238070971}
   - component: {fileID: 238070970}
+  - component: {fileID: 238070975}
   m_Layer: 5
   m_Name: DEBUG-BUTTON
   m_TagString: Untagged
@@ -1464,6 +1465,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 238070968}
   m_CullTransparentMesh: 1
+--- !u!114 &238070975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238070968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07e8b6b845e39664dbd96de48b509d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.1
+  hoverDuration: 0.2
+  jellyDuration: 0.5
+  jellyStrength: 0.1
+  jellyVibrato: 10
+  jellyElasticity: 1
+  flashCanvasGroup: {fileID: 879909137}
+  flashDuration: 0.1
 --- !u!1 &238431008
 GameObject:
   m_ObjectHideFlags: 0
@@ -2769,7 +2790,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_SelectedColor: {r: 0.4867924, g: 0.4867924, b: 0.4867924, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -3753,6 +3774,7 @@ GameObject:
   - component: {fileID: 512475137}
   - component: {fileID: 512475136}
   - component: {fileID: 512475135}
+  - component: {fileID: 512475138}
   m_Layer: 5
   m_Name: Close Accesibility settings
   m_TagString: Untagged
@@ -3874,6 +3896,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 512475133}
   m_CullTransparentMesh: 1
+--- !u!114 &512475138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 512475133}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07e8b6b845e39664dbd96de48b509d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.1
+  hoverDuration: 0.2
+  jellyDuration: 0.5
+  jellyStrength: 0.1
+  jellyVibrato: 10
+  jellyElasticity: 1
+  flashCanvasGroup: {fileID: 879909137}
+  flashDuration: 0.1
 --- !u!1 &521644903
 GameObject:
   m_ObjectHideFlags: 0
@@ -5942,6 +5984,7 @@ GameObject:
   - component: {fileID: 872170611}
   - component: {fileID: 872170613}
   - component: {fileID: 872170612}
+  - component: {fileID: 872170614}
   m_Layer: 5
   m_Name: CreditsPanel
   m_TagString: Untagged
@@ -6008,6 +6051,24 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 872170610}
   m_CullTransparentMesh: 1
+--- !u!114 &872170614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 872170610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94dce96c72511254999590318c9c2d36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  navigableElements:
+  - {fileID: 1642064122}
+  backButton: {fileID: 1642064122}
+  autoSelectOnEnable: 1
+  defaultSelectedIndex: 0
+  wrapAround: 1
 --- !u!1 &879909135
 GameObject:
   m_ObjectHideFlags: 0
@@ -8257,6 +8318,7 @@ GameObject:
   - component: {fileID: 1179843501}
   - component: {fileID: 1179843500}
   - component: {fileID: 1179843499}
+  - component: {fileID: 1179843502}
   m_Layer: 5
   m_Name: Close Audio Settings
   m_TagString: Untagged
@@ -8378,6 +8440,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1179843497}
   m_CullTransparentMesh: 1
+--- !u!114 &1179843502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1179843497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07e8b6b845e39664dbd96de48b509d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.1
+  hoverDuration: 0.2
+  jellyDuration: 0.5
+  jellyStrength: 0.1
+  jellyVibrato: 10
+  jellyElasticity: 1
+  flashCanvasGroup: {fileID: 879909137}
+  flashDuration: 0.1
 --- !u!1 &1189474279
 GameObject:
   m_ObjectHideFlags: 0
@@ -9111,6 +9193,7 @@ GameObject:
   - component: {fileID: 1308922417}
   - component: {fileID: 1308922416}
   - component: {fileID: 1308922415}
+  - component: {fileID: 1308922418}
   m_Layer: 5
   m_Name: Controles
   m_TagString: Untagged
@@ -9232,6 +9315,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1308922413}
   m_CullTransparentMesh: 1
+--- !u!114 &1308922418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1308922413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07e8b6b845e39664dbd96de48b509d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.1
+  hoverDuration: 0.2
+  jellyDuration: 0.5
+  jellyStrength: 0.1
+  jellyVibrato: 10
+  jellyElasticity: 1
+  flashCanvasGroup: {fileID: 879909137}
+  flashDuration: 0.1
 --- !u!1 &1373775312
 GameObject:
   m_ObjectHideFlags: 0
@@ -10733,6 +10836,7 @@ GameObject:
   - component: {fileID: 1540186806}
   - component: {fileID: 1540186805}
   - component: {fileID: 1540186804}
+  - component: {fileID: 1540186807}
   m_Layer: 5
   m_Name: Accesibility
   m_TagString: Untagged
@@ -10854,6 +10958,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1540186802}
   m_CullTransparentMesh: 1
+--- !u!114 &1540186807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1540186802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07e8b6b845e39664dbd96de48b509d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.1
+  hoverDuration: 0.2
+  jellyDuration: 0.5
+  jellyStrength: 0.1
+  jellyVibrato: 10
+  jellyElasticity: 1
+  flashCanvasGroup: {fileID: 879909137}
+  flashDuration: 0.1
 --- !u!1 &1557604772
 GameObject:
   m_ObjectHideFlags: 0
@@ -11054,7 +11178,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_SelectedColor: {r: 0.4037736, g: 0.4037736, b: 0.4037736, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -11106,6 +11230,7 @@ GameObject:
   - component: {fileID: 1582543902}
   - component: {fileID: 1582543901}
   - component: {fileID: 1582543900}
+  - component: {fileID: 1582543903}
   m_Layer: 5
   m_Name: Audio
   m_TagString: Untagged
@@ -11227,6 +11352,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1582543898}
   m_CullTransparentMesh: 1
+--- !u!114 &1582543903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1582543898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07e8b6b845e39664dbd96de48b509d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.1
+  hoverDuration: 0.2
+  jellyDuration: 0.5
+  jellyStrength: 0.1
+  jellyVibrato: 10
+  jellyElasticity: 1
+  flashCanvasGroup: {fileID: 879909137}
+  flashDuration: 0.1
 --- !u!1 &1588890183
 GameObject:
   m_ObjectHideFlags: 0
@@ -11778,6 +11923,7 @@ GameObject:
   - component: {fileID: 1642064124}
   - component: {fileID: 1642064123}
   - component: {fileID: 1642064122}
+  - component: {fileID: 1642064125}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -11899,6 +12045,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1642064120}
   m_CullTransparentMesh: 1
+--- !u!114 &1642064125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1642064120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07e8b6b845e39664dbd96de48b509d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.1
+  hoverDuration: 0.2
+  jellyDuration: 0.5
+  jellyStrength: 0.1
+  jellyVibrato: 10
+  jellyElasticity: 1
+  flashCanvasGroup: {fileID: 879909137}
+  flashDuration: 0.1
 --- !u!1 &1646061635
 GameObject:
   m_ObjectHideFlags: 0
@@ -13251,7 +13417,7 @@ MonoBehaviour:
   logoIntroSequence: {fileID: 943116299}
   playIntroOnStart: 1
   autoTypeButtonLabel: {fileID: 0}
-  menuOptionsContainer: {fileID: 1629228461}
+  menuOptionsContainer: {fileID: 0}
   titleTransform: {fileID: 371473920}
   audienceContainer: {fileID: 786818072}
   centralObject: {fileID: 1926156738}
@@ -13682,6 +13848,7 @@ GameObject:
   - component: {fileID: 1953375330}
   - component: {fileID: 1953375329}
   - component: {fileID: 1953375328}
+  - component: {fileID: 1953375331}
   m_Layer: 5
   m_Name: Close Button
   m_TagString: Untagged
@@ -13803,6 +13970,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1953375326}
   m_CullTransparentMesh: 1
+--- !u!114 &1953375331
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1953375326}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07e8b6b845e39664dbd96de48b509d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.1
+  hoverDuration: 0.2
+  jellyDuration: 0.5
+  jellyStrength: 0.1
+  jellyVibrato: 10
+  jellyElasticity: 1
+  flashCanvasGroup: {fileID: 879909137}
+  flashDuration: 0.1
 --- !u!1 &1957454779
 GameObject:
   m_ObjectHideFlags: 0
@@ -14237,6 +14424,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2051559445}
   - component: {fileID: 2051559446}
+  - component: {fileID: 2051559447}
   m_Layer: 5
   m_Name: Toggle
   m_TagString: Untagged
@@ -14313,6 +14501,26 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 1
+--- !u!114 &2051559447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2051559444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07e8b6b845e39664dbd96de48b509d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.1
+  hoverDuration: 0.2
+  jellyDuration: 0.5
+  jellyStrength: 0.1
+  jellyVibrato: 10
+  jellyElasticity: 1
+  flashCanvasGroup: {fileID: 879909137}
+  flashDuration: 0.1
 --- !u!1 &2052849186
 GameObject:
   m_ObjectHideFlags: 0
@@ -14325,6 +14533,7 @@ GameObject:
   - component: {fileID: 2052849190}
   - component: {fileID: 2052849189}
   - component: {fileID: 2052849188}
+  - component: {fileID: 2052849191}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -14446,6 +14655,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2052849186}
   m_CullTransparentMesh: 1
+--- !u!114 &2052849191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2052849186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07e8b6b845e39664dbd96de48b509d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.1
+  hoverDuration: 0.2
+  jellyDuration: 0.5
+  jellyStrength: 0.1
+  jellyVibrato: 10
+  jellyElasticity: 1
+  flashCanvasGroup: {fileID: 879909137}
+  flashDuration: 0.1
 --- !u!1 &2055837878
 GameObject:
   m_ObjectHideFlags: 0
