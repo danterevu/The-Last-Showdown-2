@@ -2,21 +2,46 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Collections;
 
+[System.Serializable]
+public class ZoneSpawnPoints
+{
+    public Transform[] points;
+}
+
 public class DNAPowerUpSpawner : MonoBehaviour
 {
-    [SerializeField] private float spawnInterval = 10f;
-    [SerializeField] private float respawnDelay = 5f;
-    [SerializeField] private Transform[] spawnPoints;
+
+    [Header("Spawn por zonas")]
+    [SerializeField] private ZoneSpawnPoints[] zones;
     [SerializeField] private GameObject powerUpPrefab;
 
+    [Header("Tiempos")]
+    [SerializeField] private float spawnInterval = 10f;
+    [SerializeField] private float respawnDelay = 5f;
+
     private List<Transform> availablePoints = new List<Transform>();
+    private List<GameObject> activePowerUps = new List<GameObject>(); // para limpiar al cambiar zona
+    private int currentZone = -1;
+    private Coroutine spawnLoopCoroutine;
 
     private void Start()
     {
-        foreach (Transform point in spawnPoints)
-            availablePoints.Add(point);
 
-        StartCoroutine(SpawnLoop());
+    }
+
+    // Llamado desde MutantDNAManager cuando se activa una nueva zona
+    public void SetActiveZone(int zoneIndex)
+    {
+        if (zoneIndex < 0 || zoneIndex >= zones.Length) return;
+        ClearAllPowerUps();
+        if (spawnLoopCoroutine != null) StopCoroutine(spawnLoopCoroutine);
+
+        currentZone = zoneIndex;
+        availablePoints.Clear();
+        foreach (Transform point in zones[zoneIndex].points)
+            if (point != null) availablePoints.Add(point);
+
+        spawnLoopCoroutine = StartCoroutine(SpawnLoop());
     }
 
     private IEnumerator SpawnLoop()
@@ -38,6 +63,7 @@ public class DNAPowerUpSpawner : MonoBehaviour
         GameObject obj = Instantiate(powerUpPrefab, point.position, Quaternion.identity);
         DNAPowerUpPickup pickup = obj.GetComponent<DNAPowerUpPickup>();
         pickup.Initialize(this, point);
+        activePowerUps.Add(obj);
     }
 
     public void OnPickupCollected(Transform point)
@@ -48,6 +74,18 @@ public class DNAPowerUpSpawner : MonoBehaviour
     private IEnumerator RespawnPoint(Transform point)
     {
         yield return new WaitForSeconds(respawnDelay);
-        availablePoints.Add(point);
+        // Verificar que el punto pertenece a la zona actual
+        if (currentZone >= 0 && System.Array.IndexOf(zones[currentZone].points, point) != -1)
+            availablePoints.Add(point);
+    }
+
+    private void ClearAllPowerUps()
+    {
+        foreach (GameObject obj in activePowerUps)
+        {
+            if (obj != null)
+                Destroy(obj);
+        }
+        activePowerUps.Clear();
     }
 }

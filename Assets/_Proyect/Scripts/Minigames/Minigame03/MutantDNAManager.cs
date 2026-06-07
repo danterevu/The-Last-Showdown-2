@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
 
 public class MutantDNAManager : MonoBehaviour
 {
@@ -12,6 +13,9 @@ public class MutantDNAManager : MonoBehaviour
     [Header("Jugadores")]
     [SerializeField] private GameObject player1; private PlayerControllerDNA p1Controller;
     [SerializeField] private GameObject player2; private PlayerControllerDNA p2Controller;
+
+    [Header("PowerUps")]
+    [SerializeField] private DNAPowerUpSpawner powerUpSpawner;
 
     [Header("DNA")]
     [SerializeField] private DNA dnaPickup;
@@ -35,6 +39,8 @@ public class MutantDNAManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI countdownText;
     [SerializeField] private float handMoveSpeed = 5f;
     [SerializeField] private float fadeDuration = 1f;
+    private List<int> availableZones = new List<int>();
+    private bool initialSetupDone = false;
 
     [Header("Debug")]
     [SerializeField] private float gameTimer;
@@ -50,6 +56,11 @@ public class MutantDNAManager : MonoBehaviour
         // Elegir zona inicial (puede ser 0 o aleatoria)
         currentZoneIndex = Random.Range(0, zoneCenters.Length);
         ActivateDNAZone(currentZoneIndex, teleportImmediately: true);
+
+        if (zoneCamera != null && zoneCenters.Length > currentZoneIndex)
+        {
+            zoneCamera.MoveToCenter(zoneCenters[currentZoneIndex].position);
+        }
 
         StartMinigame();
 
@@ -69,6 +80,38 @@ public class MutantDNAManager : MonoBehaviour
         FreezePlayers(false);
         gameRunning = true;
         dnaPickup.SpawnDNA();
+
+        if (powerUpSpawner != null)
+            powerUpSpawner.SetActiveZone(currentZoneIndex);
+    }
+
+    private void SetupAvailableZones()
+    {
+        availableZones.Clear();
+        for (int i = 0; i < zoneCenters.Length; i++)
+            availableZones.Add(i);
+    }
+
+    private int GetNextZone(int currentZone)
+    {
+        if (!initialSetupDone)
+        {
+            SetupAvailableZones();
+            initialSetupDone = true;
+        }
+
+        // Remover la zona actual si está en la lista (para no repetirla)
+        availableZones.Remove(currentZone);
+
+        // Si no quedan zonas, reiniciar la lista con todas excepto la actual
+        if (availableZones.Count == 0)
+        {
+            SetupAvailableZones();
+            availableZones.Remove(currentZone);
+        }
+
+        int index = Random.Range(0, availableZones.Count);
+        return availableZones[index];
     }
 
     private void Update()
@@ -102,17 +145,20 @@ public class MutantDNAManager : MonoBehaviour
         gameRunning = false;
 
         int oldZoneIndex = currentZoneIndex;
-        int newZoneIndex;
-        do { newZoneIndex = Random.Range(0, zoneCenters.Length); }
-        while (newZoneIndex == oldZoneIndex && zoneCenters.Length > 1);
+        int newZoneIndex = GetNextZone(currentZoneIndex);
 
         yield return StartCoroutine(PlayZoneTransition(oldZoneIndex, newZoneIndex));
 
-        // Limpiar power-ups de los jugadores (opcional)
+        // Limpiar power-ups
         p1Controller.ClearPowerUpState();
         p2Controller.ClearPowerUpState();
 
         currentZoneIndex = newZoneIndex;
+
+        // Actualizar spawner a la nueva zona
+        if (powerUpSpawner != null)
+            powerUpSpawner.SetActiveZone(currentZoneIndex);
+
         gameRunning = true;
         Debug.Log("ChangeZone() terminado");
     }
