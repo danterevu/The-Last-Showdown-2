@@ -85,6 +85,9 @@ public class InputAssigner : MonoBehaviour
     private bool keyboardAlreadyUsed = false;
     private List<Gamepad> usedGamepads = new List<Gamepad>();
     private bool isControlsPanelManuallyClosed = false;
+    private bool forceControlsPanelOpen = false;
+    private bool hasAutoOpenedControlsPanel = false;
+    private bool bothAssignedPrevious = false;
 
     private void OnEnable()
     {
@@ -95,6 +98,9 @@ public class InputAssigner : MonoBehaviour
         ResetSlot(player1Slot);
         ResetSlot(player2Slot);
         isControlsPanelManuallyClosed = true;
+        forceControlsPanelOpen = false;
+        hasAutoOpenedControlsPanel = false;
+        bothAssignedPrevious = false;
         if (controlsPanel != null) controlsPanel.SetActive(false);
         UpdateUI();
         InitializeVisuals();
@@ -115,6 +121,9 @@ public class InputAssigner : MonoBehaviour
         ResetSlot(player1Slot);
         ResetSlot(player2Slot);
         isControlsPanelManuallyClosed = true;
+        forceControlsPanelOpen = false;
+        hasAutoOpenedControlsPanel = false;
+        bothAssignedPrevious = false;
         if (controlsPanel != null) controlsPanel.SetActive(false);
         UpdateUI();
         InitializeVisuals();
@@ -212,19 +221,14 @@ public class InputAssigner : MonoBehaviour
     {
         currentPhase = SelectionPhase.WaitingForPlayerInput;
         if (promptText != null)
-            promptText.gameObject.SetActive(false);
-
-        // Show both players
-        if (player1Slot.characterSprite != null)
-            player1Slot.characterSprite.gameObject.SetActive(true);
-        if (player2Slot.characterSprite != null)
-            player2Slot.characterSprite.gameObject.SetActive(true);
+        {
+            var promptContainer = promptText.transform.parent != null ? promptText.transform.parent.gameObject : promptText.gameObject;
+            promptContainer.SetActive(false);
+        }
     }
 
     private void HandlePlayer1Input()
     {
-        if (player1Slot.isLocked) return;
-
         var keyboard = Keyboard.current;
         var gamepads = Gamepad.all;
 
@@ -304,8 +308,6 @@ public class InputAssigner : MonoBehaviour
 
     private void HandlePlayer2Input()
     {
-        if (player2Slot.isLocked) return;
-
         var keyboard = Keyboard.current;
         var gamepads = Gamepad.all;
 
@@ -421,7 +423,7 @@ public class InputAssigner : MonoBehaviour
         }
 
         if (slot.statusText != null)
-            slot.statusText.text = "¿Listo?";
+            slot.statusText.text = GetConfirmCancelText(slot, type, isConfirmed: false);
     }
 
     private void MoveVisualToPlayer(PlayerSlot slot, InputType type, bool isSecondKeyboard = false)
@@ -470,7 +472,7 @@ public class InputAssigner : MonoBehaviour
         slot.assignedInput = slot.currentSelectionType;
         slot.assignedGamepad = slot.currentSelectionGamepad;
         slot.isSelecting = false;
-        slot.isLocked = true;
+        slot.isLocked = false;
 
         if (slot.characterSprite != null)
         {
@@ -489,7 +491,7 @@ public class InputAssigner : MonoBehaviour
         }
 
         if (slot.statusText != null)
-            slot.statusText.text = "¡Listo!";
+            slot.statusText.text = GetConfirmCancelText(slot, slot.assignedInput, isConfirmed: true);
 
         // Asegurarnos de que assignedPlayers tiene al menos 2 elementos
         while (assignedPlayers.Count < 2)
@@ -527,14 +529,27 @@ public class InputAssigner : MonoBehaviour
             slot.slotObject.transform.DOScale(slot.inactiveScale, slot.animationDuration).SetEase(slot.easeType);
         }
 
-        if (slot.characterSprite != null && slot.idleSprite != null)
+        if (slot.characterSprite != null)
         {
-            slot.characterSprite.sprite = slot.idleSprite;
+            if (slot.idleSprite != null)
+                slot.characterSprite.sprite = slot.idleSprite;
             slot.characterSprite.color = slot.inactiveColor;
         }
 
         if (slot.statusText != null)
             slot.statusText.text = "";
+    }
+
+    private string GetConfirmCancelText(PlayerSlot slot, InputType type, bool isConfirmed)
+    {
+        if (type == InputType.Keyboard)
+        {
+            if (slot == player1Slot)
+                return isConfirmed ? "¡Listo!\nESC = Cancelar" : "ESPACIO = Listo\nESC = Cancelar";
+            return isConfirmed ? "¡Listo!\nBACKSPACE = Cancelar" : "ENTER = Listo\nBACKSPACE = Cancelar";
+        }
+
+        return isConfirmed ? "¡Listo!\nB = Cancelar" : "A = Listo\nB = Cancelar";
     }
 
     private void CancelAssignment(PlayerSlot slot)
@@ -580,10 +595,10 @@ public class InputAssigner : MonoBehaviour
             slot.slotObject.transform.DOScale(slot.inactiveScale, slot.animationDuration).SetEase(slot.easeType);
         }
 
-        if (slot.characterSprite != null && slot.idleSprite != null)
+        if (slot.characterSprite != null)
         {
-            slot.characterSprite.gameObject.SetActive(true);
-            slot.characterSprite.sprite = slot.idleSprite;
+            if (slot.idleSprite != null)
+                slot.characterSprite.sprite = slot.idleSprite;
             slot.characterSprite.color = slot.inactiveColor;
         }
 
@@ -596,7 +611,8 @@ public class InputAssigner : MonoBehaviour
         // Show/hide initial prompt
         if (promptText != null)
         {
-            promptText.gameObject.SetActive(currentPhase == SelectionPhase.WaitingForAnyInput);
+            var promptContainer = promptText.transform.parent != null ? promptText.transform.parent.gameObject : promptText.gameObject;
+            promptContainer.SetActive(currentPhase == SelectionPhase.WaitingForAnyInput);
             if (currentPhase == SelectionPhase.WaitingForAnyInput)
                 promptText.text = initialPrompt;
         }
@@ -605,10 +621,22 @@ public class InputAssigner : MonoBehaviour
         bool bothAssigned = player1Slot.assignedInput != InputType.None && 
                            player2Slot.assignedInput != InputType.None;
 
+        if (bothAssigned && !hasAutoOpenedControlsPanel)
+        {
+            isControlsPanelManuallyClosed = false;
+            hasAutoOpenedControlsPanel = true;
+        }
+
         if (startButton != null)
         {
+            if (bothAssigned != bothAssignedPrevious)
+            {
+                startButton.transform.DOKill();
+                startButton.transform.localScale = Vector3.one;
+            }
+
             startButton.SetActive(bothAssigned);
-            if (bothAssigned)
+            if (bothAssigned && !bothAssignedPrevious)
             {
                 startButton.transform.DOScale(Vector3.one * 1.1f, 0.2f)
                     .SetEase(Ease.OutBack)
@@ -618,8 +646,24 @@ public class InputAssigner : MonoBehaviour
 
         if (controlsPanel != null)
         {
-            controlsPanel.SetActive(bothAssigned && !isControlsPanelManuallyClosed);
+            controlsPanel.SetActive(!isControlsPanelManuallyClosed && (bothAssigned || forceControlsPanelOpen));
         }
+
+        bothAssignedPrevious = bothAssigned;
+    }
+
+    private void OnDisable()
+    {
+        if (startButton != null) startButton.transform.DOKill();
+        if (controlsPanel != null) controlsPanel.transform.DOKill();
+        if (player1Slot.slotObject != null) player1Slot.slotObject.transform.DOKill();
+        if (player2Slot.slotObject != null) player2Slot.slotObject.transform.DOKill();
+        if (player1Slot.characterSprite != null) player1Slot.characterSprite.DOKill();
+        if (player2Slot.characterSprite != null) player2Slot.characterSprite.DOKill();
+        if (promptText != null) promptText.DOKill();
+        if (keyboardVisual != null) keyboardVisual.transform.DOKill();
+        if (keyboardVisual2 != null) keyboardVisual2.transform.DOKill();
+        if (gamepadVisual != null) gamepadVisual.transform.DOKill();
     }
 
     public void LoadNextScene()
@@ -628,7 +672,14 @@ public class InputAssigner : MonoBehaviour
             player2Slot.assignedInput != InputType.None)
         {
             if (controlsPanel != null) controlsPanel.SetActive(false);
-            SceneLoader.Instance.LoadRuleta();
+            if (SceneLoader.Instance != null)
+            {
+                SceneLoader.Instance.LoadRuleta();
+            }
+            else
+            {
+                UnityEngine.SceneManagement.SceneManager.LoadScene("Select_Minigame");
+            }
         }
     }
 
@@ -637,6 +688,7 @@ public class InputAssigner : MonoBehaviour
         if (controlsPanel != null)
         {
             isControlsPanelManuallyClosed = true;
+            forceControlsPanelOpen = false;
             controlsPanel.SetActive(false);
         }
     }
@@ -646,8 +698,17 @@ public class InputAssigner : MonoBehaviour
         if (controlsPanel != null)
         {
             isControlsPanelManuallyClosed = false;
+            forceControlsPanelOpen = true;
             UpdateUI();
         }
+    }
+
+    public void ToggleControlsPanel()
+    {
+        if (controlsPanel != null && controlsPanel.activeSelf)
+            CloseControlsPanel();
+        else
+            OpenControlsPanel();
     }
 
     public void UseTwoKeyboards()

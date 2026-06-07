@@ -82,12 +82,12 @@ public class CharacterSelectionSceneAnimator : MonoBehaviour
             extraFadeImage.gameObject.SetActive(false);
         }
 
-        // --- PILARES (empezar abajo) ---
+        // --- PILARES (estáticos) ---
         if (leftPillar != null)
-            leftPillar.transform.position = leftPillarStartPos;
+            leftPillar.transform.position = leftPillarEndPos;
 
         if (rightPillar != null)
-            rightPillar.transform.position = rightPillarStartPos;
+            rightPillar.transform.position = rightPillarEndPos;
 
         // --- PROMPT SIGN ---
         if (promptSign != null)
@@ -123,6 +123,7 @@ public class CharacterSelectionSceneAnimator : MonoBehaviour
     private void PlayIntro()
     {
         _introSequence = DOTween.Sequence();
+        _introSequence.SetLink(gameObject, LinkBehaviour.KillOnDestroy);
         _introSequence.AppendInterval(introDelay);
 
         // 1. Fade out black screen
@@ -131,18 +132,7 @@ public class CharacterSelectionSceneAnimator : MonoBehaviour
             _introSequence.Append(blackScreen.DOFade(0f, fadeOutDuration).SetEase(Ease.OutQuad));
         }
 
-        // 2. Rise pillars
-        if (leftPillar != null)
-        {
-            _introSequence.Join(leftPillar.transform.DOMove(leftPillarEndPos, pillarRiseDuration).SetEase(Ease.OutBounce));
-        }
-
-        if (rightPillar != null)
-        {
-            _introSequence.Join(rightPillar.transform.DOMove(rightPillarEndPos, pillarRiseDuration).SetEase(Ease.OutBounce));
-        }
-
-        // 3. Show and fall prompt sign
+        // 2. Show and fall prompt sign
         if (promptSign != null)
         {
             _introSequence.AppendCallback(() => promptSign.SetActive(true));
@@ -162,7 +152,7 @@ public class CharacterSelectionSceneAnimator : MonoBehaviour
         {
             _introPlayed = true;
             _waitingForInput = true;
-            Debug.Log("✅ LISTO: Esperando input del jugador... Presiona CUALQUIER tecla o botón!");
+
         });
 
         _introSequence.Play();
@@ -237,6 +227,7 @@ public class CharacterSelectionSceneAnimator : MonoBehaviour
         _waitingForInput = false;
 
         _selectionSequence = DOTween.Sequence();
+        _selectionSequence.SetLink(gameObject, LinkBehaviour.KillOnDestroy);
 
         // 1. Exit prompt sign
         if (promptSign != null)
