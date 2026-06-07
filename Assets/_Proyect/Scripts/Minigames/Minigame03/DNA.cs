@@ -172,6 +172,8 @@ public class DNA : MonoBehaviour
         PlayerControllerDNA controller = collision.GetComponent<PlayerControllerDNA>();
         if (controller == null || controller.HasDNA()) return;
 
+        if (controller.IsCarryingSomething() && controller.HasDNA() == false) return;
+
         controller.PickDNA(this);
         PickUp(controller);
     }

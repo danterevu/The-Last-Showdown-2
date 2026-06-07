@@ -57,6 +57,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [Header("Respawn")]
     [SerializeField] private float respawnDelay = 2f;
     [SerializeField] private float invulnerableTime = 2f;
+    private Vector3 spawnPointPlayers;
 
     [Header("Input")]
     [SerializeField] private InputActionAsset inputActions;
@@ -574,6 +575,8 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     private bool TryGrabNearbyCrate()
     {
+        if (hasDNA) return false;
+
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.8f, crateLayer);
         foreach (var col in colliders)
         {
@@ -887,7 +890,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
              heldCrate.DropAtPlace();
              heldCrate = null;
          }*/
-
+        if (IsCarryingSomething()) return;
         if (hasDNA) return;
         hasDNA = true;
         carriedDNA = dna;
@@ -943,7 +946,12 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     public bool IsBerserk() => isBerserk;
     public Transform GetDNAHoldPoint() => dnaHoldPoint;
     public bool IsShieldActive() => shieldActive;
+    public bool IsCarryingSomething() => heldCrate != null || hasDNA;
 
+    public void SetSpawnPoint(Vector3 point)
+    {
+        spawnPoint = point;
+    }
     public void SetFrozen(bool frozen)
     {
         isFrozen = frozen;

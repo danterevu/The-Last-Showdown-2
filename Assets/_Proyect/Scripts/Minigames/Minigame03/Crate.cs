@@ -64,6 +64,7 @@ public class Crate : MonoBehaviour
     public bool TryPickUp(PlayerControllerDNA newHolder)
     {
         if (isHeld) return false;
+        if (newHolder.HasDNA()) return false;
         if (newHolder.IsStunned()) return false;
         if (newHolder.GetCrateHoldPoint() == null) return false;
 
