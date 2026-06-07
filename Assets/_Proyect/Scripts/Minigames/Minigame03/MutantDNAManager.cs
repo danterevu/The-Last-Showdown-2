@@ -28,6 +28,7 @@ public class MutantDNAManager : MonoBehaviour
     [SerializeField] private Transform[] player1Spawns;
     [SerializeField] private Transform[] player2Spawns;
     [SerializeField] private ZoneHandSpawns[] handSpawnsByZone;
+    [SerializeField] private ZoneCameraTeleport zoneCamera;
     [SerializeField] private HandController handLeft;
     [SerializeField] private HandController handRight;
     [SerializeField] private Image fadeImage;
@@ -123,6 +124,11 @@ public class MutantDNAManager : MonoBehaviour
         yield return StartCoroutine(GrabPlayers());
         yield return StartCoroutine(MoveHandsAwayWithPlayers(oldZoneIndex));
         yield return StartCoroutine(FadeToBlack());
+
+        if (zoneCamera != null && zoneCenters.Length > newZoneIndex)
+        {
+            zoneCamera.MoveToCenter(zoneCenters[newZoneIndex].position);
+        }
         // Mover cámara si tienes ZoneCameraController, si no, opcional
         // yield return StartCoroutine(MoveCameraToNewZone(newZoneIndex));
         ActivateDNAZone(newZoneIndex, teleportImmediately: false);
