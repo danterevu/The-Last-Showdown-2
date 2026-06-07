@@ -2,6 +2,10 @@ using UnityEngine;
 
 public class DNA : MonoBehaviour
 {
+    [Header("Spawn (opcional - se sobreescribe desde Manager)")]
+    [SerializeField] private GameObject[] defaultSpawnPoints;
+    private GameObject[] currentSpawnPoints;
+
     [Header("Configuración")]
     [SerializeField] private float throwBaseForce = 3f;
     [SerializeField] private float throwRunningForce = 10f;
@@ -35,14 +39,27 @@ public class DNA : MonoBehaviour
             if (col.isTrigger) triggerCol = col;
             else physicsCol = col;
         }
+
+        if (defaultSpawnPoints != null && defaultSpawnPoints.Length > 0)
+            currentSpawnPoints = defaultSpawnPoints;
+    }
+
+    public void SetSpawnPoints(GameObject[] newSpawnPoints)
+    {
+        currentSpawnPoints = newSpawnPoints;
     }
 
     public void SpawnDNA()
     {
-        if (spawnPoints.Length == 0) return;
-        int index = Random.Range(0, spawnPoints.Length);
-        transform.position = spawnPoints[index].transform.position;
+        if (currentSpawnPoints == null || currentSpawnPoints.Length == 0)
+            return;
+
+        int index = Random.Range(0, currentSpawnPoints.Length);
+        Vector3 spawnPos = currentSpawnPoints[index].transform.position;
+        spawnPos.z = 0f;
+        transform.position = spawnPos;
         transform.rotation = Quaternion.identity;
+
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.linearVelocity = Vector2.zero;
         rb.angularVelocity = 0f;

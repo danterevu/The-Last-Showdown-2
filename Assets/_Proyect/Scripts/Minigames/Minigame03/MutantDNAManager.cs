@@ -4,6 +4,12 @@ using TMPro;
 using System.Collections;
 using System.Collections.Generic;
 
+[System.Serializable]
+public class ZoneSpawnPointsDNA
+{
+    public GameObject[] points; // pueden ser GameObjects o Transform, como prefieras
+}
+
 public class MutantDNAManager : MonoBehaviour
 {
     [Header("Configuracion")]
@@ -19,6 +25,7 @@ public class MutantDNAManager : MonoBehaviour
 
     [Header("DNA")]
     [SerializeField] private DNA dnaPickup;
+    [SerializeField] private ZoneSpawnPointsDNA[] dnaSpawnPointsByZone;
 
     [Header("Depositos")]
     [SerializeField] private Deposit deposit1;
@@ -397,6 +404,13 @@ public class MutantDNAManager : MonoBehaviour
             player1.transform.position = player1Spawns[index].position;
             player2.transform.position = player2Spawns[index].position;
         }
+
+        // Asignar puntos de spawn de ADN para esta zona
+        if (dnaPickup != null && dnaSpawnPointsByZone != null && dnaSpawnPointsByZone.Length > index)
+        {
+            dnaPickup.SetSpawnPoints(dnaSpawnPointsByZone[index].points);
+        }
+
         // Opcional: actualizar spawn points en los controladores
         p1Controller.SetSpawnPoint(player1Spawns[index].position);
         p2Controller.SetSpawnPoint(player2Spawns[index].position);
