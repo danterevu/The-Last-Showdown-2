@@ -872,7 +872,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         yield return new WaitForSeconds(slimeDuration);
 
         // Restaurar
-        moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
+        moveSpeed = hasDNA ? baseMoveSpeed * 0.75f : baseMoveSpeed;
         jumpForce = originalJumpForce;
         gravityScale = originalGravity;
         isSlimed = false;
