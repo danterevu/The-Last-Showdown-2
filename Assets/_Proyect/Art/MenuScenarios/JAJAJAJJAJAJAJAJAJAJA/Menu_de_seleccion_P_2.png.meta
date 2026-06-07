@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: 8304b22a085aad3429136c31389656bd
+guid: 47d79afa2a76eb34a9d3cee4e7e1a1ab
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4315647578900464575
-    second: Cambio de Zona2_0
+      213: -8873055190223240972
+    second: Menu_de_seleccion_P_2_0
+  - first:
+      213: 1706266838760946432
+    second: Menu_de_seleccion_P_2_1
+  - first:
+      213: -1127280594645683418
+    second: Menu_de_seleccion_P_2_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +43,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -100,13 +106,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Cambio de Zona2_0
+      name: Menu_de_seleccion_P_2_0
       rect:
         serializedVersion: 2
-        x: 64
-        y: 48
-        width: 1780
-        height: 1003
+        x: 1196
+        y: 737
+        width: 637
+        height: 231
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +121,52 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 14cfcdb646dbb14c0800000000000000
-      internalID: -4315647578900464575
+      spriteID: 4f0ce42e0539cd480800000000000000
+      internalID: -8873055190223240972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Menu_de_seleccion_P_2_1
+      rect:
+        serializedVersion: 2
+        x: 285
+        y: 0
+        width: 951
+        height: 541
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00bff5056a0eda710800000000000000
+      internalID: 1706266838760946432
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Menu_de_seleccion_P_2_2
+      rect:
+        serializedVersion: 2
+        x: 1856
+        y: 0
+        width: 952
+        height: 569
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 623f3f195481b50f0800000000000000
+      internalID: -1127280594645683418
       vertices: []
       indices: 
       edges: []
@@ -135,7 +185,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Cambio de Zona2_0: -4315647578900464575
+      Menu_de_seleccion_P_2_0: -8873055190223240972
+      Menu_de_seleccion_P_2_1: 1706266838760946432
+      Menu_de_seleccion_P_2_2: -1127280594645683418
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

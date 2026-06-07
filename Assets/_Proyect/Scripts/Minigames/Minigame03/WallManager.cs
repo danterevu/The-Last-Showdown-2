@@ -6,8 +6,11 @@ public class WallManager : MonoBehaviour
     public static WallManager Instance;
 
     [SerializeField] private float wallDuration = 5f;
-    [SerializeField] private Collider2D[] wallColliders;     // arrastrás los colliders de las paredes
-    [SerializeField] private SpriteRenderer[] wallRenderers; // arrastrás los sprites de las paredes
+    [SerializeField] private Collider2D[] wallColliders;     // arrastras los colliders de las paredes/puertas
+    [SerializeField] private SpriteRenderer[] wallRenderers; // arrastras los sprites de las paredes/puertas
+    [SerializeField] private Animator[] wallAnimators;      // arrastras los Animators de las puertas
+    [SerializeField] private string openAnimationTrigger = "Open";
+    [SerializeField] private string closeAnimationTrigger = "Close";
 
     private Coroutine deactivateCoroutine;
 
@@ -32,6 +35,9 @@ public class WallManager : MonoBehaviour
         if (deactivateCoroutine != null)
             StopCoroutine(deactivateCoroutine);
 
+        foreach (var anim in wallAnimators)
+            if (anim != null) anim.SetTrigger(openAnimationTrigger);
+
         foreach (var col in wallColliders)
             if (col != null) col.enabled = true;
 
@@ -54,6 +60,9 @@ public class WallManager : MonoBehaviour
             StopCoroutine(deactivateCoroutine);
             deactivateCoroutine = null;
         }
+
+        foreach (var anim in wallAnimators)
+            if (anim != null) anim.SetTrigger(closeAnimationTrigger);
 
         foreach (var col in wallColliders)
             if (col != null) col.enabled = false;

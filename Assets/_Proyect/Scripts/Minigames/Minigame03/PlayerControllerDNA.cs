@@ -554,6 +554,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             {
                 float dirX = IsFacingRight() ? 1f : -1f;
                 currentCrate.Throw(new Vector2(dirX, 0f), playerSpeed);
+                Debug.Log($"[MANOS] Throw trigger activado - Hands Animator: {(handsAnimator != null ? "Asignado" : "NULL")}");
                 handsAnimator?.SetTrigger("Throw");
                 StartCoroutine(HideHandsAfterDelay());
             }
@@ -581,6 +582,8 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             {
                 heldCrate = crate;
                 SetHandsActive(true);
+      
+                handsAnimator?.SetTrigger("Grab");
                 return true;
             }
         }
@@ -919,6 +922,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         
         if (playerSpeed >= 0.5f)
         {
+            Debug.Log($"[MANOS] Throw DNA trigger activado - Hands Animator: {(handsAnimator != null ? "Asignado" : "NULL")}");
             handsAnimator?.SetTrigger("Throw");
             StartCoroutine(HideHandsAfterDelay());
         }

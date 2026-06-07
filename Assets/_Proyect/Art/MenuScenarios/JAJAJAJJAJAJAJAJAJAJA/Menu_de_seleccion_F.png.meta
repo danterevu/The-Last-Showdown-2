@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 4aa7b341fe6a98d4880629011fe15789
+guid: 1e24ce1370c543b49a1782d36f8a6904
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1728022467750438868
-    second: CambioDeZona_0
+      213: -2752521173447872817
+    second: Menu_de_seleccion_F_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: CambioDeZona_0
+      name: Menu_de_seleccion_F_0
       rect:
         serializedVersion: 2
-        x: 89
-        y: 43
-        width: 1810
-        height: 1018
+        x: 0
+        y: 0
+        width: 3024
+        height: 1701
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c2857d598b4d408e0800000000000000
-      internalID: -1728022467750438868
+      spriteID: fcee5e383941dc9d0800000000000000
+      internalID: -2752521173447872817
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      CambioDeZona_0: -1728022467750438868
+      Menu_de_seleccion_F_0: -2752521173447872817
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

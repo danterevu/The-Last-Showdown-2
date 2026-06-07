@@ -97,6 +97,32 @@ public class SpaceShipController : MonoBehaviour
     }
 
     // -------------------------------------------------------------------------
+    //  SLOW API PUBLICA
+    // -------------------------------------------------------------------------
+
+    private Coroutine slowCoroutine;
+
+    /// Aplica slow a la nave: reduce velocidad y aceleracion durante X segundos.
+    public void ApplySlow(float duration, float multiplier)
+    {
+        if (slowCoroutine != null)
+            StopCoroutine(slowCoroutine);
+
+        slowCoroutine = StartCoroutine(SlowRoutine(duration, multiplier));
+    }
+
+    private IEnumerator SlowRoutine(float duration, float multiplier)
+    {
+        maxSpeed = originalMaxSpeed * multiplier;
+        acceleration = originalAcceleration * multiplier;
+
+        yield return new WaitForSeconds(duration);
+
+        slowCoroutine = null;
+        ResetSpeedToOriginal();
+    }
+
+    // -------------------------------------------------------------------------
     //  STUN API PUBLICA
     // -------------------------------------------------------------------------
 

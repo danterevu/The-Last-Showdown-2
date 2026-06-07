@@ -94,7 +94,7 @@ public class InputAssigner : MonoBehaviour
         currentPhase = SelectionPhase.WaitingForAnyInput;
         ResetSlot(player1Slot);
         ResetSlot(player2Slot);
-        isControlsPanelManuallyClosed = false;
+        isControlsPanelManuallyClosed = true;
         if (controlsPanel != null) controlsPanel.SetActive(false);
         UpdateUI();
         InitializeVisuals();
@@ -114,7 +114,7 @@ public class InputAssigner : MonoBehaviour
         currentPhase = SelectionPhase.WaitingForAnyInput;
         ResetSlot(player1Slot);
         ResetSlot(player2Slot);
-        isControlsPanelManuallyClosed = false;
+        isControlsPanelManuallyClosed = true;
         if (controlsPanel != null) controlsPanel.SetActive(false);
         UpdateUI();
         InitializeVisuals();
@@ -582,16 +582,9 @@ public class InputAssigner : MonoBehaviour
 
         if (slot.characterSprite != null && slot.idleSprite != null)
         {
-            if (currentPhase == SelectionPhase.WaitingForAnyInput)
-            {
-                slot.characterSprite.gameObject.SetActive(false);
-            }
-            else
-            {
-                slot.characterSprite.gameObject.SetActive(true);
-                slot.characterSprite.sprite = slot.idleSprite;
-                slot.characterSprite.color = slot.inactiveColor;
-            }
+            slot.characterSprite.gameObject.SetActive(true);
+            slot.characterSprite.sprite = slot.idleSprite;
+            slot.characterSprite.color = slot.inactiveColor;
         }
 
         if (slot.statusText != null)
@@ -682,6 +675,21 @@ public class InputAssigner : MonoBehaviour
         {
             StartSelection(player2Slot, InputType.Keyboard, null, true);
             ConfirmSelection(player2Slot);
+        }
+    }
+
+    public void BackToMenu()
+    {
+        GameManager.Instance?.ResetGame();
+        AudioManager.Instance?.StopMusic();
+
+        if (SceneLoader.Instance != null)
+        {
+            SceneLoader.Instance.LoadMenu();
+        }
+        else
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("Menu");
         }
     }
 }

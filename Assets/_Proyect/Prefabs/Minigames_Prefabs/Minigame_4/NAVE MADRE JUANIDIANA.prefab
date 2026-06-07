@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8671599710064061728}
   - component: {fileID: 9152704066167776336}
   - component: {fileID: 2560724293044595409}
+  - component: {fileID: 8042953150422604223}
   m_Layer: 0
   m_Name: NAVE MADRE JUANIDIANA
   m_TagString: Untagged
@@ -100,3 +101,58 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5d3f3e8a1b87404f9b45aebf7043131, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  flySpeed: 5
+  sineAmplitude: 0.4
+  sineFrequency: 2
+  startScale: 2.5
+  landedScale: 0.8
+  waitAtLanding: 0
+  departSpeed: 8
+  departurePoint: {fileID: 0}
+  spriteRotationOffset: -90
+--- !u!61 &8042953150422604223
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7328305382928237975}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0.32999998, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 13.63, y: 10.49}
+    newSize: {x: 13.63, y: 10.49}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 13.63, y: 10.49}
+  m_EdgeRadius: 0
