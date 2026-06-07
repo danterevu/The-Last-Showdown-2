@@ -98,33 +98,37 @@ public class Mine : MonoBehaviour
 
         PlayerControllerDNA target = other.GetComponent<PlayerControllerDNA>();
         if (target == null) return;
-        if (target.IsShieldActive()) return; // No pasa nada
 
         // Dirección de la explosión (aleatoria X, siempre hacia arriba)
-        float dirX = Random.value > 0.5f ? 1f : -1f;
-        Vector2 knockDir = new Vector2(dirX, 0.5f).normalized;
-
-        // Aplicar knockback y stun
-        target.ReceiveMineHit(knockDir, knockbackForce, stunDuration);
-
-        // Si tiene DNA, hacerlo volar
-        if (target.HasDNA() && target.GetCarriedDNA() != null)
+        if (target.IsShieldActive()) //si no tiene escudo ejecuta todo, si lo tino no ejecuta nada
         {
-            DNA dna = target.GetCarriedDNA();
-            dna.transform.position = target.transform.position;
-            dna.gameObject.SetActive(true);
-
-            Vector2 throwDir = new Vector2(
-                dirX * Random.Range(0.8f, 1.2f),
-                Random.Range(0.8f, 1.2f)
-            );
-            //  Pasar el ownerPlayer como lanzador (el que puso la mina)
-            dna.ThrowByHit(throwDir, ownerPlayer);
-            dna.SetSpinEffect();
-            target.DropDNA();
+            // Destruir la mina
+            Destroy(gameObject);
         }
+        else 
+        {
+            // Aplicar knockback y stun solo si NO tiene escudo
+            float dirX = Random.value > 0.5f ? 1f : -1f;
+            Vector2 knockDir = new Vector2(dirX, 0.5f).normalized;
+            target.ReceiveMineHit(knockDir, knockbackForce, stunDuration);
 
-        // Destruir la mina
-        Destroy(gameObject);
+            // Si tiene DNA, hacerlo volar
+            if (target.HasDNA() && target.GetCarriedDNA() != null)
+            {
+                DNA dna = target.GetCarriedDNA();
+                dna.transform.position = target.transform.position;
+                dna.gameObject.SetActive(true);
+                Vector2 throwDir = new Vector2(
+                    dirX * Random.Range(0.8f, 1.2f),
+                    Random.Range(0.8f, 1.2f)
+                );
+                dna.ThrowByHit(throwDir, ownerPlayer);
+                dna.SetSpinEffect();
+                target.DropDNA();
+            }
+
+            // Destruir la mina
+            Destroy(gameObject);
+        }
     }
 }

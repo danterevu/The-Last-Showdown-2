@@ -22,6 +22,19 @@ public class MutantDNAManager : MonoBehaviour
     [Header("UI")]
     [SerializeField] private MutantDNAHUD hud;  // arrastra el objeto con el script HUD
 
+    [Header("Zona / Transición")]
+    [SerializeField] private Transform[] zoneCenters;        // centros visuales para la cámara
+    [SerializeField] private Transform[] player1Spawns;      // puntos de reaparición para P1
+    [SerializeField] private Transform[] player2Spawns;      // puntos de reaparición para P2
+    [SerializeField] private ZoneHandSpawns[] handSpawnsByZone; // spawns de manos por zona
+    [SerializeField] private HandController handLeft;
+    [SerializeField] private HandController handRight;
+    [SerializeField] private Image fadeImage;
+    [SerializeField] private TextMeshProUGUI countdownText;
+    [SerializeField] private ZoneCameraController zoneCamera; // opcional, si quieres mover cámara
+    [SerializeField] private float handMoveSpeed = 5f;
+    [SerializeField] private float fadeDuration = 1f;
+
     [Header("Debug")]
     [SerializeField] private float gameTimer;
     [SerializeField] private bool gameRunning;
@@ -79,6 +92,19 @@ public class MutantDNAManager : MonoBehaviour
 
         //UpdateUI();
     }
+
+    [System.Obsolete]
+    private void ActivateDNAZone(int index)
+    {
+        player1.transform.position = player1Spawns[index].position;
+        player2.transform.position = player2Spawns[index].position;
+        //p1Controller.SetSpawnPoint(player1Spawns[index].position);
+        //p2Controller.SetSpawnPoint(player2Spawns[index].position);
+        // Respawnear ADN y cajas si quieres
+        dnaPickup.SpawnDNA();
+        if (zoneCamera != null) zoneCamera.SetZoneCenter(zoneCenters[index].position, index);
+    }
+
     public void EndMinigame()
     {
         gameRunning = false;

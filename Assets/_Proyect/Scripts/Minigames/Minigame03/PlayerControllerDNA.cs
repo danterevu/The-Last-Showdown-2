@@ -38,6 +38,11 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     private bool isStunned = false;
     private float stunTimer = 0f;
 
+    [Header("Manos del Jugador")]
+    [SerializeField] private GameObject hands;
+    [SerializeField] private Animator handsAnimator;
+    [SerializeField] private float throwAnimationDelay = 0.5f;
+
     [Header("Hitbox")]
     [SerializeField] private PunchHitboxDNA punchHitbox;
 
@@ -77,9 +82,11 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     public static event System.Action<PlayerControllerDNA> OnPowerUpUsed;
 
     [Header("Shrink")]
-    private float shrinkScale = 0.7f;      // tama�o al que se achica
-    private float shrinkSpeedMult = 1.2f;  // multiplicador de velocidad
-    private float shrinkDuration = 2f;     // duraci�n en segundos
+    [SerializeField] private float shrinkScale = 0.7f;      // tama�o al que se achica
+    [SerializeField] private float shrinkSpeedMult = 1.2f;  // multiplicador de velocidad
+    [SerializeField] private float shrinkDuration = 2f;     // duraci�n en segundos
+    [SerializeField] private float shrinkAnimationDelay = 0.3f; // Delay antes de cambiar la escala
+    [SerializeField] private float growAnimationDelay = 0.3f;   // Delay antes de volver a la escala normal
 
     [Header("Mine")]
     [SerializeField] private GameObject minePrefab;
@@ -138,6 +145,9 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         originalScale = transform.localScale;
         baseJumpForce = jumpForce;
         baseGravityScale = gravityScale;
+
+        // Aseguramos que las manos empiecen desactivadas
+        SetHandsActive(false);
     }
 
     private void OnEnable() { SetupInput(); }
@@ -476,8 +486,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         }
         rb.linearVelocity = new Vector2(-dirX * selfKnockback, selfKnockback * 0.3f);
         StartCoroutine(KnockbackDuration());
-        animator?.SetTrigger("Hurt");
-        StartCoroutine(ResetHurtTrigger());
     }
 
     private IEnumerator KnockbackDuration()
@@ -534,16 +542,21 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         if (heldCrate != null)
         {
             float playerSpeed = Mathf.Abs(rb.linearVelocity.x);
+            Crate currentCrate = heldCrate;
+            heldCrate = null;
+
             if (playerSpeed < 0.5f)
             {
-                heldCrate.DropAtPlace();
+                currentCrate.DropAtPlace();
+                SetHandsActive(false);
             }
             else
             {
                 float dirX = IsFacingRight() ? 1f : -1f;
-                heldCrate.Throw(new Vector2(dirX, 0f), playerSpeed);
+                currentCrate.Throw(new Vector2(dirX, 0f), playerSpeed);
+                handsAnimator?.SetTrigger("Throw");
+                StartCoroutine(HideHandsAfterDelay());
             }
-            heldCrate = null;
             return; //  IMPORTANTE: salir aqu� para no procesar power-up ni agarrar otra caja
         }
 
@@ -567,10 +580,16 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             if (crate != null && crate.TryPickUp(this))
             {
                 heldCrate = crate;
+                SetHandsActive(true);
                 return true;
             }
         }
         return false;
+    }
+
+    private void SetHandsActive(bool active)
+    {
+        if (hands != null) hands.SetActive(active);
     }
 
     private bool IsCorrectDevice(InputDevice device)
@@ -716,6 +735,8 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     private IEnumerator ShrinkEffect()
     {
         // Achicarse
+        animator?.SetTrigger("Shrink");
+        yield return new WaitForSeconds(shrinkAnimationDelay); // Esperar a que termine la animación de shrink
         transform.localScale = originalScale * shrinkScale;
         float speedBoost = baseMoveSpeed * shrinkSpeedMult;
         float previousSpeed = moveSpeed;
@@ -724,6 +745,8 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         yield return new WaitForSeconds(shrinkDuration);
 
         // Volver al tamanio original
+        animator?.SetTrigger("Grow");
+        yield return new WaitForSeconds(growAnimationDelay); // Esperar a que termine la animación de grow
         transform.localScale = originalScale;
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
     }
@@ -773,10 +796,12 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     private IEnumerator BerserkEffect()
     {
         isBerserk = true;
+        animator?.SetBool("IsBerserk", true);
         transform.localScale = originalScale * berserkScale;
         moveSpeed = baseMoveSpeed * berserkSpeedMult;
         yield return new WaitForSeconds(berserkDuration);
         isBerserk = false;
+        animator?.SetBool("IsBerserk", false);
         transform.localScale = originalScale;
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
        // ClearPowerUpState();  // Esto limpia el estado y notifica al HUD
@@ -798,6 +823,12 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     }
 
     private void ShootSlime()
+    {
+        animator?.SetTrigger("SlimeShot");
+    }
+
+    // Llamado por Animation Event cuando debe disparar el slime
+    public void FireSlime()
     {
         if (slimeProjectilePrefab == null) return;
 
@@ -859,6 +890,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         carriedDNA = dna;
         dna.PickUp(this);
         moveSpeed = baseMoveSpeed * 0.6f;
+        SetHandsActive(true);
     }
     public void DropDNA()
     {
@@ -871,6 +903,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             carriedDNA = null;
         }
         moveSpeed = baseMoveSpeed;
+        SetHandsActive(false);
         Debug.Log($"{gameObject.name} DropDNA - después: hasDNA={hasDNA}, moveSpeed={moveSpeed}");
     }
     private void ThrowDNA()
@@ -883,6 +916,22 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         carriedDNA = null;
         hasDNA = false;
         moveSpeed = baseMoveSpeed;
+        
+        if (playerSpeed >= 0.5f)
+        {
+            handsAnimator?.SetTrigger("Throw");
+            StartCoroutine(HideHandsAfterDelay());
+        }
+        else
+        {
+            SetHandsActive(false);
+        }
+    }
+
+    private IEnumerator HideHandsAfterDelay()
+    {
+        yield return new WaitForSeconds(throwAnimationDelay);
+        SetHandsActive(false);
     }
     public Transform GetCrateHoldPoint() => crateHoldPoint;
     public bool IsStunned() => isStunned;
