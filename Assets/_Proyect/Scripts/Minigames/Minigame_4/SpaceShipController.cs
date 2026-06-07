@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class SpaceShipController : MonoBehaviour
@@ -44,6 +45,12 @@ public class SpaceShipController : MonoBehaviour
     [SerializeField] private float minSpeedForParticles = 2f;
     [SerializeField] private float maxEmissionRate = 50f;
 
+    [Header("Stun - Nave Cruzadora")]
+    [Tooltip("Velocidad de rotacion forzada en grados/segundo durante el stun (efecto carton)")]
+    [SerializeField] private float stunSpinSpeed = 720f;
+    [Tooltip("Cuantos segundos antes del fin del stun empieza a desacelerarse la rotacion")]
+    [SerializeField] private float stunSpinFadeTime = 0.4f;
+
     private Rigidbody2D rb;
     private InputAction moveAction;
     private Vector2 velocity;
@@ -51,6 +58,13 @@ public class SpaceShipController : MonoBehaviour
     private bool hasInput;
     private bool isRocketSabotageActive;
     public bool isInSlowField { get; private set; }
+
+    // Stun
+    private bool isStunned = false;
+    private Coroutine stunCoroutine;
+    private float currentSpinSpeed = 0f;
+
+    public bool IsStunned => isStunned;
 
     private void Awake()
     {
@@ -62,8 +76,18 @@ public class SpaceShipController : MonoBehaviour
 
     private void Update()
     {
-        ReadInput();
-        UpdateRotation();
+        if (!isStunned)
+        {
+            ReadInput();
+            UpdateRotation();
+        }
+        else
+        {
+            // Durante el stun: girar el sprite como carton
+            hasInput = false;
+            transform.Rotate(0f, 0f, currentSpinSpeed * Time.deltaTime);
+        }
+
         UpdatePropulsionParticles();
     }
 
@@ -72,6 +96,77 @@ public class SpaceShipController : MonoBehaviour
         ApplyMovement();
     }
 
+    // -------------------------------------------------------------------------
+    //  STUN API PUBLICA
+    // -------------------------------------------------------------------------
+
+    /// Aplica stun a la nave: la inmoviliza, la hace girar como carton.
+    /// La fuerza de empuje la aplica el que llama (SpaceCrossingShip).
+    public void ApplyStun(float duration)
+    {
+        if (stunCoroutine != null)
+            StopCoroutine(stunCoroutine);
+
+        stunCoroutine = StartCoroutine(StunRoutine(duration));
+    }
+
+    /// Cancela el stun inmediatamente (por si se necesita limpiar al cambiar de zona).
+    public void CancelStun()
+    {
+        if (stunCoroutine != null)
+        {
+            StopCoroutine(stunCoroutine);
+            stunCoroutine = null;
+        }
+
+        EndStun();
+    }
+
+    private IEnumerator StunRoutine(float duration)
+    {
+        isStunned = true;
+        currentSpinSpeed = stunSpinSpeed;
+        ForceStop();
+
+        HideAllParticles();
+
+        float elapsed = 0f;
+        float fadeStart = duration - stunSpinFadeTime;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+
+            // Fade de la rotacion en los ultimos stunSpinFadeTime segundos
+            if (elapsed >= fadeStart)
+            {
+                float t = (elapsed - fadeStart) / stunSpinFadeTime;
+                currentSpinSpeed = Mathf.Lerp(stunSpinSpeed, 0f, t);
+            }
+
+            // Mientras esta stunneado, velocity = 0 (no puede moverse)
+            velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
+
+            yield return null;
+        }
+
+        stunCoroutine = null;
+        EndStun();
+    }
+
+    private void EndStun()
+    {
+        isStunned = false;
+        currentSpinSpeed = 0f;
+        // Resetear rotacion al angulo correcto segun inputDirection que tenia antes
+        // (si no habia input, queda como esta, que es aceptable)
+    }
+
+    // -------------------------------------------------------------------------
+    //  RESTO DEL CODIGO ORIGINAL SIN CAMBIOS
+    // -------------------------------------------------------------------------
+
     private void UpdatePropulsionParticles()
     {
         if (propulsionParticles == null) return;
@@ -79,7 +174,7 @@ public class SpaceShipController : MonoBehaviour
         float speed = velocity.magnitude;
         var emission = propulsionParticles.emission;
 
-        if (speed > minSpeedForParticles && hasInput)
+        if (speed > minSpeedForParticles && hasInput && !isStunned)
         {
             if (!propulsionParticles.isPlaying)
                 propulsionParticles.Play();
@@ -159,11 +254,10 @@ public class SpaceShipController : MonoBehaviour
 
     private void DieFromRocketSabotage()
     {
-        // Resetear velocidad antes de morir
         SlowField.RemoveShipFromAllSlowFields(this);
         ResetSpeedToOriginal();
-        DeactivateRocketSabotage(); // Desactivar el sabotaje al morir
-        
+        DeactivateRocketSabotage();
+
         GetComponent<Explodable>()?.Explode();
 
         if (explosionVfxPrefab != null)
@@ -237,6 +331,14 @@ public class SpaceShipController : MonoBehaviour
 
     private void ApplyMovement()
     {
+        // Si esta stunneado, no aplicar movimiento
+        if (isStunned)
+        {
+            velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
         if (hasInput)
             velocity += inputDirection * acceleration * Time.fixedDeltaTime;
 

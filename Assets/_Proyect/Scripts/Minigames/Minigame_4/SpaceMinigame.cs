@@ -34,9 +34,6 @@ public class SpaceMinigame : MonoBehaviour
     [Header("Respawn")]
     [SerializeField] private float respawnDelay = 1.5f;
 
-
-
-
     private const int KILLS_TO_WIN_ROUND = 3;
     private const int ROUNDS_TO_WIN_GAME = 3;
     private const int POINTS_WIN_ROUND = 20;
@@ -56,8 +53,6 @@ public class SpaceMinigame : MonoBehaviour
     private bool p1Invulnerable = false;
     private bool p2Invulnerable = false;
 
-    // Flags: qué jugador debe perder su loadout en el próximo respawn
-    // Usando bools en lugar de lastVictim para soportar kills simultáneos correctamente
     private bool p1LosesLoadout = false;
     private bool p2LosesLoadout = false;
 
@@ -65,6 +60,7 @@ public class SpaceMinigame : MonoBehaviour
     private SpacePowerUpSpawner powerUpSpawner;
 
     [SerializeField] private SpaceHUDRounds hudRounds;
+
     private void Awake()
     {
         Instance = this;
@@ -80,16 +76,15 @@ public class SpaceMinigame : MonoBehaviour
         Debug.Log($"SpaceMinigame Start | ModifierManager: {ModifierManager.Instance} | GameManager: {GameManager.Instance}");
 
         ModifierManager.Instance?.ResetGoldenKill();
-        // GOLDEN KILL: habilitar el flag para la primera kill del primer round
         ModifierManager.Instance?.ResetGoldenKill();
         hudRounds?.UpdateKills(0, 0);
         hudRounds?.UpdateRounds(0, 0);
         hudRounds?.UpdateCurrentRound(1);
         StartCoroutine(InitDelayed());
     }
+
     private IEnumerator InitDelayed()
     {
-        // esperar un frame para que todo este inicializado
         yield return null;
 
         ActivateZone(0);
@@ -117,7 +112,7 @@ public class SpaceMinigame : MonoBehaviour
                 }
                 else
                 {
-                    countdownText.text = "¡Ya!";
+                    countdownText.text = "Ya!";
                 }
             }
             else if (i == 0)
@@ -179,6 +174,7 @@ public class SpaceMinigame : MonoBehaviour
             if (rb2 != null) rb2.simulated = !freeze;
         }
     }
+
     public void RegisterKill(int killer, int victim)
     {
         Debug.LogWarning($"[SPACEMINIGAME] RegisterKill llamado | Killer: {killer} | Victim: {victim} | RoundOver: {roundOver} | GameOver: {gameOver} | P1Invulnerable: {p1Invulnerable} | P2Invulnerable: {p2Invulnerable}");
@@ -189,18 +185,16 @@ public class SpaceMinigame : MonoBehaviour
         if (victim == 1) p1Invulnerable = true;
         else p2Invulnerable = true;
 
-        // Marcar que la víctima debe perder su loadout al respawnear
         if (victim == 1) p1LosesLoadout = true;
         else p2LosesLoadout = true;
 
         Transform victimTransform = victim == 1 ? player1 : player2;
         SpaceShipController victimShip = victimTransform?.GetComponent<SpaceShipController>();
-        
+
         Debug.Log($"[SPACEMINIGAME] Resetando velocidad de jugador {victim}");
-        // Resetear velocidad del jugador al morir
         SlowField.RemoveShipFromAllSlowFields(victimShip);
         victimShip?.ResetSpeedToOriginal();
-        
+
         victimTransform?.GetComponent<Explodable>()?.Explode();
         victimShip?.HideAllParticles();
 
@@ -208,6 +202,9 @@ public class SpaceMinigame : MonoBehaviour
         else kills2++;
 
         hudRounds?.UpdateKills(kills1, kills2);
+
+        // --- NOTIFICAR AL EVENT MANAGER SOBRE LA KILL ---
+        SpaceEventManager.Instance?.NotifyKill();
 
         if (kills1 >= KILLS_TO_WIN_ROUND || kills2 >= KILLS_TO_WIN_ROUND)
         {
@@ -220,7 +217,6 @@ public class SpaceMinigame : MonoBehaviour
         }
         else
         {
-            // Verificar que el objeto existe antes de iniciar el coroutine
             if (this != null && gameObject != null && gameObject.activeInHierarchy)
                 StartCoroutine(RespawnBothDelayed());
         }
@@ -255,7 +251,7 @@ public class SpaceMinigame : MonoBehaviour
             gameOver = true;
             yield return new WaitForSeconds(respawnDelay);
             yield return StartCoroutine(FadeTransition());
-            EndGame(gameWinner); // COMBO ROUNDS: pasamos el ganador
+            EndGame(gameWinner);
             yield break;
         }
 
@@ -268,17 +264,14 @@ public class SpaceMinigame : MonoBehaviour
         FreezePlayers(true);
         roundOver = true;
 
-        // Fade to black
         yield return StartCoroutine(FadeToBlack());
 
-        // Activar nueva zona y respawnear jugadores
         ActivateZone(newZoneIndex);
         ResetRoundKills();
 
         DoRespawn(player1, player1Spawns[newZoneIndex]);
         DoRespawn(player2, player2Spawns[newZoneIndex]);
 
-        // Cambio de zona: ambos pierden arma y power up
         ClearPlayerLoadout(player1);
         ClearPlayerLoadout(player2);
         p1LosesLoadout = false;
@@ -286,7 +279,6 @@ public class SpaceMinigame : MonoBehaviour
         p1Invulnerable = false;
         p2Invulnerable = false;
 
-        // Cuenta regresiva + fade out
         yield return StartCoroutine(CountdownFadeAndRelease());
     }
 
@@ -313,7 +305,6 @@ public class SpaceMinigame : MonoBehaviour
     private IEnumerator CountdownFadeAndRelease()
     {
         bool fadeDone = false;
-        bool countdownDone = false;
 
         StartCoroutine(FadeFromBlackCoroutine(() => fadeDone = true));
 
@@ -331,7 +322,7 @@ public class SpaceMinigame : MonoBehaviour
                 }
                 else
                 {
-                    countdownText.text = "¡Ya!";
+                    countdownText.text = "Ya!";
                 }
             }
             else if (i == 0)
@@ -343,12 +334,8 @@ public class SpaceMinigame : MonoBehaviour
                 yield return new WaitForSeconds(0.5f);
         }
 
-        countdownDone = true;
-
         while (!fadeDone)
-        {
             yield return null;
-        }
 
         if (countdownText != null)
             countdownText.gameObject.SetActive(false);
@@ -399,8 +386,6 @@ public class SpaceMinigame : MonoBehaviour
         DoRespawn(player1, player1Spawns[currentZoneIndex]);
         DoRespawn(player2, player2Spawns[currentZoneIndex]);
 
-        // La víctima pierde arma y power up; el killer conserva todo.
-        // Los flags pueden ser ambos true si hubo kills simultáneos.
         if (p1LosesLoadout) ClearPlayerLoadout(player1);
         if (p2LosesLoadout) ClearPlayerLoadout(player2);
         p1LosesLoadout = false;
@@ -418,9 +403,10 @@ public class SpaceMinigame : MonoBehaviour
         player.rotation = spawnPoint.rotation;
 
         var ship = player.GetComponent<SpaceShipController>();
-        if (ship != null) {
+        if (ship != null)
+        {
             ship.ForceStop();
-            ship.DeactivateRocketSabotage(); // Desactivar sabotaje al respawnear
+            ship.DeactivateRocketSabotage();
         }
 
         var rb = player.GetComponent<Rigidbody2D>();
@@ -446,6 +432,9 @@ public class SpaceMinigame : MonoBehaviour
 
         weaponSpawner?.SetActiveZone(index);
         powerUpSpawner?.SetActiveZone(index);
+
+        // --- ACTIVAR EVENTO DE LA ZONA ---
+        SpaceEventManager.Instance?.SetActiveZone(index);
     }
 
     private void ResetRoundKills()
@@ -453,13 +442,9 @@ public class SpaceMinigame : MonoBehaviour
         kills1 = 0;
         kills2 = 0;
 
-        // GOLDEN KILL: la primera kill del nuevo round vuelve a ser elegible
         ModifierManager.Instance?.ResetGoldenKill();
     }
 
-    /// Quita arma y power up a un jugador. Se llama DESPUÉS de DoRespawn para
-    /// evitar que la re-inicialización del respawn pise el clear.
-    /// Usa GetComponentInChildren para funcionar sin importar la jerarquía del prefab.
     private void ClearPlayerLoadout(Transform player)
     {
         if (player == null) return;
@@ -471,21 +456,15 @@ public class SpaceMinigame : MonoBehaviour
         holder?.ClearPowerUp();
     }
 
-    // gameWinner: 1 o 2 (qui�n gan� el minijuego completo)
     public void EndGame(int gameWinner)
     {
-        // COMBO ROUNDS: registrar el ganador del minijuego para acumular racha.
-        // Se llama ANTES de FinishMinigame para que el bonus quede
-        // incluido en los puntos de ronda que se transfieren al global.
         ModifierManager.Instance?.RegisterSpaceRoundWinner(gameWinner);
 
         GameManager.Instance?.FinishMinigame();
         GameManager.Instance?.EndRound(4);
-        PlayerPrefs.SetInt("LastPlayedMinigame", 4); // el id de ese minijuego
+        PlayerPrefs.SetInt("LastPlayedMinigame", 4);
 
         if (SceneLoader.Instance != null)
             SceneLoader.Instance.LoadResults();
     }
-
-
 }

@@ -1,39 +1,37 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
-
 
 /// SpaceEventManager
 ///
 /// SETUP en el Inspector:
-///   1. totalZones           cuántas zonas tiene el minijuego (ej: 5)
+///   1. totalZones           cuantas zonas tiene el minijuego (ej: 5)
 ///   2. fixedZoneEvents      lista de eventos de zona fija.
-///                            Para cada entrada elegís: zoneIndex + eventType.
+///                            Para cada entrada elegis: zoneIndex + eventType.
 ///                            Esas zonas quedan excluidas del sorteo random.
-///   3. randomEventPool      qué eventos random pueden sortear (arrastrá los tipos que querés).
-///   4. randomChance         probabilidad de que aparezca un evento random (default 0.5 = 50%).
+///   3. randomEventPool      que eventos random pueden sortear.
+///   4. randomChance         probabilidad de evento random (default 0.5 = 50%).
+///   5. mediumShipEvent      arrastra el GO que tiene SpaceMediumShipEvent (NO el prefab).
 ///
 /// FLUJO:
-///   - En Awake() se sortea todo (qué zonas tienen random y cuál evento).
+///   - En Awake() se sortea todo.
 ///   - SpaceMinigame llama SetActiveZone(index) al cambiar de zona.
-///   - El manager activa/desactiva los eventos correspondientes.
-///   - SpaceMinigame llama NotifyKill() para que el Battle Royale resetee su contador.
+///   - El manager activa/desactiva los eventos.
+///   - SpaceMinigame llama NotifyKill() en cada kill.
 
 public class SpaceEventManager : MonoBehaviour
 {
     public static SpaceEventManager Instance { get; private set; }
 
-    [Header("Configuración General")]
+    [Header("Configuracion General")]
     [Tooltip("Cantidad total de zonas del minijuego")]
     [SerializeField] private int totalZones = 5;
 
     [Header("Eventos de Zona Fija")]
-    [Tooltip("Definí qué evento fijo aparece en qué zona. Esas zonas no participan del sorteo random.")]
+    [Tooltip("Define que evento fijo aparece en que zona. Esas zonas no participan del sorteo random.")]
     [SerializeField] private FixedZoneEvent[] fixedZoneEvents;
 
     [Header("Pool de Eventos Random")]
-    [Tooltip("Qué tipos de eventos pueden aparecer de forma aleatoria")]
+    [Tooltip("Que tipos de eventos pueden aparecer de forma aleatoria")]
     [SerializeField] private SpaceEventType[] randomEventPool;
 
     [Range(0f, 1f)]
@@ -44,27 +42,28 @@ public class SpaceEventManager : MonoBehaviour
     [Tooltip("El componente de la zona Battle Royale que se achica")]
     [SerializeField] private SpaceBattleRoyaleZone battleRoyaleZone;
 
-    // Resultado del sorteo 
-    // Para cada zona: qué evento le tocó (None = sin evento random)
+    [Header("Evento - Nave Mediana (MediumShip)")]
+    [Tooltip("Arrastra aqui el GO de la escena que tiene SpaceMediumShipEvent. NO el prefab de la nave.")]
+    [SerializeField] private SpaceMediumShipEvent mediumShipEvent;
+
+    // Para cada zona: que evento le toco (None = sin evento)
     private SpaceEventType[] zoneSortedEvent;
 
-    // Zonas que tienen evento fijo (para excluirlas del random)
+    // Zonas con evento fijo (excluidas del random)
     private HashSet<int> fixedZoneIndices = new HashSet<int>();
 
     // Zona activa actualmente
     private int currentZoneIndex = -1;
 
-    // Clases serializables 
     [System.Serializable]
     public class FixedZoneEvent
     {
-        [Tooltip("Índice de la zona (0 = primera zona)")]
+        [Tooltip("Indice de la zona (0 = primera zona)")]
         public int zoneIndex;
-        [Tooltip("Qué evento fijo aparece en esta zona")]
+        [Tooltip("Que evento fijo aparece en esta zona")]
         public SpaceEventType eventType;
     }
 
-    
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -77,12 +76,10 @@ public class SpaceEventManager : MonoBehaviour
         SortEvents();
     }
 
-    /// Sortea al inicio qué evento le toca a cada zona random.
     private void SortEvents()
     {
         zoneSortedEvent = new SpaceEventType[totalZones];
 
-        // Registrar zonas fijas
         fixedZoneIndices.Clear();
         if (fixedZoneEvents != null)
         {
@@ -96,12 +93,10 @@ public class SpaceEventManager : MonoBehaviour
             }
         }
 
-        // Sortear zonas libres (las que no tienen evento fijo)
         for (int i = 0; i < totalZones; i++)
         {
             if (fixedZoneIndices.Contains(i)) continue;
 
-            // Tirada de moneda: ¿aparece evento?
             bool hasEvent = Random.value < randomChance;
 
             if (hasEvent && randomEventPool != null && randomEventPool.Length > 0)
@@ -130,18 +125,20 @@ public class SpaceEventManager : MonoBehaviour
 
         currentZoneIndex = zoneIndex;
 
-        // Activar evento de la nueva zona
         if (zoneIndex >= 0 && zoneIndex < totalZones)
             ActivateZoneEvent(zoneIndex);
     }
 
-    /// Llamado por SpaceMinigame.RegisterKill() para resetear el contador del Battle Royale.
+    /// Llamado por SpaceMinigame.RegisterKill().
     public void NotifyKill()
     {
         battleRoyaleZone?.ResetTimer();
+        mediumShipEvent?.NotifyKill();
     }
 
-    // Activación / Desactivación 
+    // -------------------------------------------------------------------------
+    //  Activacion / Desactivacion
+    // -------------------------------------------------------------------------
 
     private void ActivateZoneEvent(int zoneIndex)
     {
@@ -153,7 +150,6 @@ public class SpaceEventManager : MonoBehaviour
         switch (eventType)
         {
             case SpaceEventType.None:
-                // Sin evento: no hacer nada
                 break;
 
             case SpaceEventType.BlackHole:
@@ -202,90 +198,94 @@ public class SpaceEventManager : MonoBehaviour
         }
     }
 
-    //  Stubs de eventos (implementar uno por uno) 
-    // Cada evento va a tener sus propios referencias en el Inspector.
-    // Por ahora son stubs: solo loggean. Reemplazá el contenido al implementar cada uno.
+    // -------------------------------------------------------------------------
+    //  Stubs de eventos (implementar uno por uno)
+    // -------------------------------------------------------------------------
 
     private void ActivateBlackHole(int zone)
     {
-        Debug.Log($"[SpaceEventManager] ? ACTIVAR BlackHole en zona {zone}");
+        Debug.Log($"[SpaceEventManager] ACTIVAR BlackHole en zona {zone}");
         // TODO: SpaceBlackHoleEvent.Instance?.Activate(zone);
     }
 
     private void DeactivateBlackHole(int zone)
     {
-        Debug.Log($"[SpaceEventManager] ? DESACTIVAR BlackHole en zona {zone}");
+        Debug.Log($"[SpaceEventManager] DESACTIVAR BlackHole en zona {zone}");
         // TODO: SpaceBlackHoleEvent.Instance?.Deactivate();
     }
 
     private void ActivateDimensionalPortals(int zone)
     {
-        Debug.Log($"[SpaceEventManager] ? ACTIVAR DimensionalPortals en zona {zone}");
+        Debug.Log($"[SpaceEventManager] ACTIVAR DimensionalPortals en zona {zone}");
         // TODO: SpacePortalEvent.Instance?.Activate(zone);
     }
 
     private void DeactivateDimensionalPortals(int zone)
     {
-        Debug.Log($"[SpaceEventManager] ? DESACTIVAR DimensionalPortals en zona {zone}");
+        Debug.Log($"[SpaceEventManager] DESACTIVAR DimensionalPortals en zona {zone}");
         // TODO: SpacePortalEvent.Instance?.Deactivate();
     }
 
     private void ActivatePowerUpRain(int zone)
     {
-        Debug.Log($"[SpaceEventManager] ? ACTIVAR PowerUpRain en zona {zone}");
+        Debug.Log($"[SpaceEventManager] ACTIVAR PowerUpRain en zona {zone}");
         // TODO: SpacePowerUpRainEvent.Instance?.Activate(zone);
     }
 
     private void DeactivatePowerUpRain(int zone)
     {
-        Debug.Log($"[SpaceEventManager] ? DESACTIVAR PowerUpRain en zona {zone}");
+        Debug.Log($"[SpaceEventManager] DESACTIVAR PowerUpRain en zona {zone}");
         // TODO: SpacePowerUpRainEvent.Instance?.Deactivate();
     }
 
     private void ActivateAlienShips(int zone)
     {
-        Debug.Log($"[SpaceEventManager] ? ACTIVAR AlienShips en zona {zone}");
+        Debug.Log($"[SpaceEventManager] ACTIVAR AlienShips en zona {zone}");
         // TODO: SpaceAlienShipsEvent.Instance?.Activate(zone);
     }
 
     private void DeactivateAlienShips(int zone)
     {
-        Debug.Log($"[SpaceEventManager] ? DESACTIVAR AlienShips en zona {zone}");
+        Debug.Log($"[SpaceEventManager] DESACTIVAR AlienShips en zona {zone}");
         // TODO: SpaceAlienShipsEvent.Instance?.Deactivate();
     }
 
     private void ActivateMediumShip(int zone)
     {
-        Debug.Log($"[SpaceEventManager] ? ACTIVAR MediumShip en zona {zone}");
-        // TODO: SpaceMediumShipEvent.Instance?.Activate(zone);
+        Debug.Log($"[SpaceEventManager] ACTIVAR MediumShip en zona {zone}");
+
+        if (mediumShipEvent == null)
+        {
+            Debug.LogError("[SpaceEventManager] mediumShipEvent es NULL. Arrastra el GO de la escena (no el prefab) en el Inspector.");
+            return;
+        }
+
+        mediumShipEvent.Activate();
     }
 
     private void DeactivateMediumShip(int zone)
     {
-        Debug.Log($"[SpaceEventManager] ? DESACTIVAR MediumShip en zona {zone}");
-        // TODO: SpaceMediumShipEvent.Instance?.Deactivate();
+        Debug.Log($"[SpaceEventManager] DESACTIVAR MediumShip en zona {zone}");
+        mediumShipEvent?.Deactivate();
     }
 
-    // Debug 
+    // -------------------------------------------------------------------------
+    //  Debug
+    // -------------------------------------------------------------------------
 
     private void LogSortResult()
     {
-        
-        Debug.Log("       SORTEO DE EVENTOS - RESULTADO        ");
-        
+        Debug.Log("=== SORTEO DE EVENTOS - RESULTADO ===");
 
         for (int i = 0; i < totalZones; i++)
         {
             bool isFixed = fixedZoneIndices.Contains(i);
             string tag = isFixed ? "[FIJO]   " : "[RANDOM] ";
             string eventName = zoneSortedEvent[i] == SpaceEventType.None ? "Sin evento" : zoneSortedEvent[i].ToString();
-            Debug.Log($"  Zona {i}: {tag}{eventName,-20}  ");
+            Debug.Log($"  Zona {i}: {tag}{eventName}");
         }
-
-        
     }
 
-    /// Para debug en el Inspector (botón en el contexto del componente).
     [ContextMenu("Re-sortear Eventos (Debug)")]
     private void DebugResort()
     {
