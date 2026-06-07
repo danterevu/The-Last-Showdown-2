@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using DG.Tweening;
 
@@ -28,38 +28,55 @@ public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         originalScale = rectTransform.localScale;
     }
 
-    public void OnPointerEnter(PointerEventData eventData)
+    // ─── Eventos de pointer (mouse) ───────────────────────────────────
+    public void OnPointerEnter(PointerEventData eventData) => DoHoverEnter();
+    public void OnPointerExit(PointerEventData eventData) => DoHoverExit();
+    public void OnPointerClick(PointerEventData eventData) => DoClick();
+
+    // ─── API pública para que UINavigator los llame directamente ──────
+    public void DoHoverEnter()
     {
         hoverTweener?.Kill();
-        hoverTweener = rectTransform.DOScale(originalScale * hoverScale, hoverDuration).SetEase(Ease.OutQuad);
+        hoverTweener = rectTransform
+            .DOScale(originalScale * hoverScale, hoverDuration)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true); // SetUpdate(true) = funciona aunque Time.timeScale = 0 (pausa)
     }
 
-    public void OnPointerExit(PointerEventData eventData)
+    public void DoHoverExit()
     {
         hoverTweener?.Kill();
-        hoverTweener = rectTransform.DOScale(originalScale, hoverDuration).SetEase(Ease.OutQuad);
+        hoverTweener = rectTransform
+            .DOScale(originalScale, hoverDuration)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    public void DoClick()
     {
         PlayJellyEffect();
         PlayFlash();
     }
 
+    // ─── Efectos internos ─────────────────────────────────────────────
     private void PlayJellyEffect()
     {
         jellyTweener?.Kill();
-        jellyTweener = rectTransform.DOPunchScale(Vector3.one * jellyStrength, jellyDuration, jellyVibrato, jellyElasticity).SetEase(Ease.OutElastic);
+        jellyTweener = rectTransform
+            .DOPunchScale(Vector3.one * jellyStrength, jellyDuration, jellyVibrato, jellyElasticity)
+            .SetEase(Ease.OutElastic)
+            .SetUpdate(true);
     }
 
     private void PlayFlash()
     {
-        if (flashCanvasGroup != null)
-        {
-            flashTweener?.Kill();
-            flashCanvasGroup.alpha = 1f;
-            flashTweener = flashCanvasGroup.DOFade(0f, flashDuration).SetEase(Ease.OutQuad);
-        }
+        if (flashCanvasGroup == null) return;
+        flashTweener?.Kill();
+        flashCanvasGroup.alpha = 1f;
+        flashTweener = flashCanvasGroup
+            .DOFade(0f, flashDuration)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
     }
 
     void OnDestroy()

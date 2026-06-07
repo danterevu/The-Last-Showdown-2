@@ -1,23 +1,31 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance;
 
-    [SerializeField] private AudioDatabase database; //Tabla de sonidos
+    [SerializeField] private AudioDatabase database;
 
-    [Header("Sources de m�sica (para crossfade)")]
+    [Header("Sources de música (para crossfade)")]
     [SerializeField] private AudioSource musicSourceA;
     [SerializeField] private AudioSource musicSourceB;
 
     [Header("Pool de SFX")]
-    [SerializeField] private int sfxPoolSize = 8; //Fuentes para efectos de sonidos
+    [SerializeField] private int sfxPoolSize = 8;
 
     private AudioSource[] sfxPool;
     private int sfxPoolIndex = 0;
     private AudioSource activeMusicSource;
     private Coroutine crossfadeCoroutine;
+
+    // Volúmenes maestros (0-1), se aplican al reproducir
+    private float musicVolumeMaster = 1f;
+    private float sfxVolumeMaster = 1f;
+
+    // Guarda el volumen "real" (del AudioEntry) del clip activo para
+    // que al cambiar el slider el nuevo valor sea proporcional
+    private float activeMusicEntryVolume = 1f;
 
     private void Awake()
     {
@@ -28,16 +36,34 @@ public class AudioManager : MonoBehaviour
         BuildSFXPool();
         activeMusicSource = musicSourceA;
 
-       
-       
+        // Carga los valores guardados sin llamar ApplyAllSettings todavía
+        // (el AudioManager puede no estar listo cuando se llama)
+        musicVolumeMaster = SettingsManager.MusicVolume;
+        sfxVolumeMaster = SettingsManager.SFXVolume;
     }
 
-    private void OnDestroy()
+    // Volumen maestro 
+
+    /// <summary>Llamado por SettingsManager cuando el slider de música cambia</summary>
+    public void SetMusicVolume(float vol)
     {
-       
+        musicVolumeMaster = Mathf.Clamp01(vol);
+        // Aplica inmediatamente a la source activa
+        if (activeMusicSource != null)
+            activeMusicSource.volume = activeMusicEntryVolume * musicVolumeMaster;
     }
 
-    //  SFX 
+    /// <summary>Llamado por SettingsManager cuando el slider de SFX cambia</summary>
+    public void SetSFXVolume(float vol)
+    {
+        sfxVolumeMaster = Mathf.Clamp01(vol);
+        // Los SFX ya usarán el nuevo volumen en el próximo Play()
+    }
+
+    public float GetMusicVolume() => musicVolumeMaster;
+    public float GetSFXVolume() => sfxVolumeMaster;
+
+    // ─── SFX ─────────────────────────────────────────────────────────
 
     public void PlaySFX(SoundID id)
     {
@@ -46,31 +72,28 @@ public class AudioManager : MonoBehaviour
 
         AudioSource source = GetNextSFXSource();
         source.clip = entry.clip;
-        source.volume = entry.volume;
+        source.volume = entry.volume * sfxVolumeMaster;
         source.loop = false;
         source.Play();
     }
 
     private AudioSource GetNextSFXSource()
     {
-        // Busca un source libre primero
         for (int i = 0; i < sfxPool.Length; i++)
             if (!sfxPool[i].isPlaying) return sfxPool[i];
 
-        // Si todos est�n ocupados, rota (sobrescribe el m�s viejo)
         AudioSource s = sfxPool[sfxPoolIndex];
         sfxPoolIndex = (sfxPoolIndex + 1) % sfxPool.Length;
         return s;
     }
 
-    // M�sica 
+    // ─── Música ──────────────────────────────────────────────────────
 
     public void PlayMusic(SoundID id, float fadeDuration = 0.8f)
     {
         var entry = database.Get(id);
         if (entry == null || entry.clip == null) return;
 
-        // Si ya suena ese clip, no hacer nada
         if (activeMusicSource.clip == entry.clip && activeMusicSource.isPlaying) return;
 
         if (crossfadeCoroutine != null) StopCoroutine(crossfadeCoroutine);
@@ -88,6 +111,8 @@ public class AudioManager : MonoBehaviour
         AudioSource outgoing = activeMusicSource;
         AudioSource incoming = outgoing == musicSourceA ? musicSourceB : musicSourceA;
 
+        activeMusicEntryVolume = entry.volume;
+
         incoming.clip = entry.clip;
         incoming.volume = 0f;
         incoming.loop = entry.loop;
@@ -95,14 +120,14 @@ public class AudioManager : MonoBehaviour
 
         float elapsed = 0f;
         float startVol = outgoing.volume;
-        float targetVol = entry.volume;
+        float targetVol = entry.volume * musicVolumeMaster;
 
         while (elapsed < duration)
         {
             float t = elapsed / duration;
             incoming.volume = Mathf.Lerp(0f, targetVol, t);
             outgoing.volume = Mathf.Lerp(startVol, 0f, t);
-            elapsed += Time.unscaledDeltaTime; // usa unscaled por si hay pausa
+            elapsed += Time.unscaledDeltaTime;
             yield return null;
         }
 
@@ -125,11 +150,7 @@ public class AudioManager : MonoBehaviour
         source.Stop();
     }
 
-   
-
-   
-
-    // Setup 
+    // ─── Setup ───────────────────────────────────────────────────────
 
     private void BuildSFXPool()
     {

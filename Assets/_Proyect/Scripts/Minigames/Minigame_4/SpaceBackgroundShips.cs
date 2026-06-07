@@ -1,14 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-/// SpaceBackgroundShips
-///
-/// SETUP:
-///   - GO en la escena con este script
-///   - shipPrefab: prefab con solo SpriteRenderer (sin collider, sin Rigidbody)
-///   - Si tenes un BoxCollider2D en la zona, asignalo a zoneBounds
-///   - Si no, configura manualCenter y manualSize en el Inspector
-
 public class SpaceBackgroundShips : MonoBehaviour
 {
     [Header("Prefab")]
@@ -44,16 +36,13 @@ public class SpaceBackgroundShips : MonoBehaviour
     [Tooltip("Tamano manual si no hay zoneBounds")]
     [SerializeField] private Vector2 manualSize = new Vector2(20f, 14f);
 
+    // Solo 4 direcciones axiales para que no se vean raras
     private static readonly Vector2[] directions = new Vector2[]
     {
         new Vector2(1, 0),
         new Vector2(-1, 0),
         new Vector2(0, 1),
         new Vector2(0, -1),
-        new Vector2(1, 1).normalized,
-        new Vector2(-1, 1).normalized,
-        new Vector2(1, -1).normalized,
-        new Vector2(-1, -1).normalized,
     };
 
     private class BackgroundShipData
@@ -67,6 +56,8 @@ public class SpaceBackgroundShips : MonoBehaviour
     private List<BackgroundShipData> ships = new List<BackgroundShipData>();
     private bool isRunning = false;
 
+    // -------------------------------------------------------------------------
+
     public void Activate()
     {
         if (isRunning) return;
@@ -75,14 +66,15 @@ public class SpaceBackgroundShips : MonoBehaviour
         CreatePool();
 
         Bounds b = GetZoneBounds();
-        Debug.Log($"[SpaceBackgroundShips] Activando. Bounds center={b.center} size={b.size}. Naves={ships.Count}");
+        Debug.Log("[SpaceBackgroundShips] Activando. Bounds center=" + b.center + " size=" + b.size);
 
         if (b.size == Vector3.zero)
             Debug.LogError("[SpaceBackgroundShips] Bounds son CERO. Asigna zoneBounds o configura manualCenter/manualSize.");
 
         foreach (var ship in ships)
         {
-            PlaceShipRandom(ship);
+            AssignRandomProperties(ship);
+            PlaceShipAtEntryBorder(ship, GetZoneBounds());
             ship.go.SetActive(true);
         }
     }
@@ -110,10 +102,22 @@ public class SpaceBackgroundShips : MonoBehaviour
             ship.go.transform.position += (Vector3)(ship.direction * ship.speed * Time.deltaTime);
 
             Vector2 pos = ship.go.transform.position;
-            if (!bounds.Contains(new Vector3(pos.x, pos.y, 0f)))
-                RecycleShip(ship, bounds);
+
+            // Margen generoso para que no se recicle antes de entrar a la zona
+            float margin = 1f;
+            bool outX = pos.x > bounds.max.x + margin || pos.x < bounds.min.x - margin;
+            bool outY = pos.y > bounds.max.y + margin || pos.y < bounds.min.y - margin;
+
+            if (outX || outY)
+            {
+                // Nueva direccion y reentrada por el borde opuesto
+                AssignRandomProperties(ship);
+                PlaceShipAtEntryBorder(ship, bounds);
+            }
         }
     }
+
+    // -------------------------------------------------------------------------
 
     private void CreatePool()
     {
@@ -125,7 +129,7 @@ public class SpaceBackgroundShips : MonoBehaviour
 
         if (shipPrefab == null)
         {
-            Debug.LogError("[SpaceBackgroundShips] shipPrefab es NULL. Asignalo en el Inspector.");
+            Debug.LogError("[SpaceBackgroundShips] shipPrefab es NULL.");
             return;
         }
 
@@ -135,55 +139,47 @@ public class SpaceBackgroundShips : MonoBehaviour
             go.name = "BgShip_" + i;
             go.SetActive(false);
 
+            // Deshabilitar cualquier collider o rigidbody que pueda tener
+            foreach (Collider2D col in go.GetComponentsInChildren<Collider2D>())
+                col.enabled = false;
+            foreach (Rigidbody2D rb in go.GetComponentsInChildren<Rigidbody2D>())
+                rb.simulated = false;
+
             SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
-            if (sr == null)
-                Debug.LogWarning("[SpaceBackgroundShips] El prefab no tiene SpriteRenderer en el root.");
-
-            Collider2D col = go.GetComponent<Collider2D>();
-            if (col != null) col.enabled = false;
-
-            Rigidbody2D rb = go.GetComponent<Rigidbody2D>();
-            if (rb != null) rb.simulated = false;
 
             ships.Add(new BackgroundShipData
             {
                 go = go,
                 sr = sr,
                 direction = Vector2.right,
-                speed = 1f
+                speed = minSpeed
             });
         }
     }
 
-    private void PlaceShipRandom(BackgroundShipData ship)
-    {
-        Bounds bounds = GetZoneBounds();
-        float x = Random.Range(bounds.min.x, bounds.max.x);
-        float y = Random.Range(bounds.min.y, bounds.max.y);
-        ship.go.transform.position = new Vector3(x, y, 0f);
-        AssignRandomProperties(ship);
-    }
-
-    private void RecycleShip(BackgroundShipData ship, Bounds bounds)
+    /// Posiciona la nave en el borde de entrada segun su direccion de viaje.
+    /// Si va hacia la derecha, entra por el borde izquierdo, etc.
+    private void PlaceShipAtEntryBorder(BackgroundShipData ship, Bounds bounds)
     {
         Vector2 dir = ship.direction;
-        Vector2 pos = ship.go.transform.position;
+        float x, y;
 
-        float newX = pos.x;
-        float newY = pos.y;
-
-        if (pos.x > bounds.max.x) newX = bounds.min.x;
-        else if (pos.x < bounds.min.x) newX = bounds.max.x;
-
-        if (pos.y > bounds.max.y) newY = bounds.min.y;
-        else if (pos.y < bounds.min.y) newY = bounds.max.y;
-
-        if (Mathf.Abs(dir.x) > Mathf.Abs(dir.y))
-            newY = Random.Range(bounds.min.y, bounds.max.y);
+        // Eje principal de movimiento determina en que borde aparece
+        if (Mathf.Abs(dir.x) >= Mathf.Abs(dir.y))
+        {
+            // Movimiento horizontal
+            // Entra por el borde opuesto a donde va
+            x = dir.x > 0 ? bounds.min.x : bounds.max.x;
+            y = Random.Range(bounds.min.y, bounds.max.y);
+        }
         else
-            newX = Random.Range(bounds.min.x, bounds.max.x);
+        {
+            // Movimiento vertical
+            x = Random.Range(bounds.min.x, bounds.max.x);
+            y = dir.y > 0 ? bounds.min.y : bounds.max.y;
+        }
 
-        ship.go.transform.position = new Vector3(newX, newY, 0f);
+        ship.go.transform.position = new Vector3(x, y, 0f);
     }
 
     private void AssignRandomProperties(BackgroundShipData ship)
