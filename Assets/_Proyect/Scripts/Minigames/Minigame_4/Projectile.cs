@@ -65,6 +65,10 @@ public class Projectile : MonoBehaviour
         Debug.Log($"Colision con: {other.name} | tag: {other.tag} | layer: {LayerMask.LayerToName(other.layer)}");
 
         if (other.GetComponent<SpaceZoneBoundary>() != null) return;
+        
+        // Ignorar el detector de rango de la torreta y la layer de cabeza de torreta
+        if (other.GetComponent<TurretRangeDetector>() != null) return;
+        if (LayerMask.LayerToName(other.layer) == "TurretHead") return;
 
         // --- ALIEN ---
         SpaceAlien alien = other.GetComponent<SpaceAlien>();
