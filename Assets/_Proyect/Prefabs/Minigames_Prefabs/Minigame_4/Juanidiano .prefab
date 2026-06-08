@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 7207817683875238412}
   - component: {fileID: 8174775717509905636}
   - component: {fileID: 6200465684243426191}
+  - component: {fileID: 2389906975690554457}
+  - component: {fileID: 427002823473374458}
   m_Layer: 0
   m_Name: 'Juanidiano '
   m_TagString: Untagged
@@ -77,15 +79,15 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 5378231246541778746, guid: bf12f6dcca0d3824f93dcb5a13f7f5f4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 13.63, y: 10.49}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!50 &6200465684243426191
@@ -115,3 +117,67 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
+--- !u!58 &2389906975690554457
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3323185102537867342}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_Radius: 0.5
+--- !u!114 &427002823473374458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3323185102537867342}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a69e16e76d13c864cbe76c19df1059b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  exploreSpeed: 2.5
+  chaseSpeed: 100
+  speedVariation: 0.5
+  snakeAmplitude: 0.5
+  snakeFrequency: 1.5
+  minDirChangeInterval: 1.5
+  maxDirChangeInterval: 3.5
+  turnSmoothSpeed: 2.5
+  obstacleDetectDist: 1.2
+  obstacleRayAngle: 45
+  borderTag: Border
+  interactiveAsteroidLayer: InteractiveAsteroid
+  borderCheckRadius: 1
+  detectionRadius: 250
+  investigateDuration: 2
+  spriteRotationOffset: 0
