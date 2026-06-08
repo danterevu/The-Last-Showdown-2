@@ -24,6 +24,9 @@ public class Projectile : MonoBehaviour
     private bool hitVfxSpawned;
     private Vector2 lastMoveDir = Vector2.right;
 
+    public int OwnerPlayer => ownerPlayer;
+    public float Damage => damage;
+
     // -----------------------------------------------------------------------
     //  INICIALIZACIÓN
     // -----------------------------------------------------------------------
@@ -86,6 +89,18 @@ public class Projectile : MonoBehaviour
 
         //Ignorar el space poronga ese asi no se autodestruyen las balas
         if (other.GetComponent<SpaceZoneBoundary>() != null) return;
+
+        // Verificar si es la torreta
+        SpaceLaserTurret turret = other.GetComponent<SpaceLaserTurret>();
+        if (turret == null)
+            turret = other.GetComponentInParent<SpaceLaserTurret>();
+        if (turret != null)
+        {
+            // La torreta se encarga de manejar el daño
+            SpawnHitVfx();
+            // NO destruimos el proyectil aquí, la torreta lo hará en ApplyDamageFrom
+            return;
+        }
 
         // Verificar si es un HomingMissile
         HomingMissile homingMissile = other.GetComponent<HomingMissile>();
@@ -160,8 +175,8 @@ public class Projectile : MonoBehaviour
             return;
         }
 
-        // No dañarse a sí mismo
-        if (hitPlayer == ownerPlayer) return;
+        // No dañarse a sí mismo (si es un jugador, turret (0) can hit anyone)
+        if (ownerPlayer != 0 && hitPlayer == ownerPlayer) return;
 
         // --- MODIFICADOR: Golden Kill ---
         // Si es la primera kill de la ronda con este mod activo, los puntos
