@@ -6180,7 +6180,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   motherShipPrefab: {fileID: 1594204515}
-  alienPrefab: {fileID: 381745562}
+  alienPrefab: {fileID: 3323185102537867342, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
   spawnOrigin: {fileID: 1046554554}
   landingPoint: {fileID: 273804804}
   alienCount: 4
@@ -13630,6 +13630,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 358185176}
   m_CullTransparentMesh: 1
+<<<<<<< Updated upstream
 --- !u!1 &381745562 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3323185102537867342, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
@@ -13699,6 +13700,8 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0.034992825}
   m_Radius: 5.4389267
+=======
+>>>>>>> Stashed changes
 --- !u!1 &384837028
 GameObject:
   m_ObjectHideFlags: 0
@@ -77795,14 +77798,6 @@ PrefabInstance:
       value: 'Juanidiano '
       objectReference: {fileID: 0}
     - target: {fileID: 7207817683875238412, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.2192
-      objectReference: {fileID: 0}
-    - target: {fileID: 7207817683875238412, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.2567
-      objectReference: {fileID: 0}
-    - target: {fileID: 7207817683875238412, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
       propertyPath: m_LocalPosition.x
       value: 20.2813
       objectReference: {fileID: 0}
@@ -77842,37 +77837,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8174775717509905636, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
+    - target: {fileID: 8664686575160929390, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
       propertyPath: m_Size.x
-      value: 13.63
+      value: 0.0001
       objectReference: {fileID: 0}
-    - target: {fileID: 8174775717509905636, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
+    - target: {fileID: 8664686575160929390, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
       propertyPath: m_Size.y
-      value: 10.49
-      objectReference: {fileID: 0}
-    - target: {fileID: 8174775717509905636, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 5378231246541778746, guid: bf12f6dcca0d3824f93dcb5a13f7f5f4, type: 3}
-    - target: {fileID: 8174775717509905636, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
-      propertyPath: m_Color.b
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8174775717509905636, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
-      propertyPath: m_Color.g
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8174775717509905636, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
-      propertyPath: m_Color.r
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8174775717509905636, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
-      propertyPath: m_WasSpriteAssigned
-      value: 1
+      value: 0.0001
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
+<<<<<<< Updated upstream
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3323185102537867342, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
       insertIndex: -1
@@ -77880,6 +77856,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3323185102537867342, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
       insertIndex: -1
       addedObject: {fileID: 381745567}
+=======
+    m_AddedComponents: []
+>>>>>>> Stashed changes
   m_SourcePrefab: {fileID: 100100000, guid: a7705cf93b294de47ba6b115fc3a9621, type: 3}
 --- !u!1001 &996146130362961657
 PrefabInstance:

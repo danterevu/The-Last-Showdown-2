@@ -39,6 +39,10 @@ public class SpaceShipController : MonoBehaviour
     [Header("Visuales - Rocket Sabotage")]
     [SerializeField] private ParticleSystem rocketParticles;
     [SerializeField] private GameObject explosionVfxPrefab;
+    [SerializeField] private SpriteRenderer shipSpriteRenderer;
+    [SerializeField] private Color blinkColor = Color.red;
+    [SerializeField] private float blinkSpeed = 0.2f;
+    [SerializeField] private float rocketEmissionRate = 100f;
 
     [Header("Visuales - Propulsion Normal")]
     [SerializeField] private ParticleSystem propulsionParticles;
@@ -58,6 +62,9 @@ public class SpaceShipController : MonoBehaviour
     private bool hasInput;
     private bool isRocketSabotageActive;
     public bool isInSlowField { get; private set; }
+    
+    private Color originalColor;
+    private Coroutine blinkCoroutine;
 
     // Stun
     private bool isStunned = false;
@@ -72,6 +79,11 @@ public class SpaceShipController : MonoBehaviour
         SetupInput();
         originalMaxSpeed = maxSpeed;
         originalAcceleration = acceleration;
+        
+        if (shipSpriteRenderer == null)
+            shipSpriteRenderer = GetComponent<SpriteRenderer>();
+        if (shipSpriteRenderer != null)
+            originalColor = shipSpriteRenderer.color;
     }
 
     private void Update()
@@ -89,6 +101,21 @@ public class SpaceShipController : MonoBehaviour
         }
 
         UpdatePropulsionParticles();
+        UpdateRocketParticles();
+    }
+    
+    private void UpdateRocketParticles()
+    {
+        if (rocketParticles == null) return;
+        
+        if (isRocketSabotageActive)
+        {
+            var emission = rocketParticles.emission;
+            emission.rateOverTime = rocketEmissionRate;
+            
+            if (!rocketParticles.isPlaying)
+                rocketParticles.Play();
+        }
     }
 
     private void FixedUpdate()
@@ -196,6 +223,9 @@ public class SpaceShipController : MonoBehaviour
     private void UpdatePropulsionParticles()
     {
         if (propulsionParticles == null) return;
+        
+        // Si está activado el rocket sabotage, no tocar las partículas de propulsión normal
+        if (isRocketSabotageActive) return;
 
         float speed = velocity.magnitude;
         var emission = propulsionParticles.emission;
@@ -233,11 +263,8 @@ public class SpaceShipController : MonoBehaviour
     {
         if (isRocketSabotageActive) return;
         isRocketSabotageActive = true;
-
-        if (rocketParticles != null)
-        {
-            rocketParticles.Play();
-        }
+        
+        StartBlinking();
     }
 
     public void DeactivateRocketSabotage()
@@ -248,6 +275,42 @@ public class SpaceShipController : MonoBehaviour
         if (rocketParticles != null)
         {
             rocketParticles.Stop();
+        }
+        
+        StopBlinking();
+    }
+    
+    private void StartBlinking()
+    {
+        if (blinkCoroutine != null)
+            StopCoroutine(blinkCoroutine);
+        
+        blinkCoroutine = StartCoroutine(BlinkCoroutine());
+    }
+    
+    private void StopBlinking()
+    {
+        if (blinkCoroutine != null)
+        {
+            StopCoroutine(blinkCoroutine);
+            blinkCoroutine = null;
+        }
+        
+        if (shipSpriteRenderer != null)
+            shipSpriteRenderer.color = originalColor;
+    }
+    
+    private IEnumerator BlinkCoroutine()
+    {
+        while (true)
+        {
+            if (shipSpriteRenderer != null)
+                shipSpriteRenderer.color = blinkColor;
+            yield return new WaitForSeconds(blinkSpeed);
+            
+            if (shipSpriteRenderer != null)
+                shipSpriteRenderer.color = originalColor;
+            yield return new WaitForSeconds(blinkSpeed);
         }
     }
 
@@ -410,7 +473,8 @@ public class SpaceShipController : MonoBehaviour
             propulsionParticles.Clear();
         }
 
-        if (rocketParticles != null)
+        // No detener las partículas del rocket sabotage
+        if (rocketParticles != null && !isRocketSabotageActive)
         {
             rocketParticles.Stop();
             rocketParticles.Clear();

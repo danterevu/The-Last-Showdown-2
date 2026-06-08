@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9152704066167776336}
   - component: {fileID: 2560724293044595409}
   - component: {fileID: 8042953150422604223}
-  m_Layer: 0
+  m_Layer: 19
   m_Name: NAVE MADRE JUANIDIANA
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -29,8 +29,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 5, y: 5, z: 5}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -78,7 +78,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 100
-  m_Sprite: {fileID: 5378231246541778746, guid: bf12f6dcca0d3824f93dcb5a13f7f5f4, type: 3}
+  m_Sprite: {fileID: 7397874051548257440, guid: 0381f130fff440148bb781329062c766, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -104,7 +104,7 @@ MonoBehaviour:
   flySpeed: 5
   sineAmplitude: 0.4
   sineFrequency: 2
-  startScale: 2.5
+  startScale: 15
   landedScale: 0.8
   waitAtLanding: 0
   departSpeed: 8
@@ -146,13 +146,13 @@ BoxCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0.32999998, w: 0}
+    border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 13.63, y: 10.49}
+    oldSize: {x: 2.29, y: 1.77}
     newSize: {x: 13.63, y: 10.49}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 13.63, y: 10.49}
+  m_Size: {x: 2.29, y: 1.77}
   m_EdgeRadius: 0

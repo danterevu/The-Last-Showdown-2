@@ -111,6 +111,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     private Coroutine slimeCoroutine;
 
     [Header("Shield")]
+    [SerializeField] private GameObject shieldVFX;
     private bool shieldActive = false;
     private float shieldMultiplier = 1f;
     private float shieldDuration = 3f;
@@ -746,6 +747,11 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     {
         shieldActive = active;
         shieldMultiplier = multiplier;
+        
+        if (shieldVFX != null)
+        {
+            shieldVFX.SetActive(active);
+        }
     }
     private IEnumerator ShrinkEffect()
     {
