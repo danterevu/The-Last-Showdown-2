@@ -187,18 +187,12 @@ public class SpaceLaserTurret : MonoBehaviour
     public void AddTarget(Transform target)
     {
         if (!_targetsInRange.Contains(target))
-        {
             _targetsInRange.Add(target);
-            Debug.Log($"[SpaceLaserTurret] Agregado target: {target.name} | Tag: {target.tag} | Total targets: {_targetsInRange.Count}");
-        }
     }
 
     public void RemoveTarget(Transform target)
     {
-        if (_targetsInRange.Remove(target))
-        {
-            Debug.Log($"[SpaceLaserTurret] Eliminado target: {target.name} | Tag: {target.tag} | Total targets: {_targetsInRange.Count}");
-        }
+        _targetsInRange.Remove(target);
     }
 
     private void Update()
@@ -250,12 +244,6 @@ public class SpaceLaserTurret : MonoBehaviour
                 best = target;
                 bestSqr = sqr;
             }
-        }
-
-        if (_currentTarget != best)
-        {
-            string bestName = best != null ? best.name : "null";
-            Debug.Log($"[SpaceLaserTurret] Best target cambiado: {bestName}");
         }
 
         return best;
