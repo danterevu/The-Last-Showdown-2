@@ -29,8 +29,8 @@ Transform:
   m_GameObject: {fileID: 2519992553602383347}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -60.345, y: -38.726, z: -0.034035403}
-  m_LocalScale: {x: 0.75, y: 0.7638472, z: 0.34190375}
+  m_LocalPosition: {x: -60.4648, y: -38.6007, z: -0.034035403}
+  m_LocalScale: {x: 0.58815, y: 0.599009, z: 0.2681209}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -170,3 +170,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1b0f0296c7260c469e54b5edf2b808d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 0
+  explodeParticles: {fileID: 0}

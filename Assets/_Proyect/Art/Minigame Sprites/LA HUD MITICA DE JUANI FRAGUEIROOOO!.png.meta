@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: 2ff62b38d04be0e43aa4a16bf5da9009
+guid: 8d4bb0ff129335944b059168f061e37c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8895955000467674785
-    second: Cabeza Movible_0
+      213: -2139302463676742630
+    second: LA HUD MITICA DE JUANI FRAGUEIROOOO!_0
+  - first:
+      213: 2195527458801619026
+    second: LA HUD MITICA DE JUANI FRAGUEIROOOO!_1
+  - first:
+      213: 85844422669029406
+    second: LA HUD MITICA DE JUANI FRAGUEIROOOO!_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,23 +106,67 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Cabeza Movible_0
+      name: LA HUD MITICA DE JUANI FRAGUEIROOOO!_0
       rect:
         serializedVersion: 2
-        x: 47
-        y: 14
-        width: 156
-        height: 230
-      alignment: 9
-      pivot: {x: 0.5191465, y: 0.6298633}
+        x: 0
+        y: 218
+        width: 402
+        height: 282
+      alignment: 0
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1a65cbca0f7c47b70800000000000000
-      internalID: 8895955000467674785
+      spriteID: a140e696ebbaf42e0800000000000000
+      internalID: -2139302463676742630
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LA HUD MITICA DE JUANI FRAGUEIROOOO!_1
+      rect:
+        serializedVersion: 2
+        x: 438
+        y: 218
+        width: 1044
+        height: 282
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2509c746794187e10800000000000000
+      internalID: 2195527458801619026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LA HUD MITICA DE JUANI FRAGUEIROOOO!_2
+      rect:
+        serializedVersion: 2
+        x: 1518
+        y: 218
+        width: 402
+        height: 282
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e10d22f2c0bf03100800000000000000
+      internalID: 85844422669029406
       vertices: []
       indices: 
       edges: []
@@ -125,7 +175,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5ca17bb6e58e4b348883d173b993fec5
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +185,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Cabeza Movible_0: 8895955000467674785
+      LA HUD MITICA DE JUANI FRAGUEIROOOO!_0: -2139302463676742630
+      LA HUD MITICA DE JUANI FRAGUEIROOOO!_1: 2195527458801619026
+      LA HUD MITICA DE JUANI FRAGUEIROOOO!_2: 85844422669029406
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

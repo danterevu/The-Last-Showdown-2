@@ -236,6 +236,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             // activar paredes / RemoteControl
             if (gp.buttonNorth.wasPressedThisFrame)
             {
+                //falta return
                 Debug.Log(gameObject.name + " presiono triangulo (gamepad)");
                 rc.ActivateWall();
             }
