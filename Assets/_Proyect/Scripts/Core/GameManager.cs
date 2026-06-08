@@ -41,6 +41,7 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         InitializeMinigames();
+        SettingsManager.ApplyAllSettings();
     }
 
     public bool IsMinigameAvailable(int id)
