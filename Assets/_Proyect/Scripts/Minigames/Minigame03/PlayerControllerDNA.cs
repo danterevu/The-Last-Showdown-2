@@ -614,24 +614,32 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         OnPowerUpUsed?.Invoke(this);
         hasDNAPowerUp = false;
 
+        Debug.Log($"🎮 {gameObject.name} activated powerup: {currentDNAPowerUp}");
+        
         switch (currentDNAPowerUp)
         {
             case DNAPowerUpPickup.DNAPowerUpType.Shrink:
+                Debug.Log("  → Shrink powerup activated!");
                 StartCoroutine(ShrinkEffect());
                 break;
             case DNAPowerUpPickup.DNAPowerUpType.Mine:
+                Debug.Log("  → Mine powerup activated!");
                 PlaceMine();
                 break;
             case DNAPowerUpPickup.DNAPowerUpType.RemoteControl:
+                Debug.Log("  → Remote Control powerup activated! Closing doors...");
                 UseRemoteControl();
                 break;
             case DNAPowerUpPickup.DNAPowerUpType.Berserk:
+                Debug.Log("  → Berserk powerup activated!");
                 StartCoroutine(BerserkEffect());
                 break;
             case DNAPowerUpPickup.DNAPowerUpType.SlimeShot:
+                Debug.Log("  → Slime Shot powerup activated!");
                 ShootSlime();
                 break;
             case DNAPowerUpPickup.DNAPowerUpType.Shield:
+                Debug.Log("  → Shield powerup activated!");
                 StartCoroutine(ShieldEffect());
                 break;
         }
@@ -742,7 +750,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     private IEnumerator ShrinkEffect()
     {
         // Achicarse
-        animator?.SetTrigger("Shrink");
+        // animator?.SetTrigger("Shrink"); // Comentado: trigger no existe en Animator
         yield return new WaitForSeconds(shrinkAnimationDelay); // Esperar a que termine la animación de shrink
         transform.localScale = originalScale * shrinkScale;
         float speedBoost = baseMoveSpeed * shrinkSpeedMult;
@@ -752,7 +760,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         yield return new WaitForSeconds(shrinkDuration);
 
         // Volver al tamanio original
-        animator?.SetTrigger("Grow");
+        // animator?.SetTrigger("Grow"); // Comentado: trigger no existe en Animator
         yield return new WaitForSeconds(growAnimationDelay); // Esperar a que termine la animación de grow
         transform.localScale = originalScale;
         moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
@@ -796,8 +804,8 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     private void UseRemoteControl()
     {
-        WallManager.Instance?.ActivateAll();
-        Debug.Log(gameObject.name + " activ� el Remote Control");
+        WallManager.Instance?.DeactivateAll();
+        Debug.Log(gameObject.name + " cerró las puertas con el Remote Control");
     }
 
     private IEnumerator BerserkEffect()
