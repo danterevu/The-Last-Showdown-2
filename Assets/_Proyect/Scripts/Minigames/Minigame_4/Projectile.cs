@@ -105,6 +105,17 @@ public class Projectile : MonoBehaviour
             return;
         }
 
+        // --- TORRETA ---
+        SpaceLaserTurret turret = other.GetComponent<SpaceLaserTurret>();
+        if (turret == null) turret = other.GetComponentInParent<SpaceLaserTurret>();
+        if (turret != null)
+        {
+            turret.ReceiveDamageFromProjectile(damage);
+            SpawnHitVfx();
+            Destroy(gameObject);
+            return;
+        }
+
         int hitPlayer = 0;
         string tag = other.tag.Trim();
         if (tag == "Player1") hitPlayer = 1;

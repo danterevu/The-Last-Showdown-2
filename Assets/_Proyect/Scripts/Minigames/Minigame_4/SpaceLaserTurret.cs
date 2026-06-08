@@ -14,7 +14,7 @@ public class SpaceLaserTurret : MonoBehaviour
     [Header("Sprites de estado")]
     [Tooltip("Sprite normal del cuerpo de la torreta")]
     [SerializeField] private Sprite spriteNormal;
-    [Tooltip("Sprite cuando la torreta esta destruida/danada")]
+    [Tooltip("Sprite cuando la torreta esta danada/desactivada")]
     [SerializeField] private Sprite spriteDamaged;
 
     [Header("Targeting")]
@@ -33,6 +33,7 @@ public class SpaceLaserTurret : MonoBehaviour
     [SerializeField] private float preFireDelay = 0.15f;
 
     [Header("Vida")]
+    [Tooltip("Vida maxima de la torreta")]
     [SerializeField] private float maxHealth = 30f;
     [Tooltip("Dano que recibe por cada bala")]
     [SerializeField] private float damagePerHit = 10f;
@@ -40,10 +41,9 @@ public class SpaceLaserTurret : MonoBehaviour
     [SerializeField] private float regenDelay = 4f;
     [Tooltip("Vida regenerada por segundo")]
     [SerializeField] private float regenPerSecond = 5f;
-    [SerializeField] private int pointsOnDestroy = 5;
 
     [Header("Barra de vida")]
-    [Tooltip("Offset en Y respecto al centro del cañon")]
+    [Tooltip("Offset en Y respecto al centro del canon")]
     [SerializeField] private float healthBarOffsetY = 1.2f;
     [Tooltip("Ancho total de la barra en unidades de mundo")]
     [SerializeField] private float healthBarWidth = 1.5f;
@@ -51,9 +51,8 @@ public class SpaceLaserTurret : MonoBehaviour
     [SerializeField] private float healthBarHeight = 0.18f;
     [SerializeField] private Color healthBarColorFull = Color.green;
     [SerializeField] private Color healthBarColorLow = Color.red;
-    [Tooltip("Porcentaje al que la barra cambia a color 'low'")]
+    [Tooltip("Porcentaje de vida al que la barra cambia a color low")]
     [SerializeField] private float lowHealthThreshold = 0.35f;
-    [Tooltip("Color del fondo de la barra")]
     [SerializeField] private Color healthBarBgColor = new Color(0.1f, 0.1f, 0.1f, 0.8f);
 
     [Header("Damage Effects")]
@@ -61,19 +60,16 @@ public class SpaceLaserTurret : MonoBehaviour
     [SerializeField] private float vibrationDuration = 0.2f;
     [SerializeField] private float blinkSpeed = 0.1f;
     [SerializeField] private Color blinkColor = Color.red;
-
-    [Header("Invincibility")]
     [SerializeField] private float invincibilityDuration = 0.5f;
 
     [Header("Debug")]
     [SerializeField] private float _currentHealth;
 
-    // --- Estado interno ---
+    // --- Estado ---
     private float _health;
     private bool _isDestroyed = false;
     private bool _isInvincible = false;
 
-    private float _lastDamageTime = -999f;
     private Coroutine _regenCoroutine;
     private Coroutine _damageEffectRoutine;
     private Coroutine _fireRoutine;
@@ -92,11 +88,12 @@ public class SpaceLaserTurret : MonoBehaviour
     private Color _originalTurretColor;
     private Color _originalHeadColor;
 
-    // --- Barra de vida (world space, generada por codigo) ---
+    // --- Barra de vida ---
     private GameObject _healthBarRoot;
-    private SpriteRenderer _healthBarBg;
     private SpriteRenderer _healthBarFill;
 
+    // -------------------------------------------------------------------------
+    //  INIT
     // -------------------------------------------------------------------------
 
     private void Awake()
@@ -123,74 +120,55 @@ public class SpaceLaserTurret : MonoBehaviour
     }
 
     // -------------------------------------------------------------------------
-    //  BARRA DE VIDA (world space, hija del cañon)
+    //  BARRA DE VIDA
     // -------------------------------------------------------------------------
 
     private void CreateHealthBar()
     {
-        _healthBarRoot = new GameObject("HealthBar");
+        _healthBarRoot = new GameObject("TurretHealthBar");
         _healthBarRoot.transform.SetParent(transform, false);
         _healthBarRoot.transform.localPosition = new Vector3(0f, healthBarOffsetY, 0f);
 
         // Fondo
         GameObject bgGO = new GameObject("BG");
         bgGO.transform.SetParent(_healthBarRoot.transform, false);
-        bgGO.transform.localPosition = Vector3.zero;
-        _healthBarBg = bgGO.AddComponent<SpriteRenderer>();
-        _healthBarBg.sprite = CreateWhiteSprite();
-        _healthBarBg.color = healthBarBgColor;
-        _healthBarBg.sortingOrder = 10;
+        SpriteRenderer bgSr = bgGO.AddComponent<SpriteRenderer>();
+        bgSr.sprite = CreateWhiteSprite();
+        bgSr.color = healthBarBgColor;
+        bgSr.sortingOrder = 10;
         bgGO.transform.localScale = new Vector3(healthBarWidth, healthBarHeight, 1f);
 
-        // Fill
-        GameObject fillGO = new GameObject("Fill");
-        fillGO.transform.SetParent(_healthBarRoot.transform, false);
-        fillGO.transform.localPosition = new Vector3(-healthBarWidth * 0.5f, 0f, 0f);
-        _healthBarFill = fillGO.AddComponent<SpriteRenderer>();
-        _healthBarFill.sprite = CreateWhiteSprite();
-        _healthBarFill.color = healthBarColorFull;
-        _healthBarFill.sortingOrder = 11;
-        fillGO.transform.localScale = new Vector3(healthBarWidth, healthBarHeight * 0.8f, 1f);
-
-        // El pivot del fill esta en el centro del sprite, lo movemos para que escale desde la izquierda
-        // usando un GO hijo con offset
-        fillGO.transform.localPosition = new Vector3(0f, 0f, 0f);
-
-        // Rehacer con pivot correcto: usamos un contenedor
-        Destroy(fillGO);
-
+        // Contenedor del fill (se escala en X desde la izquierda)
         GameObject fillContainer = new GameObject("FillContainer");
         fillContainer.transform.SetParent(_healthBarRoot.transform, false);
+        // Pivot izquierdo: mover el contenedor a la izquierda
         fillContainer.transform.localPosition = new Vector3(-healthBarWidth * 0.5f, 0f, 0f);
 
-        GameObject fillInner = new GameObject("FillInner");
+        // Fill interior (centrado dentro del contenedor, con offset para que escale desde izquierda)
+        GameObject fillInner = new GameObject("Fill");
         fillInner.transform.SetParent(fillContainer.transform, false);
         fillInner.transform.localPosition = new Vector3(healthBarWidth * 0.5f, 0f, 0f);
         _healthBarFill = fillInner.AddComponent<SpriteRenderer>();
         _healthBarFill.sprite = CreateWhiteSprite();
         _healthBarFill.color = healthBarColorFull;
         _healthBarFill.sortingOrder = 11;
-        fillInner.transform.localScale = new Vector3(healthBarWidth, healthBarHeight * 0.8f, 1f);
-
-        // Guardamos la referencia al container para escalar
-        _healthBarFill.transform.parent.gameObject.name = "FillContainer";
+        fillInner.transform.localScale = new Vector3(healthBarWidth, healthBarHeight * 0.75f, 1f);
     }
 
     private void UpdateHealthBar()
     {
-        if (_healthBarFill == null) return;
+        if (_healthBarFill == null || _healthBarRoot == null) return;
 
         float ratio = Mathf.Clamp01(_health / maxHealth);
 
-        // Escalar el contenedor del fill en X
+        // Escalar el contenedor en X para que la barra se encoja desde la derecha
         Transform container = _healthBarFill.transform.parent;
         if (container != null)
             container.localScale = new Vector3(ratio, 1f, 1f);
 
-        // Color segun vida
         _healthBarFill.color = ratio <= lowHealthThreshold ? healthBarColorLow : healthBarColorFull;
 
-        // Ocultar barra si esta llena
+        // Mostrar solo cuando no tiene vida llena
         _healthBarRoot.SetActive(_health < maxHealth);
     }
 
@@ -219,18 +197,27 @@ public class SpaceLaserTurret : MonoBehaviour
 
     private void Update()
     {
-        // Si esta destruida no apunta ni dispara
         if (_isDestroyed) return;
 
         _currentTarget = FindBestTarget();
         if (_currentTarget == null) { _hasSmoothedTarget = false; return; }
 
         Vector3 targetPos = _currentTarget.position;
-        if (!_hasSmoothedTarget) { _smoothedTargetPosition = targetPos; _hasSmoothedTarget = true; }
-        else if (targetFollowSmoothTime > 0f)
-            _smoothedTargetPosition = Vector3.SmoothDamp(_smoothedTargetPosition, targetPos, ref _targetSmoothVelocity, targetFollowSmoothTime);
-        else
+        if (!_hasSmoothedTarget)
+        {
             _smoothedTargetPosition = targetPos;
+            _hasSmoothedTarget = true;
+        }
+        else if (targetFollowSmoothTime > 0f)
+        {
+            _smoothedTargetPosition = Vector3.SmoothDamp(
+                _smoothedTargetPosition, targetPos,
+                ref _targetSmoothVelocity, targetFollowSmoothTime);
+        }
+        else
+        {
+            _smoothedTargetPosition = targetPos;
+        }
 
         RotateHeadTowards(_smoothedTargetPosition);
 
@@ -238,7 +225,6 @@ public class SpaceLaserTurret : MonoBehaviour
         if (!HasLineOfSightTo(_smoothedTargetPosition)) return;
 
         _nextFireTime = Time.time + Mathf.Max(0.01f, fireCooldown);
-
         if (_fireRoutine != null) StopCoroutine(_fireRoutine);
         _fireRoutine = StartCoroutine(FireSequenceRoutine());
     }
@@ -253,7 +239,11 @@ public class SpaceLaserTurret : MonoBehaviour
         foreach (Transform target in _targetsInRange)
         {
             float sqr = ((Vector2)(target.position - transform.position)).sqrMagnitude;
-            if (sqr <= range * range && sqr < bestSqr) { best = target; bestSqr = sqr; }
+            if (sqr <= range * range && sqr < bestSqr)
+            {
+                best = target;
+                bestSqr = sqr;
+            }
         }
 
         return best;
@@ -262,19 +252,26 @@ public class SpaceLaserTurret : MonoBehaviour
     private void RotateHeadTowards(Vector3 worldTarget)
     {
         if (head == null) return;
+
         Vector2 dir = (worldTarget - head.position);
         if (dir.sqrMagnitude < 0.0001f) return;
 
         Vector2 axis = headAimLocalAxis.sqrMagnitude > 0.0001f ? headAimLocalAxis.normalized : Vector2.right;
         float axisAngle = Mathf.Atan2(axis.y, axis.x) * Mathf.Rad2Deg;
-        float targetAngle = Mathf.Clamp(Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - axisAngle, minRotation, maxRotation);
+        float targetAngle = Mathf.Clamp(
+            Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - axisAngle,
+            minRotation, maxRotation);
 
         float currentAngle = Mathf.Repeat(head.eulerAngles.z + 180f, 360f) - 180f;
+
         float newAngle;
         if (targetFollowSmoothTime > 0f)
-            newAngle = Mathf.SmoothDampAngle(currentAngle, targetAngle, ref _headTurnVelocity, targetFollowSmoothTime, Mathf.Max(0f, turnSpeed), Time.deltaTime);
+            newAngle = Mathf.SmoothDampAngle(currentAngle, targetAngle,
+                ref _headTurnVelocity, targetFollowSmoothTime,
+                Mathf.Max(0f, turnSpeed), Time.deltaTime);
         else
-            newAngle = Mathf.MoveTowardsAngle(currentAngle, targetAngle, Mathf.Max(0f, turnSpeed) * Time.deltaTime);
+            newAngle = Mathf.MoveTowardsAngle(currentAngle, targetAngle,
+                Mathf.Max(0f, turnSpeed) * Time.deltaTime);
 
         head.rotation = Quaternion.Euler(0f, 0f, Mathf.Clamp(newAngle, minRotation, maxRotation));
     }
@@ -282,15 +279,18 @@ public class SpaceLaserTurret : MonoBehaviour
     private Vector2 GetWorldAimDirection()
     {
         if (head == null) return Vector2.right;
-        Vector2 axis = headAimLocalAxis.sqrMagnitude > 0.0001f ? headAimLocalAxis.normalized : Vector2.right;
+
+        Vector2 axis = headAimLocalAxis.sqrMagnitude > 0.0001f
+            ? headAimLocalAxis.normalized : Vector2.right;
         Vector3 world = head.TransformDirection(new Vector3(axis.x, axis.y, 0f));
-        Vector2 dir = new Vector2(world.x, world.y);
-        return dir.sqrMagnitude < 0.0001f ? Vector2.right : dir.normalized;
+        Vector2 d = new Vector2(world.x, world.y);
+        return d.sqrMagnitude < 0.0001f ? Vector2.right : d.normalized;
     }
 
     private bool HasLineOfSightTo(Vector3 worldTarget)
     {
-        Vector2 origin = firePoint != null ? (Vector2)firePoint.position : (Vector2)transform.position;
+        Vector2 origin = firePoint != null
+            ? (Vector2)firePoint.position : (Vector2)transform.position;
         Vector2 dir = ((Vector2)worldTarget - origin);
         if (dir.sqrMagnitude < 0.0001f) return false;
         dir.Normalize();
@@ -306,13 +306,18 @@ public class SpaceLaserTurret : MonoBehaviour
         if (col.GetComponentInParent<SpaceShipController>() != null) return true;
         if (col.CompareTag("Player1") || col.CompareTag("Player2")) return true;
         Transform t = col.transform;
-        while (t != null) { if (t.CompareTag("Player1") || t.CompareTag("Player2")) return true; t = t.parent; }
+        while (t != null)
+        {
+            if (t.CompareTag("Player1") || t.CompareTag("Player2")) return true;
+            t = t.parent;
+        }
         return false;
     }
 
     private IEnumerator FireSequenceRoutine()
     {
-        if (preFireDelay > 0f) yield return new WaitForSeconds(preFireDelay);
+        if (preFireDelay > 0f)
+            yield return new WaitForSeconds(preFireDelay);
         FireProjectile();
         _fireRoutine = null;
     }
@@ -320,85 +325,67 @@ public class SpaceLaserTurret : MonoBehaviour
     private void FireProjectile()
     {
         if (stunProjectilePrefab == null || firePoint == null) return;
+
         Vector2 dir = GetWorldAimDirection();
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        GameObject obj = Instantiate(stunProjectilePrefab, firePoint.position, Quaternion.Euler(0f, 0f, angle));
+        GameObject obj = Instantiate(stunProjectilePrefab,
+            firePoint.position, Quaternion.Euler(0f, 0f, angle));
         StunProjectile proj = obj.GetComponent<StunProjectile>();
         if (proj != null) proj.Init(dir);
     }
 
     // -------------------------------------------------------------------------
-    //  DAÑO Y VIDA
+    //  DAÑO - llamado directamente por Projectile.cs
     // -------------------------------------------------------------------------
 
-    private void OnCollisionEnter2D(Collision2D collision) { ApplyDamageFrom(collision.gameObject); }
-    private void OnTriggerEnter2D(Collider2D other) { ApplyDamageFrom(other.gameObject); }
-
-    private void ApplyDamageFrom(GameObject other)
+    /// El proyectil llama a este metodo y se destruye el mismo.
+    /// No registra kills ni da puntos, solo aplica dano a la torreta.
+    public void ReceiveDamageFromProjectile(float amount)
     {
-        Debug.Log($"[Turret] ApplyDamageFrom llamado: {other.name}");
         if (_isInvincible) return;
-        if (other == null) return;
-
-        Projectile projectile = other.GetComponent<Projectile>() ?? other.GetComponentInParent<Projectile>();
-        Debug.Log($"[Turret] Projectile encontrado: {projectile}");
-        if (projectile == null) return;
-
-        int killer = projectile.OwnerPlayer;
-        Destroy(projectile.gameObject);
-
-        TakeDamage(damagePerHit, killer);
+        TakeDamage(amount);
     }
 
-    private void TakeDamage(float amount, int killerPlayer)
+    private void TakeDamage(float amount)
     {
         _health -= amount;
         _health = Mathf.Max(0f, _health);
         _currentHealth = _health;
-        _lastDamageTime = Time.time;
 
         UpdateHealthBar();
         PlayDamageEffects();
 
-        // Reiniciar regeneracion
+        // Reiniciar regen
         if (_regenCoroutine != null) StopCoroutine(_regenCoroutine);
         _regenCoroutine = StartCoroutine(RegenRoutine());
 
         if (_health <= 0f && !_isDestroyed)
-            EnterDestroyedState(killerPlayer);
+            EnterDestroyedState();
     }
 
-    private void EnterDestroyedState(int killerPlayer)
+    private void EnterDestroyedState()
     {
         _isDestroyed = true;
         _hasSmoothedTarget = false;
 
-        // Cambiar sprite a danado
         if (turretSpriteRenderer != null && spriteDamaged != null)
             turretSpriteRenderer.sprite = spriteDamaged;
 
-        // Ocultar cabeza
         if (head != null) head.gameObject.SetActive(false);
 
-        // Dar puntos al que lo derribo
-        if (killerPlayer == 1 || killerPlayer == 2)
-            GameManager.Instance?.AddPoints(killerPlayer, pointsOnDestroy);
-
-        Debug.Log($"[SpaceLaserTurret] Destruida por jugador {killerPlayer}. Regenerando...");
+        Debug.Log("[SpaceLaserTurret] Destruida. Regenerando...");
     }
 
     private void ExitDestroyedState()
     {
         _isDestroyed = false;
 
-        // Restaurar sprite normal
         if (turretSpriteRenderer != null && spriteNormal != null)
             turretSpriteRenderer.sprite = spriteNormal;
 
-        // Mostrar cabeza
         if (head != null) head.gameObject.SetActive(true);
 
-        Debug.Log("[SpaceLaserTurret] Reparada. Volviendo a funcionar.");
+        Debug.Log("[SpaceLaserTurret] Reparada.");
     }
 
     // -------------------------------------------------------------------------
@@ -407,10 +394,8 @@ public class SpaceLaserTurret : MonoBehaviour
 
     private IEnumerator RegenRoutine()
     {
-        // Esperar el delay inicial sin recibir dano
         yield return new WaitForSeconds(regenDelay);
 
-        // Regenerar vida gradualmente
         while (_health < maxHealth)
         {
             _health += regenPerSecond * Time.deltaTime;
@@ -418,7 +403,6 @@ public class SpaceLaserTurret : MonoBehaviour
             _currentHealth = _health;
             UpdateHealthBar();
 
-            // Si estaba destruida y ya tiene algo de vida, volver a activar
             if (_isDestroyed && _health >= maxHealth * 0.3f)
                 ExitDestroyedState();
 
@@ -454,9 +438,9 @@ public class SpaceLaserTurret : MonoBehaviour
         {
             if (elapsed < vibrationDuration)
             {
-                float offsetX = Random.Range(-vibrationIntensity, vibrationIntensity);
-                float offsetY = Random.Range(-vibrationIntensity, vibrationIntensity);
-                transform.position = _originalPosition + new Vector3(offsetX, offsetY, 0f);
+                float ox = Random.Range(-vibrationIntensity, vibrationIntensity);
+                float oy = Random.Range(-vibrationIntensity, vibrationIntensity);
+                transform.position = _originalPosition + new Vector3(ox, oy, 0f);
             }
             else
             {
