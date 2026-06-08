@@ -20,6 +20,10 @@ public class Projectile : MonoBehaviour
     private bool hitVfxSpawned;
     private Vector2 lastMoveDir = Vector2.right;
 
+    // Propiedades publicas para que otros scripts (SpaceLaserTurret, etc.) puedan leer estos valores
+    public int OwnerPlayer => ownerPlayer;
+    public float Damage => damage;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();

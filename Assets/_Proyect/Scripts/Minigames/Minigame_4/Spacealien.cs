@@ -67,11 +67,21 @@ public class SpaceAlien : MonoBehaviour
     private float originalExploreSpeed;
     private float originalChaseSpeed;
 
+    private Transform player1Transform;
+    private Transform player2Transform;
+
     // -------------------------------------------------------------------------
 
     public void Init(SpaceAlienShipsEvent manager)
     {
         eventManager = manager;
+
+        GameObject p1 = GameObject.FindWithTag("Player1");
+        GameObject p2 = GameObject.FindWithTag("Player2");
+        if (p1 != null) player1Transform = p1.transform;
+        if (p2 != null) player2Transform = p2.transform;
+
+        Debug.Log($"[SpaceAlien] Init. P1={player1Transform} P2={player2Transform}");
     }
 
     private void Awake()
@@ -186,6 +196,7 @@ public class SpaceAlien : MonoBehaviour
     private void UpdateExploring()
     {
         currentSpeed = exploreSpeed;
+
         dirChangeTimer += Time.deltaTime;
         if (dirChangeTimer >= dirChangeInterval)
         {
@@ -195,6 +206,14 @@ public class SpaceAlien : MonoBehaviour
         }
 
         Transform player = GetNearestPlayerInRange();
+
+        // LOG TEMPORAL
+        if (player1Transform != null)
+        {
+            float d = Vector2.Distance(transform.position, player1Transform.position);
+            Debug.Log($"[SpaceAlien] Distancia a P1: {d:F1} | DetectionRadius: {detectionRadius} | Player encontrado: {player != null}");
+        }
+
         if (player != null) { chasedPlayer = player; state = AlienState.Chasing; }
     }
 
@@ -340,14 +359,20 @@ public class SpaceAlien : MonoBehaviour
 
     private Transform GetNearestPlayerInRange()
     {
-        GameObject p1 = GameObject.FindWithTag("Player1");
-        GameObject p2 = GameObject.FindWithTag("Player2");
-
         Transform nearest = null;
         float nearestDist = detectionRadius;
 
-        if (p1 != null) { float d = Vector2.Distance(transform.position, p1.transform.position); if (d < nearestDist) { nearestDist = d; nearest = p1.transform; } }
-        if (p2 != null) { float d = Vector2.Distance(transform.position, p2.transform.position); if (d < nearestDist) { nearest = p2.transform; } }
+        if (player1Transform != null && player1Transform.gameObject.activeInHierarchy)
+        {
+            float d = Vector2.Distance(transform.position, player1Transform.position);
+            if (d < nearestDist) { nearestDist = d; nearest = player1Transform; }
+        }
+
+        if (player2Transform != null && player2Transform.gameObject.activeInHierarchy)
+        {
+            float d = Vector2.Distance(transform.position, player2Transform.position);
+            if (d < nearestDist) { nearest = player2Transform; }
+        }
 
         return nearest;
     }
