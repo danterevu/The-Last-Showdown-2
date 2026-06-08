@@ -12,6 +12,7 @@ public class TurretRangeDetector : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        Debug.Log($"[TurretRangeDetector] OnTriggerEnter: {other.name} | Tag: {other.tag}");
         if (turret != null && (other.CompareTag("Player1") || other.CompareTag("Player2")))
         {
             turret.AddTarget(other.transform);
@@ -20,6 +21,7 @@ public class TurretRangeDetector : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
+        Debug.Log($"[TurretRangeDetector] OnTriggerExit: {other.name} | Tag: {other.tag}");
         if (turret != null && (other.CompareTag("Player1") || other.CompareTag("Player2")))
         {
             turret.RemoveTarget(other.transform);

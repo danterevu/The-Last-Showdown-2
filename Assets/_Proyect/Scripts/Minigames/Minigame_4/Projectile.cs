@@ -65,6 +65,7 @@ public class Projectile : MonoBehaviour
         Debug.Log($"Colision con: {other.name} | tag: {other.tag} | layer: {LayerMask.LayerToName(other.layer)}");
 
         if (other.GetComponent<SpaceZoneBoundary>() != null) return;
+        if (other.GetComponent<TurretRangeDetector>() != null) return;
 
         // --- ALIEN ---
         SpaceAlien alien = other.GetComponent<SpaceAlien>();
@@ -107,7 +108,6 @@ public class Projectile : MonoBehaviour
 
         // --- TORRETA ---
         SpaceLaserTurret turret = other.GetComponent<SpaceLaserTurret>();
-        if (turret == null) turret = other.GetComponentInParent<SpaceLaserTurret>();
         if (turret != null)
         {
             turret.ReceiveDamageFromProjectile(damage);

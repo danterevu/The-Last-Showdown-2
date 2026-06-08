@@ -245,6 +245,8 @@ MonoBehaviour:
   stunProjectilePrefab: {fileID: 4722811597661423890, guid: 6b12a3391907a2440ae585deb4e64206, type: 3}
   turretSpriteRenderer: {fileID: 7728546362114138529}
   headSpriteRenderer: {fileID: 171519897617093705}
+  spriteNormal: {fileID: 0}
+  spriteDamaged: {fileID: 0}
   range: 12
   turnSpeed: 360
   targetFollowSmoothTime: 0.15
@@ -257,14 +259,22 @@ MonoBehaviour:
   fireCooldown: 4
   preFireDelay: 0.3
   maxHealth: 30
-  pointsOnDestroy: 5
+  damagePerHit: 10
+  regenDelay: 4
+  regenPerSecond: 5
+  healthBarOffsetY: 1.2
+  healthBarWidth: 1.5
+  healthBarHeight: 0.18
+  healthBarColorFull: {r: 0, g: 1, b: 0, a: 1}
+  healthBarColorLow: {r: 1, g: 0, b: 0, a: 1}
+  lowHealthThreshold: 0.35
+  healthBarBgColor: {r: 0.1, g: 0.1, b: 0.1, a: 0.8}
   vibrationIntensity: 0.1
   vibrationDuration: 0.2
   blinkSpeed: 0.1
   blinkColor: {r: 1, g: 0, b: 0, a: 1}
-  blinkCount: 2
-  _currentHealth: 0
   invincibilityDuration: 0.5
+  _currentHealth: 0
 --- !u!61 &8720312093600795981
 BoxCollider2D:
   m_ObjectHideFlags: 0
