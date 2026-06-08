@@ -232,14 +232,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             if (gp.buttonEast.wasPressedThisFrame)
             {
                 Debug.Log(gameObject.name + " presiono interact (gamepad)");
-                UsePowerUp();
-            }
-            // activar paredes / RemoteControl
-            if (gp.buttonNorth.wasPressedThisFrame)
-            {
-                //falta return
-                Debug.Log(gameObject.name + " presiono triangulo (gamepad)");
-                rc.ActivateWall();
+                PerformInteract();
             }
         }
 
@@ -539,6 +532,11 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     private void OnInteract(InputAction.CallbackContext context)
     {
         if (!IsCorrectDevice(context.control.device)) return;
+        PerformInteract();
+    }
+
+    public void PerformInteract()
+    {
         if (isDead || isStunned) return;
 
         // PRIORIDAD ABSOLUTA: si tengo caja, la suelto o lanzo
@@ -857,7 +855,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         float dirX = IsFacingRight() ? 1f : -1f; //para donde veo? seguro que para el bulto de chori
         Vector2 direction = new Vector2(dirX, 0f);
 
-        Quaternion rotation = Quaternion.Euler(0f, 0f, IsFacingRight() ? 90f : -90f);
+        Quaternion rotation = Quaternion.Euler(0f, 0f, IsFacingRight() ? 180f : -180f);
 
         Vector3 spawnPos = transform.position + new Vector3(dirX * 0.5f, 0f, 0f);
         GameObject proj = Instantiate(slimeProjectilePrefab, spawnPos, rotation);

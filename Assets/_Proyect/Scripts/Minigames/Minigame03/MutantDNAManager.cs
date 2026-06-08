@@ -149,6 +149,7 @@ public class MutantDNAManager : MonoBehaviour
     private IEnumerator ChangeZone()
     {
         Debug.Log("ChangeZone() iniciado");
+        //ForceDropDNAFromPlayers();
         gameRunning = false;
 
         int oldZoneIndex = currentZoneIndex;

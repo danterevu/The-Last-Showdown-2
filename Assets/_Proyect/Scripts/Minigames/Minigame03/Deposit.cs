@@ -39,7 +39,7 @@ public class Deposit : MonoBehaviour
                                                 // Solo depositar si el lanzador es el dueño del depósito
             if (thrower == allowedPlayer)
             {
-                GameManager.Instance.AddPoints(allowedPlayer, 50);
+                GameManager.Instance.AddPoints(allowedPlayer, 25);
                 OnAnyDeposit?.Invoke();
                 dna.RespawnAfterDelay();
                 Debug.Log($"DNA lanzado depositado correctamente por el jugador {thrower} en su depósito.");

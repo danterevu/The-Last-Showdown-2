@@ -6,10 +6,12 @@ public class WallManager : MonoBehaviour
     public static WallManager Instance;
 
     [Header("Door Settings")]
-    [SerializeField] private Animator[] wallAnimators;      // arrastras los Animators de las puertas
+    [SerializeField] private Animator[] wallAnimators;
+    [SerializeField] private Collider2D[] wallColliders;   // mismo orden que wallAnimators
     [SerializeField] private string openAnimationTrigger = "Open";
     [SerializeField] private string closeAnimationTrigger = "Close";
-    [SerializeField] private float reopenDelay = 3f; // Tiempo en segundos para volver a abrir las puertas (configurable)
+    [SerializeField] private float reopenDelay = 3f;
+    [SerializeField] private float colliderActivationDelay = 0.5f; // tiempo para activar/desactivar colliders
 
     private Coroutine deactivateCoroutine;
     private Coroutine reopenCoroutine;
@@ -17,82 +19,69 @@ public class WallManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        ActivateAll(); // empiezan ABIERTAS (usamos el trigger "Open")
-        Debug.Log("WallManager: Initialized - doors start OPEN");
-    }
-
-    private void OnEnable()
-    {
-        // Quitamos la suscripción para que no se desactiven al depositar
-        // Deposit.OnAnyDeposit += DeactivateAll;
-    }
-
-    private void OnDisable()
-    {
-        // Deposit.OnAnyDeposit -= DeactivateAll;
+        ActivateAll(); // empiezan ABIERTAS
     }
 
     public void ActivateAll()
     {
         if (deactivateCoroutine != null)
             StopCoroutine(deactivateCoroutine);
+        if (reopenCoroutine != null)
+            StopCoroutine(reopenCoroutine);
 
-        Debug.Log($"WallManager: Opening {wallAnimators.Length} doors with trigger: {openAnimationTrigger}");
+        // Abrir puertas (animación)
         foreach (var anim in wallAnimators)
         {
             if (anim != null)
             {
-                Debug.Log($"  - GameObject: {anim.gameObject.name}");
-                
-                // Reset both triggers first
                 anim.ResetTrigger(openAnimationTrigger);
                 anim.ResetTrigger(closeAnimationTrigger);
-                
-                // Set the new trigger
                 anim.SetTrigger(openAnimationTrigger);
             }
         }
+
+        // Desactivar colliders después de un breve retraso (para que la animación de apertura termine)
+        StartCoroutine(SetCollidersState(false, colliderActivationDelay));
     }
 
     public void DeactivateAll()
     {
-        // Stop any existing coroutines
         if (deactivateCoroutine != null)
-        {
             StopCoroutine(deactivateCoroutine);
-            deactivateCoroutine = null;
-        }
         if (reopenCoroutine != null)
-        {
             StopCoroutine(reopenCoroutine);
-            reopenCoroutine = null;
-        }
 
-        Debug.Log($"WallManager: Closing {wallAnimators.Length} doors with trigger: {closeAnimationTrigger}");
+        // Cerrar puertas (animación)
         foreach (var anim in wallAnimators)
         {
             if (anim != null)
             {
-                Debug.Log($"  - GameObject: {anim.gameObject.name}");
-                
-                // Reset both triggers first
                 anim.ResetTrigger(openAnimationTrigger);
                 anim.ResetTrigger(closeAnimationTrigger);
-                
-                // Set the new trigger
                 anim.SetTrigger(closeAnimationTrigger);
             }
         }
 
-        // Start coroutine to reopen doors after delay
+        // Activar colliders inmediatamente (para bloquear al instante) o con retraso
+        StartCoroutine(SetCollidersState(true, 0f)); // sin retraso
+
+        // Programar reapertura después de reopenDelay
         reopenCoroutine = StartCoroutine(ReopenDoorsAfterDelay());
+    }
+
+    private IEnumerator SetCollidersState(bool active, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        foreach (var col in wallColliders)
+        {
+            if (col != null)
+                col.enabled = active;
+        }
     }
 
     private IEnumerator ReopenDoorsAfterDelay()
     {
-        Debug.Log($"WallManager: Doors will reopen in {reopenDelay} seconds...");
         yield return new WaitForSeconds(reopenDelay);
-        Debug.Log("WallManager: Reopening doors now!");
         ActivateAll();
         reopenCoroutine = null;
     }

@@ -90,37 +90,37 @@ public class LogoIntroSequence : MonoBehaviour
         introSequence.Append(logoImage.rectTransform.DOLocalMove(Vector3.zero, moveToCenterDuration).SetEase(Ease.OutBack));
         introSequence.Join(logoImage.rectTransform.DORotate(new Vector3(0, 0, rotationAmount), rotateDuration, RotateMode.FastBeyond360).SetEase(Ease.OutQuad));
         currentTime += moveToCenterDuration;
-        
+
         if (topText != null)
         {
             introSequence.Join(topText.DOFade(1, topTextFadeInDuration).SetEase(Ease.InOutQuad).SetDelay(moveToCenterDuration * 0.5f));
         }
-        
+
         introSequence.AppendCallback(() => PlayLogoSound());
         introSequence.Append(logoImage.rectTransform.DOScale(Vector3.one * scaleUpAmount, scaleUpDuration).SetEase(Ease.OutElastic));
         currentTime += scaleUpDuration;
-        
+
         if (bottomText != null)
         {
             introSequence.Join(bottomText.DOFade(1, bottomTextFadeInDuration).SetEase(Ease.InOutQuad));
         }
-        
+
         introSequence.Append(logoImage.rectTransform.DOScale(Vector3.one * initialScale, scaleUpDuration * 0.8f).SetEase(Ease.InQuad));
         currentTime += scaleUpDuration * 0.8f;
-        
+
         introSequence.AppendInterval(stayDuration);
         currentTime += stayDuration;
-        
+
         if (topText != null)
         {
             introSequence.Join(topText.DOFade(0, textFadeOutDuration).SetEase(Ease.InQuad));
         }
-        
+
         if (bottomText != null)
         {
             introSequence.Join(bottomText.DOFade(0, textFadeOutDuration).SetEase(Ease.InQuad));
         }
-        
+
         introSequence.AppendCallback(() => {
             if (mainMenuCanvas != null)
             {
@@ -129,14 +129,14 @@ public class LogoIntroSequence : MonoBehaviour
         });
         introSequence.Append(logoImage.rectTransform.DOLocalMove(exitPosition, exitDuration).SetEase(Ease.InQuad));
         introSequence.Join(logoImage.rectTransform.DORotate(new Vector3(0, 0, rotationAmount * 2), exitDuration, RotateMode.FastBeyond360).SetEase(Ease.InQuad));
-        
+
         float flashTime = currentTime + flashDelay;
         introSequence.Insert(flashTime, blackScreen.DOColor(Color.white, 0.1f).SetEase(Ease.OutQuad));
         introSequence.Insert(flashTime + 0.1f, blackScreen.DOFade(0, fadeOutBlackScreenDuration).SetEase(Ease.OutQuad));
-        
+
         float musicTime = currentTime + menuMusicOffset;
         introSequence.InsertCallback(musicTime, () => AudioManager.Instance?.PlayMusic(SoundID.MenuMusic));
-        
+
         introSequence.AppendCallback(() => ShowMainMenu());
 
         introSequence.Play();
@@ -150,16 +150,25 @@ public class LogoIntroSequence : MonoBehaviour
         }
     }
 
+    public void SkipIntro()
+    {
+        ShowMainMenu();
+        if (mainMenuCanvas != null)
+        {
+            mainMenuCanvas.SetActive(true);
+        }
+    }
+
     private void ShowMainMenu()
     {
         blackScreen.gameObject.SetActive(false);
         logoImage.gameObject.SetActive(false);
-        
+
         if (topText != null)
         {
             topText.gameObject.SetActive(false);
         }
-        
+
         if (bottomText != null)
         {
             bottomText.gameObject.SetActive(false);

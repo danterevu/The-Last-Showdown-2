@@ -50,6 +50,18 @@ public class PunchHitboxDNA : MonoBehaviour
         Vector2 knockDir;
         float finalKnockbackForce = owner.knockbackForce;
 
+        if (target.IsShieldActive()) //ojo esto
+        {
+            // Dirección del golpe
+            dirX = owner.IsFacingRight() ? 1f : -1f;
+            knockDir = new Vector2(dirX, 0.3f).normalized;
+            float finalKnockback = owner.knockbackForce * (owner.IsBerserk() ? berserkKnockbackMultiplier : 1f);
+            target.ReceiveKnockback(knockDir, finalKnockback, owner);
+            // No se aplica autoknockback al atacante, ni se suelta DNA
+            Deactivate();
+            return;
+        }
+
         if (owner.IsBerserk())
         {
             // Dirección con mucha más altura (0.7 horizontal, 0.7 vertical ? normalizado da ~0.7 cada uno)

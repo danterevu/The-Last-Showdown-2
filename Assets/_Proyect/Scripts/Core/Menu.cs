@@ -5,7 +5,7 @@ using TMPro;
 public class Menu : MonoBehaviour
 {
     private static bool hasPlayedIntro = false;
-    
+
     [Header("Intro Settings")]
     [SerializeField] private LogoIntroSequence logoIntroSequence;
     [SerializeField] private bool playIntroOnStart = true;
@@ -64,7 +64,7 @@ public class Menu : MonoBehaviour
     void Start()
     {
         UpdateAutoTypeButtonLabel();
-        
+
         if (logoIntroSequence != null && playIntroOnStart && !hasPlayedIntro)
         {
             hasPlayedIntro = true;
@@ -73,7 +73,14 @@ public class Menu : MonoBehaviour
         else
         {
             AudioManager.Instance?.PlayMusic(SoundID.MenuMusic);
-            PlayMenuAnimations();
+            if (logoIntroSequence != null)
+            {
+                logoIntroSequence.SkipIntro();
+            }
+            else
+            {
+                PlayMenuAnimations();
+            }
         }
     }
 
@@ -90,7 +97,7 @@ public class Menu : MonoBehaviour
             autoTypeButtonLabel.text = SettingsManager.AutoTypeEnabled ? "AUTO-TIPO: ON" : "AUTO-TIPO: OFF";
         }
     }
-    
+
     public void MenuButton()
     {
         GameManager.Instance?.ResetGame();
@@ -191,7 +198,7 @@ public class Menu : MonoBehaviour
 
         if (lightImages != null && lightImages.Length > 0)
         {
-            
+
             AnimateLightImages();
         }
 
@@ -199,7 +206,7 @@ public class Menu : MonoBehaviour
         {
             if (cameramanContainer.childCount > 0)
             {
-               
+
                 AnimateCameramen();
             }
             else
@@ -222,14 +229,14 @@ public class Menu : MonoBehaviour
         {
             Vector3 originalScale = audienceMember.localScale;
             Vector3 targetScale = originalScale * audienceScaleAmount;
-            
+
             float delay = index * 0.1f;
-            
+
             Sequence scaleSequence = DOTween.Sequence();
             scaleSequence.Append(audienceMember.DOScale(targetScale, audienceScaleDuration / 2f).SetEase(Ease.InOutSine).SetDelay(delay));
             scaleSequence.Append(audienceMember.DOScale(originalScale, audienceScaleDuration / 2f).SetEase(Ease.InOutSine));
             scaleSequence.SetLoops(-1, LoopType.Restart);
-            
+
             index++;
         }
     }
@@ -237,7 +244,7 @@ public class Menu : MonoBehaviour
     private void AnimateCentralObject()
     {
         Vector2 stretchedSize = new Vector2(centralOriginalSize.x, centralOriginalSize.y + centralStretchAmount);
-        
+
         Sequence stretchSequence = DOTween.Sequence();
         stretchSequence.Append(centralObject.DOSizeDelta(stretchedSize, centralStretchDuration / 2f).SetEase(Ease.InOutSine));
         stretchSequence.Append(centralObject.DOSizeDelta(centralOriginalSize, centralStretchDuration / 2f).SetEase(Ease.InOutSine));
@@ -251,7 +258,7 @@ public class Menu : MonoBehaviour
             RectTransform light = lightImages[i];
             Vector3 originalPos = light.localPosition;
             float direction = i % 2 == 0 ? 1f : -1f;
-            
+
             Sequence lightSequence = DOTween.Sequence();
             lightSequence.Append(light.DOLocalMove(originalPos + Vector3.right * lightsMoveAmount * direction, lightsMoveDuration / 2f).SetEase(Ease.InOutSine).SetDelay(i * 0.2f));
             lightSequence.Append(light.DOLocalMove(originalPos + Vector3.left * lightsMoveAmount * direction, lightsMoveDuration).SetEase(Ease.InOutSine));
@@ -267,14 +274,14 @@ public class Menu : MonoBehaviour
         {
             Vector3 originalPos = cameraman.localPosition;
             Vector3 targetPos = originalPos + Vector3.up * cameramanMoveAmount;
-            
+
             float delay = index * 0.15f;
-            
+
             cameraman.DOLocalMove(targetPos, cameramanMoveDuration)
                 .SetEase(Ease.InOutSine)
                 .SetLoops(-1, LoopType.Yoyo)
                 .SetDelay(delay);
-            
+
             index++;
         }
     }
