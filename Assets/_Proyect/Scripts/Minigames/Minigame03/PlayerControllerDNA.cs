@@ -911,7 +911,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         carriedDNA = dna;
         dna.PickUp(this);
         moveSpeed = baseMoveSpeed * 0.6f;
-        SetHandsActive(true);
     }
     public void DropDNA()
     {
@@ -924,8 +923,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             carriedDNA = null;
         }
         moveSpeed = baseMoveSpeed;
-        SetHandsActive(false);
-        Debug.Log($"{gameObject.name} DropDNA - después: hasDNA={hasDNA}, moveSpeed={moveSpeed}");
     }
     private void ThrowDNA()
     {
@@ -938,7 +935,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         hasDNA = false;
         moveSpeed = baseMoveSpeed;
         
-        if (playerSpeed >= 0.5f)
+        /*if (playerSpeed >= 0.5f)
         {
             Debug.Log($"[MANOS] Throw DNA trigger activado - Hands Animator: {(handsAnimator != null ? "Asignado" : "NULL")}");
             handsAnimator?.SetTrigger("Throw");
@@ -947,7 +944,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         else
         {
             SetHandsActive(false);
-        }
+        }*/
     }
 
     private IEnumerator HideHandsAfterDelay()
