@@ -897,12 +897,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     public bool HasDNA() => hasDNA;
     public void PickDNA(DNA dna)
     {
-        // Si tiene caja, soltarla antes de agarrar ADN, MODIFICAR linea EN TryPickUp() de la clase Crate
-        /* if (heldCrate != null) 
-         {
-             heldCrate.DropAtPlace();
-             heldCrate = null;
-         }*/
         if (IsCarryingSomething()) return;
         if (hasDNA) return;
         hasDNA = true;
