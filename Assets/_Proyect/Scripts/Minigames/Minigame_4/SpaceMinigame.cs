@@ -163,15 +163,24 @@ public class SpaceMinigame : MonoBehaviour
         {
             SpaceShipController ship1 = player1.GetComponent<SpaceShipController>();
             if (ship1 != null) ship1.enabled = !freeze;
+
             Rigidbody2D rb1 = player1.GetComponent<Rigidbody2D>();
             if (rb1 != null) rb1.simulated = !freeze;
+
+            WeaponController weapon1 = player1.GetComponentInChildren<WeaponController>();
+            if (weapon1 != null) weapon1.enabled = !freeze;
         }
+
         if (player2 != null)
         {
             SpaceShipController ship2 = player2.GetComponent<SpaceShipController>();
             if (ship2 != null) ship2.enabled = !freeze;
+
             Rigidbody2D rb2 = player2.GetComponent<Rigidbody2D>();
             if (rb2 != null) rb2.simulated = !freeze;
+
+            WeaponController weapon2 = player2.GetComponentInChildren<WeaponController>();
+            if (weapon2 != null) weapon2.enabled = !freeze;
         }
     }
 

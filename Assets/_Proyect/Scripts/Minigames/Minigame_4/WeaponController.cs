@@ -106,7 +106,7 @@ public class WeaponController : MonoBehaviour
 
         Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
         if (gp != null)
-            gamepadShoot = gp.rightTrigger.isPressed;
+            gamepadShoot = gp.buttonWest.isPressed;
 
         shootHeld = keyboardShoot || gamepadShoot;
         shootPressedThisFrame = shootHeld && !wasHeld;
