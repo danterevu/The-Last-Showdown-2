@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class SpaceMinigame : MonoBehaviour
+public class SpaceMinigame : MonoBehaviour, IMinijuegoControlable
 {
     public static SpaceMinigame Instance;
 
@@ -73,13 +73,36 @@ public class SpaceMinigame : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log($"SpaceMinigame Start | ModifierManager: {ModifierManager.Instance} | GameManager: {GameManager.Instance}");
+        Debug.Log($"SpaceMinigame Start | Esperando a que termine el contador...");
 
+        InicializarMinijuego();
+        CongelarJugadores();
+    }
+
+    public void InicializarMinijuego()
+    {
         ModifierManager.Instance?.ResetGoldenKill();
         ModifierManager.Instance?.ResetGoldenKill();
         hudRounds?.UpdateKills(0, 0);
         hudRounds?.UpdateRounds(0, 0);
         hudRounds?.UpdateCurrentRound(1);
+        roundOver = true;
+    }
+
+    public void CongelarJugadores()
+    {
+        FreezePlayers(true);
+    }
+
+    public void DescongelarJugadores()
+    {
+        FreezePlayers(false);
+    }
+
+    // Método público para iniciar el minijuego cuando termine el contador
+    public void IniciarMinijuego()
+    {
+        Debug.Log("SpaceMinigame: Iniciando minijuego!");
         StartCoroutine(InitDelayed());
     }
 
@@ -90,72 +113,13 @@ public class SpaceMinigame : MonoBehaviour
         ActivateZone(0);
         DoRespawn(player1, player1Spawns[0]);
         DoRespawn(player2, player2Spawns[0]);
-        yield return StartCoroutine(InitialCountdown());
-    }
 
-    private IEnumerator InitialCountdown()
-    {
-        FreezePlayers(true);
-        roundOver = true;
-
-        if (countdownText != null)
-            countdownText.gameObject.SetActive(true);
-
-        for (int i = 3; i >= 0; i--)
-        {
-            if (countdownText != null)
-            {
-                if (i > 0)
-                {
-                    countdownText.text = i.ToString();
-                    yield return StartCoroutine(AnimateCountdownText(countdownText));
-                }
-                else
-                {
-                    countdownText.text = "Ya!";
-                }
-            }
-            else if (i == 0)
-            {
-                yield return null;
-            }
-
-            if (i > 0)
-                yield return new WaitForSeconds(0.5f);
-        }
-
-        if (countdownText != null)
-            countdownText.gameObject.SetActive(false);
-
+        // Descongelamos y empezamos la partida
         FreezePlayers(false);
         roundOver = false;
     }
 
-    private IEnumerator AnimateCountdownText(TextMeshProUGUI text)
-    {
-        Vector3 originalScale = text.transform.localScale;
-        Vector3 originalPos = text.transform.localPosition;
-        float duration = 0.5f;
-        float shakeAmount = 10f;
-        float scaleMultiplier = 1.3f;
 
-        for (float t = 0; t < duration; t += Time.deltaTime)
-        {
-            float progress = t / duration;
-
-            float scale = Mathf.Lerp(1f, scaleMultiplier, Mathf.PingPong(progress * 2, 1f));
-            text.transform.localScale = originalScale * scale;
-
-            float shakeX = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
-            float shakeY = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
-            text.transform.localPosition = originalPos + new Vector3(shakeX, shakeY, 0f);
-
-            yield return null;
-        }
-
-        text.transform.localScale = originalScale;
-        text.transform.localPosition = originalPos;
-    }
 
     private void FreezePlayers(bool freeze)
     {
@@ -377,6 +341,28 @@ public class SpaceMinigame : MonoBehaviour
         fadeImage.gameObject.SetActive(false);
 
         onComplete?.Invoke();
+    }
+
+    private IEnumerator AnimateCountdownText(TextMeshProUGUI text)
+    {
+        Vector3 originalScale = text.transform.localScale;
+        Vector3 originalPos = text.transform.localPosition;
+        float duration = 0.5f;
+        float shakeAmount = 10f;
+        float scaleMultiplier = 1.3f;
+
+        for (float t = 0; t < duration; t += Time.deltaTime)
+        {
+            float progress = t / duration;
+            float scale = Mathf.Lerp(1f, scaleMultiplier, Mathf.PingPong(progress * 2, 1f));
+            text.transform.localScale = originalScale * scale;
+            float shakeX = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
+            float shakeY = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
+            text.transform.localPosition = originalPos + new Vector3(shakeX, shakeY, 0f);
+            yield return null;
+        }
+        text.transform.localScale = originalScale;
+        text.transform.localPosition = originalPos;
     }
 
     private IEnumerator FadeTransition()

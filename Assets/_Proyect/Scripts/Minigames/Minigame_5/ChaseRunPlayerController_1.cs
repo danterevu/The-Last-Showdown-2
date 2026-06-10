@@ -90,6 +90,7 @@ public class ChaseRunPlayerController : MonoBehaviour
 
     // Estado
 
+    private bool isFrozen = false;
     private bool isGrounded;
     private bool isTouchingWallLeft;
     private bool isTouchingWallRight;
@@ -198,9 +199,24 @@ public class ChaseRunPlayerController : MonoBehaviour
     //  Update
   
 
+    // Método para congelar/descongelar
+    public void SetFrozen(bool frozen)
+    {
+        isFrozen = frozen;
+        if (frozen)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.gravityScale = 0f;
+        }
+        else
+        {
+            rb.gravityScale = gravityScale;
+        }
+    }
+
     private void Update()
     {
-        if (isDead) return;
+        if (isDead || isFrozen) return;
 
         moveInput = ReadFilteredMove();
 
@@ -263,7 +279,7 @@ public class ChaseRunPlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (isDead) return;
+        if (isDead || isFrozen) return;
 
         if (isWallSliding)
         {

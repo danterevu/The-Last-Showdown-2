@@ -4,7 +4,7 @@ using TMPro;
 
 public class Menu : MonoBehaviour
 {
-    private static bool hasPlayedIntro = false;
+   private static bool hasPlayedIntro = false;
 
     [Header("Intro Settings")]
     [SerializeField] private LogoIntroSequence logoIntroSequence;

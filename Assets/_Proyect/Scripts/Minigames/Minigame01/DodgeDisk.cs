@@ -2,7 +2,7 @@
     using TMPro;
     using System.Collections;
 
-    public class DodgeDisk : MonoBehaviour
+    public class DodgeDisk : MonoBehaviour, IMinijuegoControlable
     {
         [Header("Minigame Settings")]
         [SerializeField] private float gameDuration = 90f;
@@ -52,10 +52,11 @@
 
         private void Start()
         {
-            StartMinigame();
+            InicializarMinijuego();
+            CongelarJugadores();
         }
 
-        private void StartMinigame()
+        public void InicializarMinijuego()
         {
             gameTimer = gameDuration;
             pointTimer = pointInterval;
@@ -66,72 +67,23 @@
             diskMovement.transform.position = diskSpawnPoint.position;
             UpdateUI();
             CommentarySystem.Instance?.TriggerComment(CommentTrigger.DodgeDiskEntry);
-            StartCoroutine(InitialCountdown());
         }
 
-        private IEnumerator InitialCountdown()
+        public void IniciarMinijuego()
         {
-            FreezePlayers(true);
-            gameRunning = false;
-
-            if (countdownText != null)
-                countdownText.gameObject.SetActive(true);
-
-            for (int i = 3; i >= 0; i--)
-            {
-                if (countdownText != null)
-                {
-                    if (i > 0)
-                    {
-                        countdownText.text = i.ToString();
-                        yield return StartCoroutine(AnimateCountdownText(countdownText));
-                    }
-                    else
-                    {
-                        countdownText.text = "¡Ya!";
-                    }
-                }
-                else if (i == 0)
-                {
-                    yield return null;
-                }
-
-                if (i > 0)
-                    yield return new WaitForSeconds(0.5f);
-            }
-
-            if (countdownText != null)
-                countdownText.gameObject.SetActive(false);
-
             FreezePlayers(false);
             gameRunning = true;
             diskMovement.Launch();
         }
 
-        private IEnumerator AnimateCountdownText(TextMeshProUGUI text)
+        public void CongelarJugadores()
         {
-            Vector3 originalScale = text.transform.localScale;
-            Vector3 originalPos = text.transform.localPosition;
-            float duration = 0.5f;
-            float shakeAmount = 10f;
-            float scaleMultiplier = 1.3f;
+            FreezePlayers(true);
+        }
 
-            for (float t = 0; t < duration; t += Time.deltaTime)
-            {
-                float progress = t / duration;
-
-                float scale = Mathf.Lerp(1f, scaleMultiplier, Mathf.PingPong(progress * 2, 1f));
-                text.transform.localScale = originalScale * scale;
-
-                float shakeX = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
-                float shakeY = Random.Range(-shakeAmount, shakeAmount) * (1f - progress);
-                text.transform.localPosition = originalPos + new Vector3(shakeX, shakeY, 0f);
-
-                yield return null;
-            }
-
-            text.transform.localScale = originalScale;
-            text.transform.localPosition = originalPos;
+        public void DescongelarJugadores()
+        {
+            FreezePlayers(false);
         }
 
         private void FreezePlayers(bool freeze)

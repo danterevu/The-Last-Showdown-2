@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class ChaseRunManager : MonoBehaviour
+public class ChaseRunManager : MonoBehaviour, IMinijuegoControlable
 {
     public static ChaseRunManager Instance { get; private set; }
 
@@ -55,22 +55,44 @@ public class ChaseRunManager : MonoBehaviour
         if (GameManager.Instance == null)
             new GameObject("GameManager").AddComponent<GameManager>();
 
-        StartMinigame();
+        // Inicializar pero NO EMPEZAR
+        InicializarMinijuego();
+        CongelarJugadores();
     }
 
-    private void StartMinigame()
+    // Implementación de la interfaz
+    public void InicializarMinijuego()
     {
         CurrentPhase = RunPhase.PhaseY;
         player1Finished = false;
         player2Finished = false;
         endingGame = false;
-        gameRunning = true;
+        gameRunning = false;
 
         player1.Initialize(this);
         player2.Initialize(this);
 
         chaseCamera.SetPhase(RunPhase.PhaseY);
         powerUpSpawner?.SetPhase(RunPhase.PhaseY);
+    }
+
+    public void IniciarMinijuego()
+    {
+        gameRunning = true;
+        DescongelarJugadores();
+        Debug.Log("ChaseRunManager: ¡Minijuego iniciado!");
+    }
+
+    public void CongelarJugadores()
+    {
+        if (player1 != null) player1.SetFrozen(true);
+        if (player2 != null) player2.SetFrozen(true);
+    }
+
+    public void DescongelarJugadores()
+    {
+        if (player1 != null) player1.SetFrozen(false);
+        if (player2 != null) player2.SetFrozen(false);
     }
 
     private void Update()

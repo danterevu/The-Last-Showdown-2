@@ -10,7 +10,7 @@ public class ZoneSpawnPointsDNA
     public GameObject[] points; // pueden ser GameObjects o Transform, como prefieras
 }
 
-public class MutantDNAManager : MonoBehaviour
+public class MutantDNAManager : MonoBehaviour, IMinijuegoControlable
 {
     [Header("Configuracion")]
     [SerializeField] private float gameDuration = 120f;
@@ -34,7 +34,7 @@ public class MutantDNAManager : MonoBehaviour
     [Header("UI")]
     [SerializeField] private MutantDNAHUD hud;
 
-    [Header("Zona / Transición")]
+    [Header("Zona / Transiciï¿½n")]
     [SerializeField] private Transform[] zoneCenters;
     [SerializeField] private Transform[] player1Spawns;
     [SerializeField] private Transform[] player2Spawns;
@@ -69,27 +69,35 @@ public class MutantDNAManager : MonoBehaviour
             zoneCamera.MoveToCenter(zoneCenters[currentZoneIndex].position);
         }
 
-        StartMinigame();
-
-        if (hud != null) hud.UpdateTimer(gameTimer);
+        InicializarMinijuego();
+        CongelarJugadores();
     }
 
-    private void StartMinigame()
+    public void InicializarMinijuego()
     {
         gameTimer = gameDuration;
         zoneTimer = zoneChangeDuration;
-        FreezePlayers(true);
-        hud.StartCountdown(OnCountdownFinished);
+        if (hud != null) hud.UpdateTimer(gameTimer);
     }
 
-    private void OnCountdownFinished()
+    public void IniciarMinijuego()
     {
-        FreezePlayers(false);
+        DescongelarJugadores();
         gameRunning = true;
         dnaPickup.SpawnDNA();
 
         if (powerUpSpawner != null)
             powerUpSpawner.SetActiveZone(currentZoneIndex);
+    }
+
+    public void CongelarJugadores()
+    {
+        FreezePlayers(true);
+    }
+
+    public void DescongelarJugadores()
+    {
+        FreezePlayers(false);
     }
 
     private void SetupAvailableZones()
@@ -107,7 +115,7 @@ public class MutantDNAManager : MonoBehaviour
             initialSetupDone = true;
         }
 
-        // Remover la zona actual si está en la lista (para no repetirla)
+        // Remover la zona actual si estï¿½ en la lista (para no repetirla)
         availableZones.Remove(currentZone);
 
         // Si no quedan zonas, reiniciar la lista con todas excepto la actual
@@ -183,7 +191,7 @@ public class MutantDNAManager : MonoBehaviour
         {
             zoneCamera.MoveToCenter(zoneCenters[newZoneIndex].position);
         }
-        // Mover cámara si tienes ZoneCameraController, si no, opcional
+        // Mover cï¿½mara si tienes ZoneCameraController, si no, opcional
         // yield return StartCoroutine(MoveCameraToNewZone(newZoneIndex));
         ActivateDNAZone(newZoneIndex, teleportImmediately: false);
         yield return StartCoroutine(CountdownFadeAndReleasePlayers(newZoneIndex));
@@ -215,7 +223,7 @@ public class MutantDNAManager : MonoBehaviour
         if (handRight != null) StartCoroutine(StretchHandCoroutine(handRight, player2.transform.position, () => rightDone = true));
         while (!leftDone || !rightDone) yield return null;
 
-        // Mover manos hasta la posición exacta de los jugadores
+        // Mover manos hasta la posiciï¿½n exacta de los jugadores
         yield return StartCoroutine(MoveHandsToPositions(player1.transform.position, player2.transform.position));
     }
 
@@ -303,13 +311,13 @@ public class MutantDNAManager : MonoBehaviour
         StartCoroutine(FadeFromBlackCoroutine(() => fadeDone = true));
         StartCoroutine(ReleasePlayersCoroutine(newZoneIndex, () => playersReleased = true));
 
-        // Mostrar cuenta regresiva (3,2,1,¡Ya!)
+        // Mostrar cuenta regresiva (3,2,1,ï¿½Ya!)
         for (int i = 3; i >= 0; i--)
         {
             if (countdownText != null)
             {
                 if (i > 0) countdownText.text = i.ToString();
-                else countdownText.text = "¡Ya!";
+                else countdownText.text = "ï¿½Ya!";
                 yield return StartCoroutine(AnimateCountdownText(countdownText));
             }
             if (i > 0) yield return new WaitForSeconds(0.5f);
@@ -415,9 +423,9 @@ public class MutantDNAManager : MonoBehaviour
         // Opcional: actualizar spawn points en los controladores
         p1Controller.SetSpawnPoint(player1Spawns[index].position);
         p2Controller.SetSpawnPoint(player2Spawns[index].position);
-        // Respawnea el ADN (opcional, puedes elegir no respawnearlo aquí)
+        // Respawnea el ADN (opcional, puedes elegir no respawnearlo aquï¿½)
         dnaPickup.SpawnDNA();
-        // Si tienes cajas estáticas, también puedes reposicionarlas según la zona
+        // Si tienes cajas estï¿½ticas, tambiï¿½n puedes reposicionarlas segï¿½n la zona
         // (lo dejo a tu criterio)
     }
 
