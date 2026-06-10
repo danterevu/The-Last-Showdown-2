@@ -22,7 +22,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     [Header("Golpe")]
     [SerializeField] private float knockbackForce = 12f;
     [SerializeField] private float selfKnockback = 4f; public float SelfKnockback => selfKnockback;
-    [SerializeField] private float knockbackLift = 5f;     //Levantamiento
+    [SerializeField] private float knockbackLift = 5f;
     [SerializeField] private float stunDuration = 0.8f;
     [SerializeField] private float attackCooldown = 0.5f;
 
@@ -60,10 +60,6 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     private float jumpBufferCounter;
     private bool jumpHeld = false;
 
-    // shield
-    private bool shieldActive = false;
-    private float shieldMultiplier = 1f;
-
     // doble salto
     private bool doubleJumpEnabled = false;
     private bool usedDoubleJump = true;
@@ -97,8 +93,6 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     private bool isBeingPulled = false;
     private Vector2 pullVelocity = Vector2.zero;
 
-   
-
     [Header("PowerUp")]
     [SerializeField] private PowerUpPickup.PowerUpType currentPowerUp;
     [SerializeField] private bool hasPowerUp = false;
@@ -119,6 +113,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     private KingOfHill manager;
     private bool jetpackFiring = false;
     private bool _nextDeathByPunch = false;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -126,7 +121,6 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         col = GetComponent<Collider2D>();
         animator = GetComponent<Animator>();
 
-        // desactivar jetpack al inicio
         if (_jetpackObject != null) _jetpackObject.SetActive(false);
     }
 
@@ -166,7 +160,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     {
         if (isDead) return;
         if (moveAction == null) return;
-       
+
         CheckWall();
 
         moveInput = ReadFilteredMove();
@@ -174,27 +168,22 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
         if (gp != null)
         {
-            // Salto
             if (gp.buttonSouth.wasPressedThisFrame)
             {
-                Debug.Log($"{gameObject.name} (gamepad) saltó! mirrorActive={mirrorActive}, mirrorTarget={(mirrorTarget != null ? mirrorTarget.gameObject.name : "NULL")}");
+                Debug.Log($"{gameObject.name} (gamepad) saltó!");
                 jumpHeld = true;
                 if (isGrounded || coyoteTimeCounter > 0f)
                 {
                     ExecuteJump();
-                    if (mirrorActive && mirrorTarget != null) {
-                        Debug.Log($"{gameObject.name} TriggerMirrorJump en {mirrorTarget.gameObject.name}!");
+                    if (mirrorActive && mirrorTarget != null)
                         mirrorTarget.TriggerMirrorJump();
-                    }
                 }
                 else if (doubleJumpEnabled && !usedDoubleJump)
                 {
                     ExecuteJump();
                     usedDoubleJump = true;
-                    if (mirrorActive && mirrorTarget != null) {
-                        Debug.Log($"{gameObject.name} TriggerMirrorJump (double jump) en {mirrorTarget.gameObject.name}!");
+                    if (mirrorActive && mirrorTarget != null)
                         mirrorTarget.TriggerMirrorJump();
-                    }
                 }
                 else
                 {
@@ -205,11 +194,9 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             if (gp.buttonSouth.wasReleasedThisFrame && !isStunned)
                 jumpHeld = false;
 
-            // Ataque
             if (gp.buttonWest.wasPressedThisFrame)
                 TryAttack();
 
-            // Interact / PowerUp
             if (gp.buttonEast.wasPressedThisFrame)
             {
                 Debug.Log(gameObject.name + " presiono interact (gamepad)");
@@ -217,12 +204,10 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             }
         }
 
-
         CheckGround();
 
         if (animator != null)
         {
-            // Usar el input correcto para las animaciones (movimiento normal o forzado por espejo)
             Vector2 inputForAnimations = isForcedMove ? forcedMoveInput : moveInput;
             animator.SetFloat("velocityX", Mathf.Abs(inputForAnimations.x));
             animator.SetFloat("velocityY", rb.linearVelocity.y);
@@ -255,19 +240,15 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
                 ExecuteJump();
         }
 
-        // Usar el input correcto para el flip del sprite
         Vector2 inputForFlip = isForcedMove ? forcedMoveInput : moveInput;
         if (inputForFlip.x > 0.01f) sr.flipX = false;
         else if (inputForFlip.x < -0.01f) sr.flipX = true;
-       
+
         if (_jetpackSR != null)
         {
             _jetpackSR.flipX = sr.flipX;
-
             Vector3 pos = _jetpackObject.transform.localPosition;
-
             pos.x = sr.flipX ? 0.5f : -0.5f;
-
             _jetpackObject.transform.localPosition = pos;
         }
         if (_jetpackSR != null) _jetpackSR.flipX = sr.flipX;
@@ -276,8 +257,9 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     private void FixedUpdate()
     {
         if (isDead) return;
-        
+
         rb.gravityScale = heavyGravityActive ? heavyGravityValue : gravityScale;
+
         if (hasRawVelocityOverride)
         {
             rb.linearVelocity = rawVelocityOverride;
@@ -289,7 +271,6 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         bool wasJetpackFiring = jetpackFiring;
         jetpackFiring = false;
 
-        // Detectar salto mantenido tanto en teclado como en gamepad
         bool jumpHeldGamepad = false;
         Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
         if (gp != null) jumpHeldGamepad = gp.buttonSouth.isPressed;
@@ -297,9 +278,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
         if (jetpackActive && (jumpHeldKeyboard || jumpHeldGamepad))
         {
-
-                AudioManager.Instance?.PlaySFX(SoundID.PUJetpack);
-
+            AudioManager.Instance?.PlaySFX(SoundID.PUJetpack);
             jetpackFiring = true;
             rb.linearVelocity = new Vector2(
                 rb.linearVelocity.x,
@@ -314,33 +293,22 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
                 _jetpackAnimator.SetBool("Fire", false);
         }
 
-
-
         animator.SetBool("JetpackFire", jetpackFiring);
-
-
 
         if (isBeingPulled)
         {
-            Debug.Log($"{gameObject.name} FixedUpdate: isBeingPulled, pullVelocity={pullVelocity}");
             rb.linearVelocity = pullVelocity;
-            isForcedMove = false; // Resetear por si acaso
+            isForcedMove = false;
             return;
         }
         else if (!isKnockedBack && !isStunned)
         {
             Vector2 inputToUse = isForcedMove ? forcedMoveInput : moveInput;
-            Debug.Log($"{gameObject.name} FixedUpdate: isForcedMove={isForcedMove}, inputToUse={inputToUse}, moveInput={moveInput}, forcedMoveInput={forcedMoveInput}");
             rb.linearVelocity = new Vector2(inputToUse.x * moveSpeed, rb.linearVelocity.y);
         }
-        
-        // Resetear movimiento forzado DESPUÉS de usarlo en FixedUpdate
-        if (isForcedMove) {
-            Debug.Log($"{gameObject.name} FixedUpdate: reseteando isForcedMove a false");
-        }
-        isForcedMove = false;
 
-            ApplyBetterGravity();
+        isForcedMove = false;
+        ApplyBetterGravity();
         ApplyMirrorControl();
     }
 
@@ -354,11 +322,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             Vector2 stick = gp.leftStick.ReadValue();
             Vector2 dpad = gp.dpad.ReadValue();
             result = stick.sqrMagnitude > dpad.sqrMagnitude ? stick : dpad;
-            if (result.sqrMagnitude > 0.01f) 
-            {
-                Debug.Log(gameObject.name + " ReadFilteredMove (gamepad): " + result);
-                return result;
-            }
+            if (result.sqrMagnitude > 0.01f) return result;
         }
 
         if (Keyboard.current != null)
@@ -377,10 +341,6 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
                 if (Keyboard.current.upArrowKey.isPressed) result.y += 1f;
                 if (Keyboard.current.downArrowKey.isPressed) result.y -= 1f;
             }
-            if (result.sqrMagnitude > 0.01f)
-            {
-                Debug.Log(gameObject.name + " ReadFilteredMove (keyboard): " + result);
-            }
         }
 
         return result.sqrMagnitude > 0.01f ? result.normalized : Vector2.zero;
@@ -398,25 +358,20 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     {
         if (!IsCorrectDevice(context.control.device)) return;
         if (isDead || isStunned) return;
-        Debug.Log($"{gameObject.name} (teclado) saltó! mirrorActive={mirrorActive}, mirrorTarget={(mirrorTarget != null ? mirrorTarget.gameObject.name : "NULL")}");
         jumpHeld = true;
 
         if (isGrounded || coyoteTimeCounter > 0f)
         {
             ExecuteJump();
-            if (mirrorActive && mirrorTarget != null) {
-                Debug.Log($"{gameObject.name} TriggerMirrorJump (teclado) en {mirrorTarget.gameObject.name}!");
+            if (mirrorActive && mirrorTarget != null)
                 mirrorTarget.TriggerMirrorJump();
-            }
         }
         else if (doubleJumpEnabled && !usedDoubleJump)
         {
             ExecuteJump();
             usedDoubleJump = true;
-            if (mirrorActive && mirrorTarget != null) {
-                Debug.Log($"{gameObject.name} TriggerMirrorJump (double jump teclado) en {mirrorTarget.gameObject.name}!");
+            if (mirrorActive && mirrorTarget != null)
                 mirrorTarget.TriggerMirrorJump();
-            }
         }
         else
         {
@@ -426,7 +381,6 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
     private void OnJumpCanceled(InputAction.CallbackContext context) { jumpHeld = false; }
 
-   
     private void ExecuteJump()
     {
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
@@ -452,50 +406,27 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         StartCoroutine(AttackCooldown());
     }
 
-    // Llamado por Animation Event cuando el pu�o conecta
-    public void ApplyAttackHit()
-    {
-        punchHitbox?.Activate();
-    }
-
-    // Llamado por Animation Event al terminar la animaci�n
-    public void OnAttackFinished()
-    {
-        isAttacking = false;
-        punchHitbox?.Deactivate();
-    }
+    public void ApplyAttackHit() { punchHitbox?.Activate(); }
+    public void OnAttackFinished() { isAttacking = false; punchHitbox?.Deactivate(); }
 
     public void ReceiveKnockback(Vector2 direction)
     {
         if (isInvulnerable) return;
-        if (shieldActive) { otherPlayer.ReceiveKnockback(-direction * shieldMultiplier); return; }
 
-        
         bool wasAttacking = isAttacking;
-        isAttacking = false;           
-        punchHitbox?.Deactivate();     
+        isAttacking = false;
+        punchHitbox?.Deactivate();
 
         animator?.SetTrigger("Hurt");
-        Quaternion rotation;
 
-        if (direction.x > 0)
-        {
-            rotation = Quaternion.Euler(0, 0, 180);
-        }
-        else
-        {
-            rotation = Quaternion.identity;
-        }
-
-        Vector3 hitPosition =
-     transform.position + new Vector3(direction.x * 0.5f, 0f, 0f);
-
+        Quaternion rotation = direction.x > 0 ? Quaternion.Euler(0, 0, 180) : Quaternion.identity;
+        Vector3 hitPosition = transform.position + new Vector3(direction.x * 0.5f, 0f, 0f);
         Instantiate(hitParticles, hitPosition, rotation);
-      
-        rb.linearVelocity = new Vector2(direction.x * knockbackForce, knockbackLift); // levantamiento
+
+        rb.linearVelocity = new Vector2(direction.x * knockbackForce, knockbackLift);
         StartCoroutine(KnockbackDuration());
 
-        if (!wasAttacking)             // solo stunearse si NO era golpe simult�neo
+        if (!wasAttacking)
             StartCoroutine(StunDuration());
     }
 
@@ -523,8 +454,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (isDead) return;
-        
-        // Muerte por peligros
+
         if (other.CompareTag("Spike"))
         {
             AudioManager.Instance?.PlaySFX(SoundID.LDeath);
@@ -542,13 +472,10 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         isCrushed = crushed;
         animator?.SetBool("isCrushed", crushed);
     }
+
     private void CheckGround()
     {
-        if (rb.linearVelocity.y > 0.1f)
-        {
-            isGrounded = false;
-            return;
-        }
+        if (rb.linearVelocity.y > 0.1f) { isGrounded = false; return; }
 
         Vector2 leftOrigin = new Vector2(col.bounds.min.x, col.bounds.min.y);
         Vector2 rightOrigin = new Vector2(col.bounds.max.x, col.bounds.min.y);
@@ -565,19 +492,15 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
                       (headRight.collider != null && headRight.collider.transform.root != transform);
 
         isGrounded = onGround || onHead;
-
-        
-       
-       
     }
+
     private void CheckWall()
     {
-       
         bool tryingToMove = Mathf.Abs(moveInput.x) > 0.1f;
         bool blockedByWall = tryingToMove && Mathf.Abs(rb.linearVelocity.x) < 0.1f;
-
         animator?.SetBool("isAgainstWall", blockedByWall);
     }
+
     private IEnumerator Die()
     {
         isDead = true;
@@ -638,7 +561,6 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             return;
         }
         Debug.Log(gameObject.name + " usando: " + currentPowerUp);
-        Debug.Log("otherPlayer es: " + (otherPlayer != null ? otherPlayer.gameObject.name : "NULL"));
         hasPowerUp = false;
         manager.ActivatePowerUp(currentPowerUp, this, otherPlayer);
     }
@@ -654,55 +576,23 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         Debug.Log(gameObject.name + " recibio: " + type);
     }
 
-    public void SetShield(bool active, float multiplier) 
-    {
-
-        shieldActive = active; 
-        shieldMultiplier = multiplier; 
-    }
-
-    public void SetDoubleJump(bool active)
-    {
-        doubleJumpEnabled = active;
-        usedDoubleJump = !active;
-    }
-
-    public void SetHeavyGravity(bool active, float gravityValue) 
-    {
-
-        heavyGravityActive = active; 
-        heavyGravityValue = gravityValue; 
-    }
-    public void SetMirrorControl(bool active, PlatformPlayerController target) 
-    {
-        Debug.Log(gameObject.name + " SetMirrorControl: active=" + active + ", target=" + (target != null ? target.gameObject.name : "NULL"));
-        mirrorActive = active; 
-        mirrorTarget = target; 
-    }
+    public void SetDoubleJump(bool active) { doubleJumpEnabled = active; usedDoubleJump = !active; }
+    public void SetHeavyGravity(bool active, float gravityValue) { heavyGravityActive = active; heavyGravityValue = gravityValue; }
+    public void SetMirrorControl(bool active, PlatformPlayerController target) { mirrorActive = active; mirrorTarget = target; }
     public void TriggerMirrorJump() { mirrorJumpPending = true; }
 
     private void ApplyMirrorControl()
     {
-        if (mirrorActive) {
-            if (mirrorTarget == null) {
-                Debug.LogWarning($"{gameObject.name} ApplyMirrorControl: mirrorTarget es NULL!");
-                return;
-            }
-            Debug.Log($"{gameObject.name} ApplyMirrorControl: forcing move on {mirrorTarget.gameObject.name} with input {moveInput}");
+        if (mirrorActive && mirrorTarget != null)
             mirrorTarget.ForceMove(moveInput);
-        }
     }
 
-    public void ForceMove(Vector2 input) { 
-        Debug.Log($"{gameObject.name} ForceMove: isForcedMove=true, forcedMoveInput={input}");
-        isForcedMove = true; 
-        forcedMoveInput = input; 
-    }
+    public void ForceMove(Vector2 input) { isForcedMove = true; forcedMoveInput = input; }
     public void ForceJump() { if (isGrounded) ExecuteJump(); }
     public void ForceVelocity(Vector2 velocity) { isForcedMove = true; rb.linearVelocity = velocity; }
     public void ForceVelocityRaw(Vector2 velocity) { hasRawVelocityOverride = true; rawVelocityOverride = velocity; }
     public void SetInvertControls(bool active) { invertControls = active; }
-    // Reemplazar los dos SetJetpack por uno solo:
+
     public void SetJetpack(bool active, float force, GameObject jetpackObject = null, Animator jetpackAnimator = null)
     {
         jetpackActive = active;
@@ -714,7 +604,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             _jetpackAnimator = jetpackAnimator;
             _jetpackSR = _jetpackObject != null ? _jetpackObject.GetComponent<SpriteRenderer>() : null;
             if (_jetpackObject != null) _jetpackObject.SetActive(true);
-            AudioManager.Instance?.PlaySFX(SoundID.PUEJetpack);  
+            AudioManager.Instance?.PlaySFX(SoundID.PUEJetpack);
         }
         else
         {
@@ -727,12 +617,8 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
     public Collider2D GetCollider() => col;
     public Rigidbody2D GetRigidbody() => rb;
-
     public void SetSpawnPoint(Vector3 point) { spawnPoint = point; }
-    public void SetOtherPlayer(PlatformPlayerController other) { 
-        otherPlayer = other; 
-        Debug.Log($"{gameObject.name} (index {playerIndex}) tiene otro jugador: {(other != null ? other.gameObject.name : "NULL")}");
-    }
+    public void SetOtherPlayer(PlatformPlayerController other) { otherPlayer = other; }
     public void SetManager(KingOfHill m) { manager = m; }
     public void ForceRespawn() { if (!isDead) StartCoroutine(Die()); }
 
@@ -747,10 +633,8 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         jumpHeld = prevJumpHeld;
     }
 
-    // Limpia efectos activos (shield, jetpack, mirror, gravedad)
     public void ClearActivePowerUpEffects()
     {
-        SetShield(false, 1f);
         SetHeavyGravity(false, 0f);
         SetMirrorControl(false, null);
         SetJetpack(false, 0f);
@@ -770,33 +654,26 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         rb.gravityScale = gravityScale;
     }
 
-    // Limpia power up en inventario + efectos activos (al morir)
     public void ClearPowerUpState()
     {
         hasPowerUp = false;
         ClearActivePowerUpEffects();
     }
+
     private void LateUpdate()
     {
         if (punchHitbox != null)
         {
-            // posicion
             Vector3 pos = punchHitbox.transform.localPosition;
             pos.x = IsFacingRight() ? Mathf.Abs(pos.x) : -Mathf.Abs(pos.x);
             punchHitbox.transform.localPosition = pos;
 
-            // escala - esto soluciona el estiramiento
             Vector3 scale = punchHitbox.transform.localScale;
             scale.x = IsFacingRight() ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
             punchHitbox.transform.localScale = scale;
         }
     }
 
-    public void SetPulled(bool active, Vector2 velocity = default)
-    {
-        isBeingPulled = active;
-        pullVelocity = velocity;
-    }
-
+    public void SetPulled(bool active, Vector2 velocity = default) { isBeingPulled = active; pullVelocity = velocity; }
     public void MarkNextDeathAsPunch() => _nextDeathByPunch = true;
 }

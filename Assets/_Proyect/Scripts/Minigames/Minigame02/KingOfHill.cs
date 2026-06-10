@@ -639,9 +639,6 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
     {
         switch (type)
         {
-            case PowerUpPickup.PowerUpType.Shield:
-                StartCoroutine(powerUpEffects.ActivateShield(user));
-                break;
             case PowerUpPickup.PowerUpType.Hook:
                 StartCoroutine(powerUpEffects.ActivateHook(user, target));
                 break;
@@ -656,10 +653,7 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
             case PowerUpPickup.PowerUpType.Jetpack:
                 StartCoroutine(powerUpEffects.ActivateJetpack(user));
                 break;
-            case PowerUpPickup.PowerUpType.Cage:
-                int cageOwner = user.CompareTag("Player1") ? 1 : 2;
-                StartCoroutine(powerUpEffects.ActivateCage(currentZoneIndex, cageOwner));
-                break;
+           
         }
     }
 

@@ -63,8 +63,7 @@ public class PowerUpHUD : MonoBehaviour
     {
         switch (type)
         {
-            case PowerUpPickup.PowerUpType.Cage: return spriteCage;
-            case PowerUpPickup.PowerUpType.Shield: return spriteShield;
+            
             case PowerUpPickup.PowerUpType.Hook: return spriteHook;
             case PowerUpPickup.PowerUpType.HeavyGravity: return spriteHeavyGravity;
             case PowerUpPickup.PowerUpType.MirrorControl: return spriteMirrorControl;

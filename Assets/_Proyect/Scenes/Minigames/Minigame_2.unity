@@ -829,11 +829,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1722813757047028791, guid: 1764b5f5e69305843a5decd5db9cfdcc, type: 3}
   m_PrefabInstance: {fileID: 13713819}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &13713821 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 335922296695064428, guid: 1764b5f5e69305843a5decd5db9cfdcc, type: 3}
-  m_PrefabInstance: {fileID: 13713819}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &17181765
 GameObject:
   m_ObjectHideFlags: 0
@@ -3344,11 +3339,6 @@ PrefabInstance:
 --- !u!4 &101991741 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1722813757047028791, guid: 1764b5f5e69305843a5decd5db9cfdcc, type: 3}
-  m_PrefabInstance: {fileID: 101991740}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &101991742 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 335922296695064428, guid: 1764b5f5e69305843a5decd5db9cfdcc, type: 3}
   m_PrefabInstance: {fileID: 101991740}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &102410281
@@ -6663,11 +6653,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!1 &219081104 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6838672721746270954, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
-  m_PrefabInstance: {fileID: 9169587502236523104}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &220556792
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31968,11 +31953,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b8b6a708a4489ae41a670915258b78dd, type: 3}
---- !u!1 &434580946 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1252921666662580973, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
-  m_PrefabInstance: {fileID: 7375533626779466061}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &438993512
 GameObject:
   m_ObjectHideFlags: 0
@@ -56287,11 +56267,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1722813757047028791, guid: 1764b5f5e69305843a5decd5db9cfdcc, type: 3}
   m_PrefabInstance: {fileID: 535291519}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &535291521 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 335922296695064428, guid: 1764b5f5e69305843a5decd5db9cfdcc, type: 3}
-  m_PrefabInstance: {fileID: 535291519}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &549786926
 GameObject:
   m_ObjectHideFlags: 0
@@ -59435,7 +59410,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4010327206368158861, guid: e4aad6a1e1bf36e4f82ee7cf3d450c89, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 28.8
+      value: 30.78
       objectReference: {fileID: 0}
     - target: {fileID: 4010327206368158861, guid: e4aad6a1e1bf36e4f82ee7cf3d450c89, type: 3}
       propertyPath: m_LocalPosition.z
@@ -71285,17 +71260,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33803f5dd30d4c84dba1420cc11f42e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cageDuration: 3
-  cagesByZone:
-  - {fileID: 1232395772}
-  - {fileID: 101991742}
-  - {fileID: 13713821}
-  - {fileID: 535291521}
-  - {fileID: 1780924246}
-  shieldDuration: 4
-  shieldKnockbackMultiplier: 3
-  shieldVFXPlayer1: {fileID: 434580946}
-  shieldVFXPlayer2: {fileID: 219081104}
   hookProjectilePrefab: {fileID: 1747720874}
   hookLaunchSpeed: 26
   hookMaxDistance: 10
@@ -71314,8 +71278,6 @@ MonoBehaviour:
   jetpackObjectPlayer2: {fileID: 1794405285}
   jetpackAnimatorPlayer1: {fileID: 1837096805}
   jetpackAnimatorPlayer2: {fileID: 1794405287}
-  cageColorPlayer1: {r: 0.6, g: 0.2392157, b: 0.8352942, a: 1}
-  cageColorPlayer2: {r: 1, g: 0.35294116, b: 0, a: 1}
 --- !u!4 &902704014
 Transform:
   m_ObjectHideFlags: 0
@@ -82188,11 +82150,6 @@ PrefabInstance:
 --- !u!4 &1232395771 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1722813757047028791, guid: 1764b5f5e69305843a5decd5db9cfdcc, type: 3}
-  m_PrefabInstance: {fileID: 1232395770}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1232395772 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 335922296695064428, guid: 1764b5f5e69305843a5decd5db9cfdcc, type: 3}
   m_PrefabInstance: {fileID: 1232395770}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1234945254
@@ -121801,11 +121758,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1722813757047028791, guid: 1764b5f5e69305843a5decd5db9cfdcc, type: 3}
   m_PrefabInstance: {fileID: 1780924244}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1780924246 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 335922296695064428, guid: 1764b5f5e69305843a5decd5db9cfdcc, type: 3}
-  m_PrefabInstance: {fileID: 1780924244}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1786987461
 GameObject:
   m_ObjectHideFlags: 0
@@ -126994,29 +126946,34 @@ MonoBehaviour:
     - Fijate por donde estas yendo
     - "\xBFTan dificil es no morir?"
     displayDuration: 0
+    cooldown: 8
   - trigger: 4
     comments:
     - No te olvides de quedarte ahi lo maximo posible
     - Ya era hora...
     displayDuration: 0
+    cooldown: 8
   - trigger: 5
     comments:
     - Diganle adios a esta seccion!
     - Nuevo seccion, nuevas chances de remontar!
     - Preparense para que cambie todo!
     displayDuration: 0
+    cooldown: 8
   - trigger: 7
     comments:
     - "\xA1Les queda cada vez menos para demostrar quien es mejor!"
     - "\xA1Queda poco tiempo, haganlo valer!"
     - "\xA1Juegan tan mal, que el publico pide el corte comercial!"
     displayDuration: 0
+    cooldown: 8
   - trigger: 8
     comments:
     - "Wowowowow, \xA1que paliza!"
     - "\xA1A veces se gana, y a veces se humilla!"
     - Nos equivocamos con el emparejamiento...
     displayDuration: 0
+    cooldown: 8
   - trigger: 9
     comments:
     - "NO LO PUEDO CREER pero que pu\xF1etazo!"
@@ -127025,6 +126982,7 @@ MonoBehaviour:
     - Si! mas golpes asi! por el rating!
     - Duele mas el golpe? o saber que podias esquivarlo?
     displayDuration: 0
+    cooldown: 8
   - trigger: 6
     comments:
     - "\xA1Esto se pone todavia mas interesante!"
@@ -127033,6 +126991,7 @@ MonoBehaviour:
     - "\xA1Lo que facil viene, facil se va!"
     - "\xBFQue se siente pasar de ganar a perder en tan poco tiempo?"
     displayDuration: 0
+    cooldown: 8
 --- !u!4 &1966026244
 Transform:
   m_ObjectHideFlags: 0
