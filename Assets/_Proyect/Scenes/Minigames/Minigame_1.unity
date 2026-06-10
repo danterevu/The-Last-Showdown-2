@@ -4866,10 +4866,12 @@ MonoBehaviour:
     - No se desanimen que esquivar nunca fue tan divertido!
     - Espero que no les sea tan doloroso que los corten por la mitad
     displayDuration: 3
+    cooldown: 8
   - trigger: 2
     comments:
     - Nuestra audiencia ama los power ups! ...aunque a veces fallen
     displayDuration: 3
+    cooldown: 5
   - trigger: 1
     comments:
     - Espero que disfruten los power ups! fueron agregados esta temporada
@@ -4877,6 +4879,7 @@ MonoBehaviour:
     - Por lo menos sus muertes serviran de algo... para su rival!
     - Cada chance de sumar puntos es una chance de sobrevivir
     displayDuration: 3
+    cooldown: 8
 --- !u!4 &1071790880
 Transform:
   m_ObjectHideFlags: 0
