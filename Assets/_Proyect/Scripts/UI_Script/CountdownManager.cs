@@ -66,6 +66,7 @@ public class CountdownManager : MonoBehaviour
 
     private IEnumerator CountdownCoroutine()
     {
+        Debug.Log("CountdownCoroutine INICIADO");
         if (countdownText != null)
         {
             countdownText.gameObject.SetActive(true);
@@ -112,6 +113,7 @@ public class CountdownManager : MonoBehaviour
         }
 
         onCountdownComplete?.Invoke();
+        Debug.Log("onCountdownComplete INVOCADO");
     }
 
     private IEnumerator AnimateCountdownText()

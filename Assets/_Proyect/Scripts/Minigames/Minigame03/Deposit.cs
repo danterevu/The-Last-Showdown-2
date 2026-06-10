@@ -5,6 +5,12 @@ public class Deposit : MonoBehaviour
     [SerializeField] private int allowedPlayer; // 1 o 2
     public static event System.Action OnAnyDeposit;
 
+    [Header("Partículas")]
+    [Tooltip("Prefab de partículas que se instancia al depositar el DNA (arrastrá tu prefab acá)")]
+    [SerializeField] private GameObject depositParticlesPrefab;
+    [Tooltip("Offset de posición donde aparecen las partículas respecto al depósito")]
+    [SerializeField] private Vector3 particlesOffset = Vector3.zero;
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         // Caso 1: Jugador con DNA toca el depósito
@@ -19,13 +25,9 @@ public class Deposit : MonoBehaviour
             {
                 GameManager.Instance.AddPoints(allowedPlayer, 50);
                 OnAnyDeposit?.Invoke();
-
-                // Primero soltar el DNA (limpia estado del jugador)
+                SpawnDepositParticles();
                 controller.DropDNA();
-
-                // Luego respawnear el DNA
                 dnaInHand.RespawnAfterDelay();
-
                 Debug.Log($"Jugador {allowedPlayer} depositó DNA. Velocidad restaurada.");
             }
             return;
@@ -35,24 +37,27 @@ public class Deposit : MonoBehaviour
         DNA dna = collision.GetComponent<DNA>();
         if (dna != null && dna.IsThrown() && dna.GetHolder() == null)
         {
-            int thrower = dna.GetLastThrower(); // devuelve 1 o 2, o -1 si no tiene
-                                                // Solo depositar si el lanzador es el dueño del depósito
+            int thrower = dna.GetLastThrower();
             if (thrower == allowedPlayer)
             {
                 GameManager.Instance.AddPoints(allowedPlayer, 25);
                 OnAnyDeposit?.Invoke();
+                SpawnDepositParticles();
                 dna.RespawnAfterDelay();
                 Debug.Log($"DNA lanzado depositado correctamente por el jugador {thrower} en su depósito.");
             }
             else
             {
-                // Opcional: el DNA no se deposita, puede rebotar o simplemente no pasar.
-                // Aquí lo ignoramos y no se destruye.
                 Debug.Log($"DNA lanzado por jugador {thrower} intentó depositar en depósito del jugador {allowedPlayer} -> rechazado.");
-                // No llamamos a RespawnAfterDelay, el DNA seguirá su trayectoria.
-                // Podrías añadir una fuerza de rebote para que se aleje.
             }
             return;
         }
+    }
+
+    private void SpawnDepositParticles()
+    {
+        if (depositParticlesPrefab == null) return;
+        Vector3 spawnPos = transform.position + particlesOffset;
+        Instantiate(depositParticlesPrefab, spawnPos, Quaternion.identity);
     }
 }

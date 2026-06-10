@@ -75,6 +75,7 @@ public class MutantDNAManager : MonoBehaviour, IMinijuegoControlable
 
     public void InicializarMinijuego()
     {
+
         gameTimer = gameDuration;
         zoneTimer = zoneChangeDuration;
         if (hud != null) hud.UpdateTimer(gameTimer);
@@ -82,6 +83,7 @@ public class MutantDNAManager : MonoBehaviour, IMinijuegoControlable
 
     public void IniciarMinijuego()
     {
+        Debug.Log("CongelarJugadores LLAMADO");
         DescongelarJugadores();
         gameRunning = true;
         dnaPickup.SpawnDNA();
@@ -92,6 +94,7 @@ public class MutantDNAManager : MonoBehaviour, IMinijuegoControlable
 
     public void CongelarJugadores()
     {
+        Debug.Log("CongelarJugadores LLAMADO");
         FreezePlayers(true);
     }
 

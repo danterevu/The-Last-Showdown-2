@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class DNA : MonoBehaviour
 {
@@ -6,16 +6,24 @@ public class DNA : MonoBehaviour
     [SerializeField] private GameObject[] defaultSpawnPoints;
     private GameObject[] currentSpawnPoints;
 
-    [Header("Configuraci�n")]
+    [Header("Configuración")]
     [SerializeField] private float throwBaseForce = 3f;
     [SerializeField] private float throwRunningForce = 10f;
     [SerializeField] private float throwUpward = 2f;
     [SerializeField] private GameObject[] spawnPoints;
     [SerializeField] private float respawnDelay = 1f;
 
-    [Header("F�sica del golpe (cuando es lanzado por golpe enemigo)")]
+    [Header("Física del golpe (cuando es lanzado por golpe enemigo)")]
     [SerializeField] private float hitThrowForceX = 6f;
     [SerializeField] private float hitThrowForceY = 8f;
+
+    [Header("Luz / Brillo")]
+    [Tooltip("Arrastrá acá el GO hijo que tiene la luz")]
+    [SerializeField] private GameObject glowLight;
+
+    [Header("Bobbing (flotación cuando está libre)")]
+    [SerializeField] private float bobbingSpeed = 1.5f;      // velocidad de subida/bajada
+    [SerializeField] private float bobbingDistance = 0.15f;  // cuánto sube y baja
 
     private SpriteRenderer sr;
     private Collider2D triggerCol;
@@ -26,7 +34,11 @@ public class DNA : MonoBehaviour
     private Vector3 originalScale;
     private bool isThrown = false;
     private float throwTime = 0f;
-    private int lastThrowerPlayer = -1; // opcional para saber qui�n lanz�
+    private int lastThrowerPlayer = -1;
+
+    // Bobbing
+    private bool isBobbing = false;
+    private Vector3 bobbingOrigin;  // posición base desde donde flota
 
     private void Awake()
     {
@@ -44,6 +56,37 @@ public class DNA : MonoBehaviour
             currentSpawnPoints = defaultSpawnPoints;
     }
 
+    // ── Luz ─────────────────────────────────────────────────────────
+    private void SetGlow(bool active)
+    {
+        if (glowLight != null)
+            glowLight.SetActive(active);
+    }
+
+    // ── Bobbing ─────────────────────────────────────────────────────
+    private void StartBobbing()
+    {
+        bobbingOrigin = transform.position;
+        isBobbing = true;
+    }
+
+    private void StopBobbing()
+    {
+        isBobbing = false;
+        // Restaurar posición exacta al origen para que no quede flotando a medias
+        if (!isPickedUp && !isThrown)
+            transform.position = bobbingOrigin;
+    }
+
+    private void Update()
+    {
+        if (!isBobbing) return;
+
+        float offset = Mathf.Sin(Time.time * bobbingSpeed * Mathf.PI * 2f) * bobbingDistance;
+        transform.position = bobbingOrigin + new Vector3(0f, offset, 0f);
+    }
+
+    // ── API pública ─────────────────────────────────────────────────
     public void SetSpawnPoints(GameObject[] newSpawnPoints)
     {
         currentSpawnPoints = newSpawnPoints;
@@ -70,15 +113,20 @@ public class DNA : MonoBehaviour
         physicsCol.enabled = false;
         isThrown = false;
         lastThrowerPlayer = -1;
+
+        SetGlow(true);
+        StartBobbing(); // empieza a flotar al spawnear
     }
 
     public void RespawnAfterDelay()
     {
+        StopBobbing();
         sr.enabled = false;
         triggerCol.enabled = false;
         physicsCol.enabled = false;
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.linearVelocity = Vector2.zero;
+        SetGlow(false);
         Invoke(nameof(SpawnDNA), respawnDelay);
     }
 
@@ -94,9 +142,12 @@ public class DNA : MonoBehaviour
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.linearVelocity = Vector2.zero;
         lastThrowerPlayer = -1;
+
+        StopBobbing(); // deja de flotar al ser agarrado
+        SetGlow(false);
     }
 
-    // Llamado desde PlayerControllerDNA cuando suelta el DNA (por dep�sito o p�rdida)
+    // Llamado desde PlayerControllerDNA cuando suelta el DNA
     public void Drop()
     {
         if (!isPickedUp) return;
@@ -108,10 +159,12 @@ public class DNA : MonoBehaviour
         physicsCol.enabled = false;
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.linearVelocity = Vector2.zero;
-        // No desactivar el gameObject
+
+        SetGlow(true);
+        StartBobbing(); // vuelve a flotar al soltarse
     }
 
-    // Lanzamiento voluntario (desde el jugador que lo tiene)
+    // Lanzamiento voluntario
     public void Throw(Vector2 direction, float playerSpeed, int throwerPlayer)
     {
         if (!isPickedUp) return;
@@ -120,6 +173,8 @@ public class DNA : MonoBehaviour
         isThrown = true;
         throwTime = Time.time;
         lastThrowerPlayer = throwerPlayer;
+
+        StopBobbing(); // sin bobbing mientras vuela
 
         transform.SetParent(null);
         sr.enabled = true;
@@ -130,10 +185,11 @@ public class DNA : MonoBehaviour
 
         rb.bodyType = RigidbodyType2D.Dynamic;
         physicsCol.enabled = true;
-        triggerCol.enabled = false; // evitar re-agarre inmediato
+        triggerCol.enabled = false;
         rb.AddForce(throwForce, ForceMode2D.Impulse);
         rb.angularVelocity = Random.Range(-360f, 360f);
 
+        SetGlow(true);
         Invoke(nameof(EnableTrigger), 0.3f);
     }
 
@@ -142,7 +198,7 @@ public class DNA : MonoBehaviour
         if (!isPickedUp) triggerCol.enabled = true;
     }
 
-    // Lanzamiento forzado (cuando el jugador que lo lleva recibe un golpe)
+    // Lanzamiento forzado (golpe recibido)
     public void ThrowByHit(Vector2 direction, int throwerPlayer)
     {
         if (isPickedUp && holder != null)
@@ -153,7 +209,9 @@ public class DNA : MonoBehaviour
         holder = null;
         isThrown = true;
         throwTime = Time.time;
-        lastThrowerPlayer = throwerPlayer;   //  asignar qui�n caus� el lanzamiento
+        lastThrowerPlayer = throwerPlayer;
+
+        StopBobbing(); // sin bobbing mientras vuela
 
         transform.SetParent(null);
         sr.enabled = true;
@@ -162,6 +220,8 @@ public class DNA : MonoBehaviour
         triggerCol.enabled = false;
         rb.AddForce(direction * new Vector2(hitThrowForceX, hitThrowForceY), ForceMode2D.Impulse);
         rb.angularVelocity = Random.Range(-360f, 360f);
+
+        SetGlow(true);
         Invoke(nameof(EnableTrigger), 0.5f);
     }
 
