@@ -1,16 +1,10 @@
 fileFormatVersion: 2
-guid: 6732a827b5d440649be042b46bf9254e
+guid: f8bc46fe744f91948a5e524ec1a910b5
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4454007270468042670
-    second: PresentatorEVil_0
-  - first:
-      213: 5785879127929364577
-    second: PresentatorEVil_1
-  - first:
-      213: -4726644080215648741
-    second: PresentatorEVil_2
+      213: 849941430782786419
+    second: Enojado0_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -106,23 +100,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: PresentatorEVil_2
+      name: Enojado0_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 500
-        height: 500
+        y: 1
+        width: 483
+        height: 499
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b161b0b7046976eb0800000000000000
-      internalID: -4726644080215648741
+      spriteID: 37bf1b56a399bcb00800000000000000
+      internalID: 849941430782786419
       vertices: []
       indices: 
       edges: []
@@ -131,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -140,10 +134,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      PresentatorEVil_0: 4454007270468042670
-      PresentatorEVil_1: 5785879127929364577
-      PresentatorEVil_2: -4726644080215648741
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
