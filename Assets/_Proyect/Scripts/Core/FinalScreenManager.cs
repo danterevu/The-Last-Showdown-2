@@ -11,9 +11,9 @@ public class FinalScreenManager : MonoBehaviour
         int p2 = GameManager.Instance.player2Score;
 
         if (p1 > p2)
-            resultText.text = "¡Ganó el Jugador 1!\n{p1} - {p2}";
+            resultText.text = "¡Ganó Gloppy!\n{p1} - {p2}";
         else if (p2 > p1)
-            resultText.text = "¡Ganó el Jugador 2!\n{p1} - {p2}";
+            resultText.text = "¡Ganó Choppy!\n{p1} - {p2}";
         else
             resultText.text = "¡Empate!\n{p1} - {p2}";
     }

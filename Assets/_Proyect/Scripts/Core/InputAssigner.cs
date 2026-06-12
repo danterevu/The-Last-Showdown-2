@@ -2,13 +2,13 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using DG.Tweening;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 
 public class InputAssigner : MonoBehaviour
 {
     public enum InputType { None, Gamepad, Keyboard }
     public enum SelectionPhase { Player1Selecting, Player2Selecting, SelectionComplete }
+    public enum Character { None, Gloppk, Chopi } // Gloppk = izquierda, Chopi = derecha
 
     [System.Serializable]
     public class PlayerSlot
@@ -35,6 +35,7 @@ public class InputAssigner : MonoBehaviour
         [HideInInspector] public Gamepad currentSelectionGamepad = null;
         [HideInInspector] public bool isLocked = false;
         [HideInInspector] public bool isUsingSecondKeyboard = false;
+        [HideInInspector] public Character selectedCharacter = Character.None; // qué eligió
     }
 
     [System.Serializable]
@@ -42,6 +43,8 @@ public class InputAssigner : MonoBehaviour
     {
         public InputType inputType;
         public Gamepad gamepad;
+        public Character character; // personaje elegido
+        public int internalPlayerIndex; // índice interno real (1=Gloppk, 2=Chopi)
     }
 
     public static List<PlayerSlotData> assignedPlayers = new List<PlayerSlotData>();
@@ -59,11 +62,22 @@ public class InputAssigner : MonoBehaviour
         return data?.gamepad;
     }
 
+    /// <summary>
+    /// Devuelve el input del jugador que controla internamente a Player1 (Gloppk).
+    /// Usalo en minijuegos si necesitás saber qué mando/teclado mueve a Player1.
+    /// </summary>
+    public static PlayerSlotData GetInternalPlayer(int internalIndex)
+    {
+        foreach (var p in assignedPlayers)
+            if (p.internalPlayerIndex == internalIndex) return p;
+        return null;
+    }
+
     public static void Clear() => assignedPlayers.Clear();
 
     [Header("Player Slots")]
-    [SerializeField] private PlayerSlot player1Slot;
-    [SerializeField] private PlayerSlot player2Slot;
+    [SerializeField] private PlayerSlot player1Slot; // primer jugador en elegir
+    [SerializeField] private PlayerSlot player2Slot; // segundo jugador en elegir
 
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI promptText;
@@ -91,7 +105,10 @@ public class InputAssigner : MonoBehaviour
     private bool hasAutoOpenedControlsPanel = false;
     private bool bothAssignedPrevious = false;
 
-    private void OnEnable()
+    private void OnEnable() => InitializeAll();
+    private void Start() => InitializeAll();
+
+    private void InitializeAll()
     {
         assignedPlayers.Clear();
         usedGamepads.Clear();
@@ -106,283 +123,226 @@ public class InputAssigner : MonoBehaviour
         InitializeTurnUI();
         UpdateUI();
         InitializeVisuals();
-        
-        // Inicializar assignedPlayers con 2 elementos
         while (assignedPlayers.Count < 2)
-        {
             assignedPlayers.Add(new PlayerSlotData());
-        }
-    }
-    // AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-    private void Start()
-    {
-        assignedPlayers.Clear();
-        usedGamepads.Clear();
-        currentPhase = SelectionPhase.Player1Selecting;
-        ResetSlot(player1Slot);
-        ResetSlot(player2Slot);
-        isControlsPanelManuallyClosed = true;
-        forceControlsPanelOpen = false;
-        hasAutoOpenedControlsPanel = false;
-        bothAssignedPrevious = false;
-        if (controlsPanel != null) controlsPanel.SetActive(false);
-        InitializeTurnUI();
-        UpdateUI();
-        InitializeVisuals();
-        
-        // Inicializar assignedPlayers con 2 elementos
-        while (assignedPlayers.Count < 2)
-        {
-            assignedPlayers.Add(new PlayerSlotData());
-        }
     }
 
     private void InitializeVisuals()
     {
-        // Colocar todos los visuales en el centro al principio
-        if (keyboardVisual != null && centerSpawnPoint != null)
-        {
-            keyboardVisual.SetActive(true);
-            keyboardVisual.transform.position = centerSpawnPoint.position;
-        }
+        SetVisualAtCenter(keyboardVisual);
+        SetVisualAtCenter(keyboardVisual2);
+        SetVisualAtCenter(gamepadVisual);
+    }
 
-        if (keyboardVisual2 != null && centerSpawnPoint != null)
+    private void SetVisualAtCenter(GameObject visual)
+    {
+        if (visual != null && centerSpawnPoint != null)
         {
-            keyboardVisual2.SetActive(true);
-            keyboardVisual2.transform.position = centerSpawnPoint.position;
-        }
-
-        if (gamepadVisual != null && centerSpawnPoint != null)
-        {
-            gamepadVisual.SetActive(true);
-            gamepadVisual.transform.position = centerSpawnPoint.position;
+            visual.SetActive(true);
+            visual.transform.position = centerSpawnPoint.position;
         }
     }
 
     private void InitializeTurnUI()
     {
-        // Initialize turn UI
-        if (player1ControlsImage != null)
-            player1ControlsImage.SetActive(false);
-        if (player2ControlsImage != null)
-            player2ControlsImage.SetActive(false);
+        if (player1ControlsImage != null) player1ControlsImage.SetActive(false);
+        if (player2ControlsImage != null) player2ControlsImage.SetActive(false);
     }
 
     private void UpdateTurnUI()
     {
-        // Show prompt and controls images based on current phase
         if (promptText != null)
         {
             promptText.gameObject.SetActive(true);
-            
             if (currentPhase == SelectionPhase.Player1Selecting)
-            {
                 promptText.text = player1PromptText;
-            }
             else if (currentPhase == SelectionPhase.Player2Selecting)
-            {
                 promptText.text = player2PromptText;
-            }
             else
-            {
                 promptText.gameObject.SetActive(false);
-            }
         }
 
-        // Toggle control images
         if (player1ControlsImage != null)
-            player1ControlsImage.SetActive(currentPhase == SelectionPhase.Player1Selecting && player1Slot.assignedInput == InputType.None);
+            player1ControlsImage.SetActive(currentPhase == SelectionPhase.Player1Selecting &&
+                                           player1Slot.assignedInput == InputType.None);
         if (player2ControlsImage != null)
-            player2ControlsImage.SetActive(currentPhase == SelectionPhase.Player2Selecting && player2Slot.assignedInput == InputType.None);
+            player2ControlsImage.SetActive(currentPhase == SelectionPhase.Player2Selecting &&
+                                           player2Slot.assignedInput == InputType.None);
     }
 
     private void Update()
     {
         if (currentPhase == SelectionPhase.Player1Selecting)
-        {
-            HandlePlayer1Turn();
-        }
+            HandlePlayerTurn(player1Slot, isFirstPlayer: true);
         else if (currentPhase == SelectionPhase.Player2Selecting)
-        {
-            HandlePlayer2Turn();
-        }
+            HandlePlayerTurn(player2Slot, isFirstPlayer: false);
+
         UpdateTurnUI();
         UpdateUI();
     }
 
-    private void HandlePlayer1Turn()
+    // ─── Lógica unificada de turno ────────────────────────────────────
+
+    private void HandlePlayerTurn(PlayerSlot slot, bool isFirstPlayer)
     {
         var keyboard = Keyboard.current;
-        var gamepads = Gamepad.all;
 
-        if (player1Slot.assignedInput == InputType.None)
+        // Y / Triangle = toggle controles (siempre)
+        foreach (var gp in Gamepad.all)
         {
-            if (!player1Slot.isSelecting)
+            if (gp != null && gp.buttonNorth.wasPressedThisFrame)
             {
-                // Player 1 can use A/D or any gamepad's left stick/dpad to start selection
-                if (keyboard != null)
+                ToggleControlsPanel();
+                return;
+            }
+        }
+
+        if (slot.assignedInput == InputType.None)
+        {
+            if (!slot.isSelecting)
+            {
+                // B / Escape sin nada = volver / deshacer al anterior
+                if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
                 {
-                    if (keyboard.aKey.wasPressedThisFrame || keyboard.dKey.wasPressedThisFrame)
+                    HandleBackPress(isFirstPlayer);
+                    return;
+                }
+                foreach (var gp in Gamepad.all)
+                {
+                    if (gp != null && gp.buttonEast.wasPressedThisFrame)
                     {
-                        StartSelection(player1Slot, InputType.Keyboard, null, false);
+                        HandleBackPress(isFirstPlayer);
                         return;
                     }
                 }
 
-                // Any unused gamepad
-                foreach (var gamepad in gamepads)
+                // ── Teclado: detectar izquierda o derecha ──
+                if (keyboard != null)
                 {
-                    if (gamepad != null && !usedGamepads.Contains(gamepad))
+                    bool leftKey = isFirstPlayer ? keyboard.aKey.wasPressedThisFrame
+                                                  : keyboard.leftArrowKey.wasPressedThisFrame;
+                    bool rightKey = isFirstPlayer ? keyboard.dKey.wasPressedThisFrame
+                                                  : keyboard.rightArrowKey.wasPressedThisFrame;
+
+                    if (leftKey)
                     {
-                        if (gamepad.leftStick.left.wasPressedThisFrame || gamepad.leftStick.right.wasPressedThisFrame || 
-                            gamepad.dpad.left.wasPressedThisFrame || gamepad.dpad.right.wasPressedThisFrame)
-                        {
-                            StartSelection(player1Slot, InputType.Gamepad, gamepad, false);
-                            return;
-                        }
+                        slot.selectedCharacter = Character.Gloppk;
+                        StartSelection(slot, InputType.Keyboard, null, !isFirstPlayer);
+                        return;
+                    }
+                    if (rightKey)
+                    {
+                        slot.selectedCharacter = Character.Chopi;
+                        StartSelection(slot, InputType.Keyboard, null, !isFirstPlayer);
+                        return;
+                    }
+                }
+
+                // ── Gamepad libre: detectar izquierda o derecha ──
+                foreach (var gamepad in Gamepad.all)
+                {
+                    if (gamepad == null || usedGamepads.Contains(gamepad)) continue;
+
+                    bool left = gamepad.leftStick.left.wasPressedThisFrame || gamepad.dpad.left.wasPressedThisFrame;
+                    bool right = gamepad.leftStick.right.wasPressedThisFrame || gamepad.dpad.right.wasPressedThisFrame;
+
+                    if (left)
+                    {
+                        slot.selectedCharacter = Character.Gloppk;
+                        StartSelection(slot, InputType.Gamepad, gamepad, false);
+                        return;
+                    }
+                    if (right)
+                    {
+                        slot.selectedCharacter = Character.Chopi;
+                        StartSelection(slot, InputType.Gamepad, gamepad, false);
+                        return;
                     }
                 }
             }
             else
             {
-                // Confirm or cancel for P1
-                bool confirmPressed = false;
-                bool cancelPressed = false;
+                // Está seleccionando → confirmar o cancelar
+                bool confirm = false;
+                bool cancel = false;
 
-                if (player1Slot.currentSelectionType == InputType.Keyboard && keyboard != null)
+                if (slot.currentSelectionType == InputType.Keyboard && keyboard != null)
                 {
-                    confirmPressed = keyboard.spaceKey.wasPressedThisFrame;
-                    cancelPressed = keyboard.escapeKey.wasPressedThisFrame;
+                    confirm = isFirstPlayer ? keyboard.spaceKey.wasPressedThisFrame
+                                           : keyboard.enterKey.wasPressedThisFrame;
+                    cancel = isFirstPlayer ? keyboard.escapeKey.wasPressedThisFrame
+                                           : keyboard.backspaceKey.wasPressedThisFrame;
                 }
-                else if (player1Slot.currentSelectionType == InputType.Gamepad && player1Slot.currentSelectionGamepad != null)
+                else if (slot.currentSelectionType == InputType.Gamepad &&
+                         slot.currentSelectionGamepad != null)
                 {
-                    confirmPressed = player1Slot.currentSelectionGamepad.buttonSouth.wasPressedThisFrame || player1Slot.currentSelectionGamepad.startButton.wasPressedThisFrame;
-                    cancelPressed = player1Slot.currentSelectionGamepad.buttonEast.wasPressedThisFrame || player1Slot.currentSelectionGamepad.selectButton.wasPressedThisFrame;
+                    confirm = slot.currentSelectionGamepad.buttonSouth.wasPressedThisFrame ||
+                              slot.currentSelectionGamepad.startButton.wasPressedThisFrame;
+                    cancel = slot.currentSelectionGamepad.buttonEast.wasPressedThisFrame ||
+                              slot.currentSelectionGamepad.selectButton.wasPressedThisFrame;
                 }
 
-                if (confirmPressed)
+                if (confirm)
                 {
-                    ConfirmSelection(player1Slot);
-                    currentPhase = SelectionPhase.Player2Selecting;
+                    ConfirmSelection(slot);
+                    currentPhase = isFirstPlayer ? SelectionPhase.Player2Selecting
+                                                 : SelectionPhase.SelectionComplete;
                 }
-                else if (cancelPressed)
+                else if (cancel)
                 {
-                    CancelSelection(player1Slot);
+                    CancelSelection(slot);
                 }
             }
         }
         else
         {
-            // If already assigned, allow cancel to go back
-            bool cancelPressed = false;
-            if (player1Slot.assignedInput == InputType.Keyboard && keyboard != null)
-            {
-                cancelPressed = keyboard.escapeKey.wasPressedThisFrame;
-            }
-            else if (player1Slot.assignedInput == InputType.Gamepad && player1Slot.assignedGamepad != null)
-            {
-                cancelPressed = player1Slot.assignedGamepad.buttonEast.wasPressedThisFrame || player1Slot.assignedGamepad.selectButton.wasPressedThisFrame;
-            }
+            // Ya confirmó → solo puede cancelar
+            bool cancel = false;
 
-            if (cancelPressed)
+            if (slot.assignedInput == InputType.Keyboard && keyboard != null)
+                cancel = isFirstPlayer ? keyboard.escapeKey.wasPressedThisFrame
+                                       : keyboard.backspaceKey.wasPressedThisFrame;
+            else if (slot.assignedInput == InputType.Gamepad && slot.assignedGamepad != null)
+                cancel = slot.assignedGamepad.buttonEast.wasPressedThisFrame ||
+                         slot.assignedGamepad.selectButton.wasPressedThisFrame;
+
+            if (cancel)
             {
-                CancelAssignment(player1Slot);
+                CancelAssignment(slot);
+                if (!isFirstPlayer) currentPhase = SelectionPhase.Player1Selecting;
             }
             else
             {
-                // Already confirmed, move to player 2
-                currentPhase = SelectionPhase.Player2Selecting;
+                currentPhase = isFirstPlayer ? SelectionPhase.Player2Selecting
+                                             : SelectionPhase.SelectionComplete;
             }
         }
     }
 
-    private void HandlePlayer2Turn()
+    private void HandleBackPress(bool isFirstPlayer)
     {
-        var keyboard = Keyboard.current;
-        var gamepads = Gamepad.all;
-
-        if (player2Slot.assignedInput == InputType.None)
+        if (isFirstPlayer)
         {
-            if (!player2Slot.isSelecting)
-            {
-                // Player 2 can use arrow keys or any remaining gamepad's left stick/dpad
-                if (keyboard != null)
-                {
-                    if (keyboard.leftArrowKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame)
-                    {
-                        StartSelection(player2Slot, InputType.Keyboard, null, true);
-                        return;
-                    }
-                }
-
-                // Any unused gamepad
-                foreach (var gamepad in gamepads)
-                {
-                    if (gamepad != null && !usedGamepads.Contains(gamepad))
-                    {
-                        if (gamepad.leftStick.left.wasPressedThisFrame || gamepad.leftStick.right.wasPressedThisFrame || 
-                            gamepad.dpad.left.wasPressedThisFrame || gamepad.dpad.right.wasPressedThisFrame)
-                        {
-                            StartSelection(player2Slot, InputType.Gamepad, gamepad, false);
-                            return;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // Confirm or cancel for P2
-                bool confirmPressed = false;
-                bool cancelPressed = false;
-
-                if (player2Slot.currentSelectionType == InputType.Keyboard && keyboard != null)
-                {
-                    confirmPressed = keyboard.enterKey.wasPressedThisFrame;
-                    cancelPressed = keyboard.backspaceKey.wasPressedThisFrame;
-                }
-                else if (player2Slot.currentSelectionType == InputType.Gamepad && player2Slot.currentSelectionGamepad != null)
-                {
-                    confirmPressed = player2Slot.currentSelectionGamepad.buttonSouth.wasPressedThisFrame || player2Slot.currentSelectionGamepad.startButton.wasPressedThisFrame;
-                    cancelPressed = player2Slot.currentSelectionGamepad.buttonEast.wasPressedThisFrame || player2Slot.currentSelectionGamepad.selectButton.wasPressedThisFrame;
-                }
-
-                if (confirmPressed)
-                {
-                    ConfirmSelection(player2Slot);
-                    currentPhase = SelectionPhase.SelectionComplete;
-                }
-                else if (cancelPressed)
-                {
-                    CancelSelection(player2Slot);
-                }
-            }
+            BackToMenu();
         }
         else
         {
-            // If already assigned, allow cancel to go back
-            bool cancelPressed = false;
-            if (player2Slot.assignedInput == InputType.Keyboard && keyboard != null)
+            // Deshace la elección de P1 y vuelve a su turno
+            if (player1Slot.assignedInput != InputType.None)
             {
-                cancelPressed = keyboard.backspaceKey.wasPressedThisFrame;
-            }
-            else if (player2Slot.assignedInput == InputType.Gamepad && player2Slot.assignedGamepad != null)
-            {
-                cancelPressed = player2Slot.assignedGamepad.buttonEast.wasPressedThisFrame || player2Slot.assignedGamepad.selectButton.wasPressedThisFrame;
-            }
-
-            if (cancelPressed)
-            {
-                CancelAssignment(player2Slot);
+                CancelAssignment(player1Slot);
                 currentPhase = SelectionPhase.Player1Selecting;
             }
             else
             {
-                currentPhase = SelectionPhase.SelectionComplete;
+                BackToMenu();
             }
         }
     }
 
-    private void StartSelection(PlayerSlot slot, InputType type, Gamepad gamepad, bool isSecondKeyboard = false)
+    // ─── Helpers ──────────────────────────────────────────────────────
+
+    private void StartSelection(PlayerSlot slot, InputType type, Gamepad gamepad, bool isSecondKeyboard)
     {
         slot.isSelecting = true;
         slot.currentSelectionType = type;
@@ -390,74 +350,24 @@ public class InputAssigner : MonoBehaviour
         slot.isUsingSecondKeyboard = isSecondKeyboard;
 
         if (type == InputType.Gamepad && gamepad != null)
-        {
             usedGamepads.Add(gamepad);
-        }
 
-        // Mover visual al jugador
         MoveVisualToPlayer(slot, type, isSecondKeyboard);
 
         if (slot.slotObject != null)
-        {
             slot.slotObject.transform.DOScale(slot.activeScale, slot.animationDuration).SetEase(slot.easeType);
-        }
 
         if (slot.characterSprite != null)
         {
             slot.characterSprite.color = slot.activeColor;
             if (type == InputType.Keyboard && slot.selectingKeyboardSprite != null)
-            {
                 slot.characterSprite.sprite = slot.selectingKeyboardSprite;
-            }
             else if (type == InputType.Gamepad && slot.selectingGamepadSprite != null)
-            {
                 slot.characterSprite.sprite = slot.selectingGamepadSprite;
-            }
         }
 
         if (slot.statusText != null)
-            slot.statusText.text = GetConfirmCancelText(slot, type, isConfirmed: false);
-    }
-
-    private void MoveVisualToPlayer(PlayerSlot slot, InputType type, bool isSecondKeyboard = false)
-    {
-        GameObject visual;
-        if (type == InputType.Keyboard)
-        {
-            visual = isSecondKeyboard ? keyboardVisual2 : keyboardVisual;
-        }
-        else
-        {
-            visual = gamepadVisual;
-        }
-        
-        Transform targetPoint = slot == player1Slot ? player1SpawnPoint : player2SpawnPoint;
-
-        if (visual != null && targetPoint != null)
-        {
-            visual.SetActive(true);
-            visual.transform.position = targetPoint.position;
-        }
-    }
-
-    private void MoveVisualToCenter(PlayerSlot slot, bool isSecondKeyboard = false)
-    {
-        InputType type = slot.isSelecting ? slot.currentSelectionType : slot.assignedInput;
-        GameObject visual;
-        
-        if (type == InputType.Keyboard)
-        {
-            visual = isSecondKeyboard ? keyboardVisual2 : keyboardVisual;
-        }
-        else
-        {
-            visual = gamepadVisual;
-        }
-
-        if (visual != null && centerSpawnPoint != null)
-        {
-            visual.transform.position = centerSpawnPoint.position;
-        }
+            slot.statusText.text = GetStatusText(slot, type, isConfirmed: false);
     }
 
     private void ConfirmSelection(PlayerSlot slot)
@@ -474,95 +384,75 @@ public class InputAssigner : MonoBehaviour
                 .SetLoops(2, LoopType.Yoyo);
 
             if (slot.assignedInput == InputType.Keyboard && slot.confirmedKeyboardSprite != null)
-            {
                 slot.characterSprite.sprite = slot.confirmedKeyboardSprite;
-            }
             else if (slot.assignedInput == InputType.Gamepad && slot.confirmedGamepadSprite != null)
-            {
                 slot.characterSprite.sprite = slot.confirmedGamepadSprite;
-            }
         }
 
         if (slot.statusText != null)
-            slot.statusText.text = GetConfirmCancelText(slot, slot.assignedInput, isConfirmed: true);
+            slot.statusText.text = GetStatusText(slot, slot.assignedInput, isConfirmed: true);
 
-        // Asegurarnos de que assignedPlayers tiene al menos 2 elementos
+        SaveSlotData(slot);
+    }
+
+    /// <summary>
+    /// Guarda el slot en assignedPlayers.
+    /// internalPlayerIndex: Gloppk = 1, Chopi = 2 (coincide con los tags Player1/Player2)
+    /// </summary>
+    private void SaveSlotData(PlayerSlot slot)
+    {
         while (assignedPlayers.Count < 2)
-        {
             assignedPlayers.Add(new PlayerSlotData());
-        }
 
-        // Asignar a índice fijo: player1Slot = 0, player2Slot = 1
-        int index = slot == player1Slot ? 0 : 1;
-        assignedPlayers[index].inputType = slot.assignedInput;
-        assignedPlayers[index].gamepad = slot.assignedGamepad;
+        // El slot de "primer jugador en elegir" va al índice 0,
+        // el segundo al índice 1 — esto no cambia.
+        // Lo que cambia es internalPlayerIndex según el personaje elegido.
+        int slotIndex = slot == player1Slot ? 0 : 1;
+
+        assignedPlayers[slotIndex].inputType = slot.assignedInput;
+        assignedPlayers[slotIndex].gamepad = slot.assignedGamepad;
+        assignedPlayers[slotIndex].character = slot.selectedCharacter;
+        assignedPlayers[slotIndex].internalPlayerIndex = slot.selectedCharacter == Character.Gloppk ? 1 : 2;
     }
 
     private void CancelSelection(PlayerSlot slot)
     {
         if (slot.currentSelectionType == InputType.Gamepad && slot.currentSelectionGamepad != null)
-        {
             usedGamepads.Remove(slot.currentSelectionGamepad);
-        }
 
-        // Mover visual de vuelta al centro
         MoveVisualToCenter(slot, slot.isUsingSecondKeyboard);
 
         slot.isSelecting = false;
         slot.currentSelectionType = InputType.None;
         slot.currentSelectionGamepad = null;
         slot.isUsingSecondKeyboard = false;
+        slot.selectedCharacter = Character.None;
 
         if (slot.slotObject != null)
-        {
             slot.slotObject.transform.DOScale(slot.inactiveScale, slot.animationDuration).SetEase(slot.easeType);
-        }
 
         if (slot.characterSprite != null)
         {
-            if (slot.idleSprite != null)
-                slot.characterSprite.sprite = slot.idleSprite;
+            if (slot.idleSprite != null) slot.characterSprite.sprite = slot.idleSprite;
             slot.characterSprite.color = slot.inactiveColor;
         }
 
-        if (slot.statusText != null)
-            slot.statusText.text = "";
-    }
-
-    private string GetConfirmCancelText(PlayerSlot slot, InputType type, bool isConfirmed)
-    {
-        if (type == InputType.Keyboard)
-        {
-            if (slot == player1Slot)
-                return isConfirmed ? "¡Listo!\nESC = Cancelar" : "ESPACIO = Listo\nESC = Cancelar";
-            return isConfirmed ? "¡Listo!\nBACKSPACE = Cancelar" : "ENTER = Listo\nBACKSPACE = Cancelar";
-        }
-
-        return isConfirmed ? "¡Listo!\nB = Cancelar" : "A = Listo\nB = Cancelar";
+        if (slot.statusText != null) slot.statusText.text = "";
     }
 
     private void CancelAssignment(PlayerSlot slot)
     {
         if (slot.assignedInput == InputType.Gamepad && slot.assignedGamepad != null)
-        {
             usedGamepads.Remove(slot.assignedGamepad);
-        }
 
-        // Mover visual de vuelta al centro
         MoveVisualToCenter(slot, slot.isUsingSecondKeyboard);
-
         ResetSlot(slot);
 
-        // Asegurarnos de que assignedPlayers tiene al menos 2 elementos
         while (assignedPlayers.Count < 2)
-        {
             assignedPlayers.Add(new PlayerSlotData());
-        }
 
-        // Limpiar el índice correspondiente
         int index = slot == player1Slot ? 0 : 1;
-        assignedPlayers[index].inputType = InputType.None;
-        assignedPlayers[index].gamepad = null;
+        assignedPlayers[index] = new PlayerSlotData();
     }
 
     private void ResetSlot(PlayerSlot slot)
@@ -574,28 +464,62 @@ public class InputAssigner : MonoBehaviour
         slot.currentSelectionGamepad = null;
         slot.isLocked = false;
         slot.isUsingSecondKeyboard = false;
+        slot.selectedCharacter = Character.None;
 
         if (slot.slotObject != null)
-        {
             slot.slotObject.transform.DOScale(slot.inactiveScale, slot.animationDuration).SetEase(slot.easeType);
-        }
 
         if (slot.characterSprite != null)
         {
-            if (slot.idleSprite != null)
-                slot.characterSprite.sprite = slot.idleSprite;
+            if (slot.idleSprite != null) slot.characterSprite.sprite = slot.idleSprite;
             slot.characterSprite.color = slot.inactiveColor;
         }
 
-        if (slot.statusText != null)
-            slot.statusText.text = "";
+        if (slot.statusText != null) slot.statusText.text = "";
+    }
+
+    private void MoveVisualToPlayer(PlayerSlot slot, InputType type, bool isSecondKeyboard)
+    {
+        GameObject visual = type == InputType.Keyboard
+            ? (isSecondKeyboard ? keyboardVisual2 : keyboardVisual)
+            : gamepadVisual;
+
+        Transform target = slot == player1Slot ? player1SpawnPoint : player2SpawnPoint;
+
+        if (visual != null && target != null)
+        {
+            visual.SetActive(true);
+            visual.transform.position = target.position;
+        }
+    }
+
+    private void MoveVisualToCenter(PlayerSlot slot, bool isSecondKeyboard)
+    {
+        InputType type = slot.isSelecting ? slot.currentSelectionType : slot.assignedInput;
+        GameObject visual = type == InputType.Keyboard
+            ? (isSecondKeyboard ? keyboardVisual2 : keyboardVisual)
+            : gamepadVisual;
+
+        if (visual != null && centerSpawnPoint != null)
+            visual.transform.position = centerSpawnPoint.position;
+    }
+
+    private string GetStatusText(PlayerSlot slot, InputType type, bool isConfirmed)
+    {
+        bool isFirst = slot == player1Slot;
+        if (type == InputType.Keyboard)
+        {
+            if (isFirst)
+                return isConfirmed ? "¡Listo!\nESC = Cancelar" : "ESPACIO = Listo\nESC = Cancelar";
+            return isConfirmed ? "¡Listo!\nBACKSPACE = Cancelar" : "ENTER = Listo\nBACKSPACE = Cancelar";
+        }
+        return isConfirmed ? "¡Listo!\nB = Cancelar" : "A = Listo\nB = Cancelar";
     }
 
     private void UpdateUI()
     {
-        // Show/hide start button and controls panel
-        bool bothAssigned = player1Slot.assignedInput != InputType.None && 
-                           player2Slot.assignedInput != InputType.None;
+        bool bothAssigned = player1Slot.assignedInput != InputType.None &&
+                            player2Slot.assignedInput != InputType.None;
 
         if (bothAssigned && !hasAutoOpenedControlsPanel)
         {
@@ -610,7 +534,6 @@ public class InputAssigner : MonoBehaviour
                 startButton.transform.DOKill();
                 startButton.transform.localScale = Vector3.one;
             }
-
             startButton.SetActive(bothAssigned);
             if (bothAssigned && !bothAssignedPrevious)
             {
@@ -621,17 +544,12 @@ public class InputAssigner : MonoBehaviour
         }
 
         if (controlsPanel != null)
-        {
-            controlsPanel.SetActive(!isControlsPanelManuallyClosed && (bothAssigned || forceControlsPanelOpen));
-        }
+            controlsPanel.SetActive(!isControlsPanelManuallyClosed &&
+                                    (bothAssigned || forceControlsPanelOpen));
 
-        // Ocultar visuales cuando la selección esté completa
-        if (keyboardVisual != null)
-            keyboardVisual.SetActive(!bothAssigned);
-        if (keyboardVisual2 != null)
-            keyboardVisual2.SetActive(!bothAssigned);
-        if (gamepadVisual != null)
-            gamepadVisual.SetActive(!bothAssigned);
+        if (keyboardVisual != null) keyboardVisual.SetActive(!bothAssigned);
+        if (keyboardVisual2 != null) keyboardVisual2.SetActive(!bothAssigned);
+        if (gamepadVisual != null) gamepadVisual.SetActive(!bothAssigned);
 
         bothAssignedPrevious = bothAssigned;
     }
@@ -652,39 +570,29 @@ public class InputAssigner : MonoBehaviour
 
     public void LoadNextScene()
     {
-        if (player1Slot.assignedInput != InputType.None && 
+        if (player1Slot.assignedInput != InputType.None &&
             player2Slot.assignedInput != InputType.None)
         {
             if (controlsPanel != null) controlsPanel.SetActive(false);
             if (SceneLoader.Instance != null)
-            {
                 SceneLoader.Instance.LoadRuleta();
-            }
             else
-            {
                 UnityEngine.SceneManagement.SceneManager.LoadScene("Select_Minigame");
-            }
         }
     }
 
     public void CloseControlsPanel()
     {
-        if (controlsPanel != null)
-        {
-            isControlsPanelManuallyClosed = true;
-            forceControlsPanelOpen = false;
-            controlsPanel.SetActive(false);
-        }
+        isControlsPanelManuallyClosed = true;
+        forceControlsPanelOpen = false;
+        if (controlsPanel != null) controlsPanel.SetActive(false);
     }
 
     public void OpenControlsPanel()
     {
-        if (controlsPanel != null)
-        {
-            isControlsPanelManuallyClosed = false;
-            forceControlsPanelOpen = true;
-            UpdateUI();
-        }
+        isControlsPanelManuallyClosed = false;
+        forceControlsPanelOpen = true;
+        UpdateUI();
     }
 
     public void ToggleControlsPanel()
@@ -699,14 +607,9 @@ public class InputAssigner : MonoBehaviour
     {
         GameManager.Instance?.ResetGame();
         AudioManager.Instance?.StopMusic();
-
         if (SceneLoader.Instance != null)
-        {
             SceneLoader.Instance.LoadMenu();
-        }
         else
-        {
             UnityEngine.SceneManagement.SceneManager.LoadScene("Menu");
-        }
     }
 }

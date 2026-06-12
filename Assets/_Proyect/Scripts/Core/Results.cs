@@ -16,8 +16,8 @@ public class Results : MonoBehaviour
         int p1Round = PlayerPrefs.GetInt("LastRoundP1", 0);
         int p2Round = PlayerPrefs.GetInt("LastRoundP2", 0);
 
-        player1RoundText.text = "Jugador 1 esta ronda: +" + p1Round + " pts";
-        player2RoundText.text = "Jugador 2 esta ronda: +" + p2Round + " pts";
+        player1RoundText.text = "Gloppy esta ronda: +" + p1Round + " pts";
+        player2RoundText.text = "Choppy esta ronda: +" + p2Round + " pts";
 
         // total global (ya incluye esta ronda porque FinishMinigame los sumó)
         player1TotalText.text = "Total J1: " + GameManager.Instance.player1Score + " pts";
