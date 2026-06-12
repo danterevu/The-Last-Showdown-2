@@ -902,7 +902,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         hasDNA = true;
         carriedDNA = dna;
         dna.PickUp(this);
-        moveSpeed = baseMoveSpeed * 0.6f;
+       // moveSpeed = baseMoveSpeed * 0.6f;
     }
     public void DropDNA()
     {
@@ -951,6 +951,17 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     public Transform GetDNAHoldPoint() => dnaHoldPoint;
     public bool IsShieldActive() => shieldActive;
     public bool IsCarryingSomething() => heldCrate != null || hasDNA;
+    public bool IsCarryingCrate() => heldCrate != null;
+
+    public void ForceDropCrate()
+    {
+        if (heldCrate != null)
+        {
+            heldCrate.DropAtPlace(); // Esto suelta la caja en el lugar actual del jugador
+            heldCrate = null;
+            SetHandsActive(false);
+        }
+    }
 
     public void SetSpawnPoint(Vector3 point)
     {

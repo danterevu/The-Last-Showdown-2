@@ -343,9 +343,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   throwBaseForce: 5
   throwRunningForce: 15
-  throwUpward: 2
+  throwUpward: 1.6
   stunDuration: 1
-  minSpeedToStun: 3
+  minSpeedToStun: 7
   stunCooldown: 1
 --- !u!61 &9017003784712490456
 BoxCollider2D:
@@ -455,7 +455,7 @@ Rigidbody2D:
   m_LinearDamping: 0.5
   m_AngularDamping: 0.5
   m_GravityScale: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 7eae706a5c39ac44abd848b48a3378b0, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0

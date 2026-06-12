@@ -160,7 +160,8 @@ public class MutantDNAManager : MonoBehaviour, IMinijuegoControlable
     private IEnumerator ChangeZone()
     {
         Debug.Log("ChangeZone() iniciado");
-        //ForceDropDNAFromPlayers();
+        ForceDropAllFromPlayers();      // Soltar caja y ADN de los jugadores
+        dnaPickup.ForceSpawnNow();
         gameRunning = false;
 
         int oldZoneIndex = currentZoneIndex;
@@ -451,5 +452,25 @@ public class MutantDNAManager : MonoBehaviour, IMinijuegoControlable
         PlayerPrefs.SetInt("LastRoundP1", p1Round);
         PlayerPrefs.SetInt("LastRoundP2", p2Round);
         SceneLoader.Instance.LoadResults();
+    }
+
+    private void ForceDropAllFromPlayers()
+    {
+        if (p1Controller != null)
+        {
+            // Soltar ADN si lo tiene
+            if (p1Controller.HasDNA())
+                p1Controller.DropDNA();
+            // Soltar caja si la tiene
+            if (p1Controller.IsCarryingCrate()) // Necesitas implementar IsCarryingCrate
+                p1Controller.ForceDropCrate();
+        }
+        if (p2Controller != null)
+        {
+            if (p2Controller.HasDNA())
+                p2Controller.DropDNA();
+            if (p2Controller.IsCarryingCrate())
+                p2Controller.ForceDropCrate();
+        }
     }
 }

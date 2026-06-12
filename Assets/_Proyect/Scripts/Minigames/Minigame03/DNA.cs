@@ -255,6 +255,15 @@ public class DNA : MonoBehaviour
         PickUp(controller);
     }
 
+    public void ForceSpawnNow()
+    {
+        // Si está agarrado, soltarlo de su holder
+        if (holder != null && holder.HasDNA())
+            holder.DropDNA();
+        // Forzar respawn
+        SpawnDNA();
+    }
+
     // Getters
     public bool IsThrown() => isThrown;
     public PlayerControllerDNA GetHolder() => holder;
