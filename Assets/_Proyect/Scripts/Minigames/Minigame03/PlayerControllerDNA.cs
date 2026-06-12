@@ -432,6 +432,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     public void ReceiveKnockback(Vector2 direction, float force, PlayerControllerDNA attacker)
     {
+        Debug.Log($"{name} ReceiveKnockback - shieldActive={shieldActive}, hasCrate={heldCrate != null}, attacker={(attacker != null ? attacker.name : "null")}");
         if (isInvulnerable) return;
 
         // Si el escudo está activo y hay un atacante, redirigir el knockback hacia él
@@ -441,6 +442,19 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             attacker.ApplyForcedKnockback(-direction, force * shieldMultiplier);
             // El defensor no recibe knockback ni stun
             return;
+        }
+
+        if (heldCrate != null)
+        {
+            Debug.Log($"{name} - Lanzando caja. heldCrate={heldCrate.name}, isHeld={heldCrate.IsHeld()}, holder={heldCrate.GetHolder()?.name}");
+            // Calcular dirección de lanzamiento (similar a la del ADN)
+            Vector2 throwDir = new Vector2(direction.x, 0.5f).normalized;
+            // Fuerza base (puedes ajustarla)
+            float throwForce = force * 0.8f;
+            heldCrate.ThrowByHit(throwDir * throwForce, attacker != null ? (attacker.CompareTag("Player1") ? 1 : 2) : 0);
+            // Limpiar referencia y manos
+            heldCrate = null;
+            SetHandsActive(false);
         }
 
         // --- Comportamiento normal (sin escudo o sin atacante) ---
@@ -584,6 +598,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             Crate crate = col.GetComponent<Crate>();
             if (crate != null && crate.TryPickUp(this))
             {
+                Debug.Log($"{name} agarró caja: {crate.name}");
                 heldCrate = crate;
                 SetHandsActive(true);
       

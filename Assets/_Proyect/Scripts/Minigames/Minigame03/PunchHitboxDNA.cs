@@ -42,6 +42,8 @@ public class PunchHitboxDNA : MonoBehaviour
 
         PlayerControllerDNA target = other.GetComponentInParent<PlayerControllerDNA>();
         if (target == null || target == owner) return;
+        Debug.Log($"PunchHitbox golpea a {target.name}. owner={owner.name}");
+        Debug.Log($"Hitbox golpea a {target.name} (tiene caja? {target.IsCarryingCrate()})");
 
         // Dirección base del golpe
         float dirX = owner.IsFacingRight() ? 1f : -1f;
@@ -53,9 +55,11 @@ public class PunchHitboxDNA : MonoBehaviour
         if (target.IsCarryingCrate())
         {
             crate = target.GetCarriedCrate();
+            Debug.Log($"Golpe a {target.name}. ¿Tiene caja? {target.IsCarryingCrate()}, crate = {crate}");
             if (crate != null)
             {
                 int throwerPlayer = owner.CompareTag("Player1") ? 1 : 2;
+                Debug.Log($"Lanzando caja. Thrower: {throwerPlayer}");
                 knockDir = new Vector2(dirX, 0.3f).normalized;
                 crate.ThrowByHit(knockDir, owner.playerIndex + 1);
                 target.ForceDropCrate(); // Limpia la referencia en el jugador

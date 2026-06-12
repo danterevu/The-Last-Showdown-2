@@ -173,6 +173,8 @@ public class Crate : MonoBehaviour
 
     public void ThrowByHit(Vector2 direction, int throwerPlayer)
     {
+        Debug.Log($"ThrowByHit - Caja: {name}, isHeld={isHeld}, holder={holder?.name}, thrower={throwerPlayer}");
+
         // Si está agarrada, desengancharla del jugador sin usar DropAtPlace
         if (isHeld && holder != null)
         {
@@ -204,4 +206,6 @@ public class Crate : MonoBehaviour
     {
         Destroy(gameObject);
     }
+    public bool IsHeld() => isHeld;
+    public PlayerControllerDNA GetHolder() => holder;
 }

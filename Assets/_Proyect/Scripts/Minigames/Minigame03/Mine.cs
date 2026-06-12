@@ -118,10 +118,7 @@ public class Mine : MonoBehaviour
                 DNA dna = target.GetCarriedDNA();
                 dna.transform.position = target.transform.position;
                 dna.gameObject.SetActive(true);
-                Vector2 throwDir = new Vector2(
-                    dirX * Random.Range(0.8f, 1.2f),
-                    Random.Range(0.8f, 1.2f)
-                );
+                Vector2 throwDir = new Vector2(dirX * Random.Range(0.8f, 1.2f), 1f);
                 dna.ThrowByHit(throwDir, ownerPlayer);
                 dna.SetSpinEffect();
                 target.DropDNA();
