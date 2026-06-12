@@ -67,6 +67,7 @@ public class Crate : MonoBehaviour
         if (newHolder.HasDNA()) return false;
         if (newHolder.IsStunned()) return false;
         if (newHolder.GetCrateHoldPoint() == null) return false;
+        if (newHolder.IsFrozen()) return false;
 
         // Al agarrar, también limpiamos el lanzador
         lastThrower = null;
@@ -151,7 +152,7 @@ public class Crate : MonoBehaviour
         int throwerPlayer = (lastThrower != null) ? (lastThrower.CompareTag("Player1") ? 1 : 2) : 0;
 
 
-        if (target.HasDNA())
+        if (target.HasDNA() && target.GetCarriedDNA() != null)
         {
             DNA dna = target.GetCarriedDNA();
 
@@ -168,6 +169,35 @@ public class Crate : MonoBehaviour
         rb.linearVelocity = rb.linearVelocity * 0.5f;
         wasThrown = false;
     
+    }
+
+    public void ThrowByHit(Vector2 direction, int throwerPlayer)
+    {
+        // Si está agarrada, desengancharla del jugador sin usar DropAtPlace
+        if (isHeld && holder != null)
+        {
+            // Limpiar la referencia en el jugador manualmente
+            holder.ClearCrateReference(); // este método debe existir
+            transform.SetParent(null);
+            isHeld = false;
+            holder = null;
+        }
+        else
+        {
+            isHeld = false;
+            holder = null;
+        }
+
+        wasThrown = true;
+        throwTime = Time.time;
+        lastThrower = null; // importante para que no se ignore al lanzador
+
+        gameObject.SetActive(true);
+        sr.enabled = true;
+        SetPhysicsEnabled(true);
+        // Aplicar fuerza (ajusta el 5f según desees)
+        rb.AddForce(direction * 5f, ForceMode2D.Impulse);
+        rb.angularVelocity = Random.Range(-360f, 360f);
     }
 
     public void DestroyCrate()

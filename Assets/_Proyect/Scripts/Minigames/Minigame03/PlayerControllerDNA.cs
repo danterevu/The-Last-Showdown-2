@@ -576,6 +576,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     private bool TryGrabNearbyCrate()
     {
         if (hasDNA) return false;
+        if (isFrozen) return false;
 
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.8f, crateLayer);
         foreach (var col in colliders)
@@ -728,7 +729,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
                 heldCrate.DropAtPlace();
                 heldCrate = null;
             }
-            animator?.SetTrigger("Stun");
+            animator?.SetTrigger("Hurt");
         }
     }
 
@@ -897,6 +898,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     public bool HasDNA() => hasDNA;
     public void PickDNA(DNA dna)
     {
+        if (isFrozen) return;
         if (IsCarryingSomething()) return;
         if (hasDNA) return;
         hasDNA = true;
@@ -952,6 +954,8 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     public bool IsShieldActive() => shieldActive;
     public bool IsCarryingSomething() => heldCrate != null || hasDNA;
     public bool IsCarryingCrate() => heldCrate != null;
+    public bool IsFrozen() => isFrozen;
+    public Crate GetCarriedCrate() => heldCrate;
 
     public void ForceDropCrate()
     {
@@ -971,5 +975,13 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     {
         isFrozen = frozen;
         if (frozen) rb.linearVelocity = Vector2.zero;
+    }
+    public void ClearCrateReference()
+    {
+        if (heldCrate != null)
+        {
+            heldCrate = null;
+        }
+        SetHandsActive(false);
     }
 }

@@ -10,7 +10,7 @@ public class PunchHitboxDNA : MonoBehaviour
     [SerializeField] private float berserkKnockbackMultiplier = 2.5f;   // multiplicador de fuerza total (antes 1.8)
     [SerializeField] private float berserkVerticalMultiplier = 1.5f;   // aumento extra en Y (para que vuele más alto)
     [SerializeField] private float extraStunOnWall = 2f;               // segundos extra si choca con pared (antes 1)
-    [SerializeField] private float wallCheckRadius = 0.6f;             // radio para detectar pared
+    [SerializeField] private float wallCheckRadius = 1f;             // radio para detectar pared
     [SerializeField] private float wallCheckDelay = 0.12f;             // tiempo tras golpe para comprobar pared
 
     private void Awake()
@@ -49,6 +49,18 @@ public class PunchHitboxDNA : MonoBehaviour
         // Si está en Berserk, la dirección tiene mucha más vertical
         Vector2 knockDir;
         float finalKnockbackForce = owner.knockbackForce;
+
+        if (target.IsCarryingCrate())
+        {
+            crate = target.GetCarriedCrate();
+            if (crate != null)
+            {
+                int throwerPlayer = owner.CompareTag("Player1") ? 1 : 2;
+                knockDir = new Vector2(dirX, 0.3f).normalized;
+                crate.ThrowByHit(knockDir, owner.playerIndex + 1);
+                target.ForceDropCrate(); // Limpia la referencia en el jugador
+            }
+        }
 
         if (target.IsShieldActive()) //ojo esto
         {
