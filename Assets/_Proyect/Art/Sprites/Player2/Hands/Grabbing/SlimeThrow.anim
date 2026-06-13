@@ -32,17 +32,17 @@ AnimationClip:
       value: {fileID: -1850553691188239925, guid: fc64a387faa3e204f9b4e5f254e4174b, type: 3}
     - time: 0.4
       value: {fileID: -6377276523788163750, guid: 39162cbf85d9a264e8c55714faf3a2b8, type: 3}
-    - time: 0.73333335
+    - time: 0.55
       value: {fileID: -6377276523788163750, guid: 39162cbf85d9a264e8c55714faf3a2b8, type: 3}
-    - time: 0.81666666
+    - time: 0.6333333
       value: {fileID: -1850553691188239925, guid: fc64a387faa3e204f9b4e5f254e4174b, type: 3}
-    - time: 0.9166667
+    - time: 0.73333335
       value: {fileID: 826266273571000575, guid: 8e57546ff5bc01d48a3109684a5db48e, type: 3}
-    - time: 0.9166667
+    - time: 0.73333335
       value: {fileID: 182933546704525507, guid: 692bada0a941eb64cb93ee5ab7f5e1c2, type: 3}
-    - time: 1
+    - time: 0.81666666
       value: {fileID: 130600029345354424, guid: e4fc5c3387d3f9e48a99ef7e63c1d04f, type: 3}
-    - time: 1.0833334
+    - time: 0.9
       value: {fileID: -7482177786666212508, guid: 003381e869134414d99a65a4bb792056, type: 3}
     attribute: m_Sprite
     path: 
@@ -83,7 +83,7 @@ AnimationClip:
     m_AdditiveReferencePoseClip: {fileID: 0}
     m_AdditiveReferencePoseTime: 0
     m_StartTime: 0
-    m_StopTime: 1.1
+    m_StopTime: 0.9166666
     m_OrientationOffsetY: 0
     m_Level: 0
     m_CycleOffset: 0
@@ -103,7 +103,7 @@ AnimationClip:
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
   m_Events:
-  - time: 0.6
+  - time: 0.5
     functionName: FireSlime
     data: 
     objectReferenceParameter: {fileID: 0}

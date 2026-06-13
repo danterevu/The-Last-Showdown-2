@@ -21,13 +21,15 @@ AnimationClip:
   - serializedVersion: 2
     curve:
     - time: 0
-      value: {fileID: -6519457307081509307, guid: 2791d92e546fef741a896787dae0bcd7, type: 3}
+      value: {fileID: 8838740350473890953, guid: c39950b63684d214cb1d1ee8e4a5db0c, type: 3}
     - time: 0.13333334
-      value: {fileID: -4980537210366573989, guid: 561c131bb1e675f4386a50848f5426fc, type: 3}
+      value: {fileID: 5905681027756182028, guid: cd42327208d41f645a0ad054abe7ec99, type: 3}
     - time: 0.26666668
-      value: {fileID: -1406055226371457172, guid: a3cd82127e7656a4d9ca2a0031e6a744, type: 3}
+      value: {fileID: -4243389574673483943, guid: 9ab16a56765176142abd64c766f2fc31, type: 3}
+    - time: 0.36666667
+      value: {fileID: 2502275255383848712, guid: 517fd1e7ec357664abfb0651680eb35c, type: 3}
     - time: 0.4
-      value: {fileID: -3853185879405166184, guid: d5f1141894c06744e85073eb334a3d95, type: 3}
+      value: {fileID: 2502275255383848712, guid: 517fd1e7ec357664abfb0651680eb35c, type: 3}
     attribute: m_Sprite
     path: 
     classID: 212
@@ -50,10 +52,11 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     pptrCurveMapping:
-    - {fileID: -6519457307081509307, guid: 2791d92e546fef741a896787dae0bcd7, type: 3}
-    - {fileID: -4980537210366573989, guid: 561c131bb1e675f4386a50848f5426fc, type: 3}
-    - {fileID: -1406055226371457172, guid: a3cd82127e7656a4d9ca2a0031e6a744, type: 3}
-    - {fileID: -3853185879405166184, guid: d5f1141894c06744e85073eb334a3d95, type: 3}
+    - {fileID: 8838740350473890953, guid: c39950b63684d214cb1d1ee8e4a5db0c, type: 3}
+    - {fileID: 5905681027756182028, guid: cd42327208d41f645a0ad054abe7ec99, type: 3}
+    - {fileID: -4243389574673483943, guid: 9ab16a56765176142abd64c766f2fc31, type: 3}
+    - {fileID: 2502275255383848712, guid: 517fd1e7ec357664abfb0651680eb35c, type: 3}
+    - {fileID: 2502275255383848712, guid: 517fd1e7ec357664abfb0651680eb35c, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}

@@ -10132,7 +10132,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3430260594853427124, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.2
+      value: -0.49
       objectReference: {fileID: 0}
     - target: {fileID: 3430260594853427124, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
       propertyPath: m_LocalPosition.z
@@ -10168,11 +10168,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8608189031115245613, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
       propertyPath: m_Size.x
-      value: 2.83
+      value: 2.23
       objectReference: {fileID: 0}
     - target: {fileID: 8608189031115245613, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
       propertyPath: m_Size.y
-      value: 2.52
+      value: 2.14
+      objectReference: {fileID: 0}
+    - target: {fileID: 8608189031115245613, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 5029237864814843118, guid: 79e0195e187f2534a86c1654be7dc744, type: 3}
+    - target: {fileID: 8608189031115245613, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8608189031115245613, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8608189031115245613, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
+      propertyPath: m_Color.r
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8608189031115245613, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
       propertyPath: m_SortingOrder
@@ -10240,8 +10256,8 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.92, y: 1.91}
-    newSize: {x: 2.83, y: 2.52}
+    oldSize: {x: 2.17, y: 1.97}
+    newSize: {x: 2.23, y: 2.14}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0

@@ -270,6 +270,7 @@ MonoBehaviour:
   speedMultiplier: 0.5
   bulletSpeedMultiplier: 0.4
   duration: 8
+  alienSpeedMultiplier: 0.3
 --- !u!1001 &2006687367494696835
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -293,6 +294,18 @@ PrefabInstance:
     - target: {fileID: 7239929885960452834, guid: 4db42fa8300430348b886ed45f847e78, type: 3}
       propertyPath: InitialModule.startSpeed.scalar
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7239929885960452834, guid: 4db42fa8300430348b886ed45f847e78, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.b
+      value: 0.42252582
+      objectReference: {fileID: 0}
+    - target: {fileID: 7239929885960452834, guid: 4db42fa8300430348b886ed45f847e78, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.g
+      value: 0.42252582
+      objectReference: {fileID: 0}
+    - target: {fileID: 7239929885960452834, guid: 4db42fa8300430348b886ed45f847e78, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.r
+      value: 0.4245283
       objectReference: {fileID: 0}
     - target: {fileID: 8198930783050935695, guid: 4db42fa8300430348b886ed45f847e78, type: 3}
       propertyPath: m_LocalPosition.x
