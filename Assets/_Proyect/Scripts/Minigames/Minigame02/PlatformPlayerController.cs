@@ -465,6 +465,11 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             AudioManager.Instance?.PlaySFX(SoundID.SDeath);
             StartCoroutine(Die());
         }
+        else if (other.CompareTag("aplastadora"))
+        {
+            // Muerte por aplastadora: no da puntos al rival (diedByPunch = false)
+            StartCoroutine(Die());
+        }
     }
 
     public void SetCrushed(bool crushed)

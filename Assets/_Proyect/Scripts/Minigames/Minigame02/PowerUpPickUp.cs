@@ -13,7 +13,8 @@ public class PowerUpPickup : MonoBehaviour
         Hook,           // gancho que atrae al otro
         HeavyGravity,   // aumenta gravedad del otro
         MirrorControl,  // copia tu movimiento al rival
-        Jetpack         // volar manteniendo salto
+        Jetpack,        // volar manteniendo salto
+        Crusher         // aplastadora que mata a ambos jugadores sin dar puntos
     }
 
     private void Start()

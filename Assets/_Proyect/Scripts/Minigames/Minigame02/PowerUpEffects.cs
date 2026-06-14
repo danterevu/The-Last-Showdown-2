@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
 public class PowerUpEffects : MonoBehaviour
@@ -28,6 +28,23 @@ public class PowerUpEffects : MonoBehaviour
     [SerializeField] private GameObject jetpackObjectPlayer2;
     [SerializeField] private Animator jetpackAnimatorPlayer1;
     [SerializeField] private Animator jetpackAnimatorPlayer2;
+
+    // ─── APLASTADORA ──────────────────────────────────────────────────────────
+    [Header("Aplastadora")]
+    [Tooltip("Un CrusherZone por zona, en el mismo orden que las zonas del KingOfHill")]
+    [SerializeField] private CrusherZone[] crusherZones;
+
+    // KingOfHill asigna esto antes de llamar ActivateCrusher
+    private int currentZoneIndex = 0;
+
+    /// <summary>
+    /// Llamado por KingOfHill cuando cambia de zona, para saber cuál CrusherZone activar.
+    /// </summary>
+    public void SetCurrentZone(int zoneIndex)
+    {
+        currentZoneIndex = zoneIndex;
+    }
+    // ──────────────────────────────────────────────────────────────────────────
 
     private int GetPlayerIndex(PlatformPlayerController player)
         => player.CompareTag("Player1") ? 1 : 2;
@@ -242,6 +259,43 @@ public class PowerUpEffects : MonoBehaviour
         if (jetpackObj != null) jetpackObj.SetActive(false);
     }
 
+    // ─── APLASTADORA ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Activa la CrusherZone de la zona actual.
+    /// user y target se pasan por consistencia con la firma de KingOfHill.ActivatePowerUp
+    /// pero esta aplastadora afecta a quien esté en el trigger de CrusherKillZone.
+    /// </summary>
+    public IEnumerator ActivateCrusher(PlatformPlayerController user, PlatformPlayerController target)
+    {
+        if (crusherZones == null || crusherZones.Length == 0)
+        {
+            Debug.LogWarning("[PowerUpEffects] No hay CrusherZones asignadas.");
+            yield break;
+        }
+
+        if (currentZoneIndex < 0 || currentZoneIndex >= crusherZones.Length)
+        {
+            Debug.LogWarning($"[PowerUpEffects] currentZoneIndex {currentZoneIndex} fuera de rango de crusherZones.");
+            yield break;
+        }
+
+        CrusherZone zone = crusherZones[currentZoneIndex];
+        if (zone == null)
+        {
+            Debug.LogWarning($"[PowerUpEffects] CrusherZone en índice {currentZoneIndex} es null.");
+            yield break;
+        }
+
+        zone.Activate();
+
+        // Opcional: sonido al activar
+        // AudioManager.Instance?.PlaySFX(SoundID.PUCrusher);
+
+        yield break; // CrusherZone maneja su propia temporización internamente
+    }
+
+
     // CANCEL ALL
     public void CancelAll(PlatformPlayerController p1, PlatformPlayerController p2)
     {
@@ -255,5 +309,12 @@ public class PowerUpEffects : MonoBehaviour
 
         p1.ClearActivePowerUpEffects();
         p2.ClearActivePowerUpEffects();
+
+        // Cancelar aplastadoras activas
+        if (crusherZones != null)
+        {
+            foreach (var cz in crusherZones)
+                cz?.Cancel();
+        }
     }
 }
