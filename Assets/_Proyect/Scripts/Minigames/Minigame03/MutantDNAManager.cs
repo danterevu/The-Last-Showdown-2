@@ -69,6 +69,11 @@ public class MutantDNAManager : MonoBehaviour, IMinijuegoControlable
             zoneCamera.MoveToCenter(zoneCenters[currentZoneIndex].position);
         }
 
+        if (ModifierManager.Instance != null)
+            Debug.Log($"[MutantDNA] Modificador activo: {ModifierManager.Instance.activeDNAModifier}");
+        else
+            Debug.LogWarning("[MutantDNA] ModifierManager no encontrado");
+
         InicializarMinijuego();
         CongelarJugadores();
     }
