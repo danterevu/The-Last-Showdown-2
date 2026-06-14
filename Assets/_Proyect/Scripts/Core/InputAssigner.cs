@@ -11,9 +11,8 @@ public class InputAssigner : MonoBehaviour
     public enum Character { None, Gloppk, Chopi } // Gloppk = izquierda, Chopi = derecha
 
     [System.Serializable]
-    public class PlayerSlot
+    public class CharacterVisual
     {
-        public int playerIndex;
         public GameObject slotObject;
         public SpriteRenderer characterSprite;
         public Sprite idleSprite;
@@ -28,6 +27,11 @@ public class InputAssigner : MonoBehaviour
         public Vector3 activeScale = Vector3.one * 1.2f;
         public float animationDuration = 0.3f;
         public Ease easeType = Ease.OutBack;
+    }
+    
+    [System.Serializable]
+    public class PlayerSlot
+    {
         [HideInInspector] public InputType assignedInput = InputType.None;
         [HideInInspector] public Gamepad assignedGamepad;
         [HideInInspector] public bool isSelecting = false;
@@ -79,6 +83,10 @@ public class InputAssigner : MonoBehaviour
     [SerializeField] private PlayerSlot player1Slot; // primer jugador en elegir
     [SerializeField] private PlayerSlot player2Slot; // segundo jugador en elegir
 
+    [Header("Character Visuals")]
+    [SerializeField] private CharacterVisual gloppkVisual;
+    [SerializeField] private CharacterVisual chopiVisual;
+
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI promptText;
     [SerializeField] private GameObject startButton;
@@ -108,6 +116,13 @@ public class InputAssigner : MonoBehaviour
     private void OnEnable() => InitializeAll();
     private void Start() => InitializeAll();
 
+    private CharacterVisual GetVisual(Character character)
+    {
+        if (character == Character.Gloppk) return gloppkVisual;
+        if (character == Character.Chopi) return chopiVisual;
+        return null;
+    }
+
     private void InitializeAll()
     {
         assignedPlayers.Clear();
@@ -115,6 +130,8 @@ public class InputAssigner : MonoBehaviour
         currentPhase = SelectionPhase.Player1Selecting;
         ResetSlot(player1Slot);
         ResetSlot(player2Slot);
+        ResetCharacterVisual(gloppkVisual);
+        ResetCharacterVisual(chopiVisual);
         isControlsPanelManuallyClosed = true;
         forceControlsPanelOpen = false;
         hasAutoOpenedControlsPanel = false;
@@ -125,6 +142,22 @@ public class InputAssigner : MonoBehaviour
         InitializeVisuals();
         while (assignedPlayers.Count < 2)
             assignedPlayers.Add(new PlayerSlotData());
+    }
+    
+    private void ResetCharacterVisual(CharacterVisual visual)
+    {
+        if (visual == null) return;
+        
+        if (visual.slotObject != null)
+            visual.slotObject.transform.DOScale(visual.inactiveScale, visual.animationDuration).SetEase(visual.easeType);
+
+        if (visual.characterSprite != null)
+        {
+            if (visual.idleSprite != null) visual.characterSprite.sprite = visual.idleSprite;
+            visual.characterSprite.color = visual.inactiveColor;
+        }
+
+        if (visual.statusText != null) visual.statusText.text = "";
     }
 
     private void InitializeVisuals()
@@ -226,15 +259,23 @@ public class InputAssigner : MonoBehaviour
 
                     if (leftKey)
                     {
-                        slot.selectedCharacter = Character.Gloppk;
-                        StartSelection(slot, InputType.Keyboard, null, !isFirstPlayer);
-                        return;
+                        Character desiredChar = Character.Gloppk;
+                        if (!IsCharacterTaken(desiredChar, isFirstPlayer))
+                        {
+                            slot.selectedCharacter = desiredChar;
+                            StartSelection(slot, InputType.Keyboard, null, !isFirstPlayer);
+                            return;
+                        }
                     }
                     if (rightKey)
                     {
-                        slot.selectedCharacter = Character.Chopi;
-                        StartSelection(slot, InputType.Keyboard, null, !isFirstPlayer);
-                        return;
+                        Character desiredChar = Character.Chopi;
+                        if (!IsCharacterTaken(desiredChar, isFirstPlayer))
+                        {
+                            slot.selectedCharacter = desiredChar;
+                            StartSelection(slot, InputType.Keyboard, null, !isFirstPlayer);
+                            return;
+                        }
                     }
                 }
 
@@ -248,15 +289,23 @@ public class InputAssigner : MonoBehaviour
 
                     if (left)
                     {
-                        slot.selectedCharacter = Character.Gloppk;
-                        StartSelection(slot, InputType.Gamepad, gamepad, false);
-                        return;
+                        Character desiredChar = Character.Gloppk;
+                        if (!IsCharacterTaken(desiredChar, isFirstPlayer))
+                        {
+                            slot.selectedCharacter = desiredChar;
+                            StartSelection(slot, InputType.Gamepad, gamepad, false);
+                            return;
+                        }
                     }
                     if (right)
                     {
-                        slot.selectedCharacter = Character.Chopi;
-                        StartSelection(slot, InputType.Gamepad, gamepad, false);
-                        return;
+                        Character desiredChar = Character.Chopi;
+                        if (!IsCharacterTaken(desiredChar, isFirstPlayer))
+                        {
+                            slot.selectedCharacter = desiredChar;
+                            StartSelection(slot, InputType.Gamepad, gamepad, false);
+                            return;
+                        }
                     }
                 }
             }
@@ -339,6 +388,14 @@ public class InputAssigner : MonoBehaviour
             }
         }
     }
+    
+    private bool IsCharacterTaken(Character character, bool isFirstPlayer)
+    {
+        // Player 1 can choose anything
+        if (isFirstPlayer) return false;
+        // Player 2 can't choose what Player 1 already chose
+        return player1Slot.selectedCharacter == character;
+    }
 
     // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -352,22 +409,25 @@ public class InputAssigner : MonoBehaviour
         if (type == InputType.Gamepad && gamepad != null)
             usedGamepads.Add(gamepad);
 
-        MoveVisualToPlayer(slot, type, isSecondKeyboard);
+        CharacterVisual visual = GetVisual(slot.selectedCharacter);
+        if (visual == null) return;
 
-        if (slot.slotObject != null)
-            slot.slotObject.transform.DOScale(slot.activeScale, slot.animationDuration).SetEase(slot.easeType);
+        MoveVisualToPlayer(slot.selectedCharacter, type, isSecondKeyboard);
 
-        if (slot.characterSprite != null)
+        if (visual.slotObject != null)
+            visual.slotObject.transform.DOScale(visual.activeScale, visual.animationDuration).SetEase(visual.easeType);
+
+        if (visual.characterSprite != null)
         {
-            slot.characterSprite.color = slot.activeColor;
-            if (type == InputType.Keyboard && slot.selectingKeyboardSprite != null)
-                slot.characterSprite.sprite = slot.selectingKeyboardSprite;
-            else if (type == InputType.Gamepad && slot.selectingGamepadSprite != null)
-                slot.characterSprite.sprite = slot.selectingGamepadSprite;
+            visual.characterSprite.color = visual.activeColor;
+            if (type == InputType.Keyboard && visual.selectingKeyboardSprite != null)
+                visual.characterSprite.sprite = visual.selectingKeyboardSprite;
+            else if (type == InputType.Gamepad && visual.selectingGamepadSprite != null)
+                visual.characterSprite.sprite = visual.selectingGamepadSprite;
         }
 
-        if (slot.statusText != null)
-            slot.statusText.text = GetStatusText(slot, type, isConfirmed: false);
+        if (visual.statusText != null)
+            visual.statusText.text = GetStatusText(slot, type, isConfirmed: false);
     }
 
     private void ConfirmSelection(PlayerSlot slot)
@@ -377,20 +437,24 @@ public class InputAssigner : MonoBehaviour
         slot.isSelecting = false;
         slot.isLocked = false;
 
-        if (slot.characterSprite != null)
+        CharacterVisual visual = GetVisual(slot.selectedCharacter);
+        if (visual != null)
         {
-            slot.characterSprite.DOColor(Color.white, 0.1f)
-                .OnComplete(() => slot.characterSprite.DOColor(slot.activeColor, 0.1f))
-                .SetLoops(2, LoopType.Yoyo);
+            if (visual.characterSprite != null)
+            {
+                visual.characterSprite.DOColor(Color.white, 0.1f)
+                    .OnComplete(() => visual.characterSprite.DOColor(visual.activeColor, 0.1f))
+                    .SetLoops(2, LoopType.Yoyo);
 
-            if (slot.assignedInput == InputType.Keyboard && slot.confirmedKeyboardSprite != null)
-                slot.characterSprite.sprite = slot.confirmedKeyboardSprite;
-            else if (slot.assignedInput == InputType.Gamepad && slot.confirmedGamepadSprite != null)
-                slot.characterSprite.sprite = slot.confirmedGamepadSprite;
+                if (slot.assignedInput == InputType.Keyboard && visual.confirmedKeyboardSprite != null)
+                    visual.characterSprite.sprite = visual.confirmedKeyboardSprite;
+                else if (slot.assignedInput == InputType.Gamepad && visual.confirmedGamepadSprite != null)
+                    visual.characterSprite.sprite = visual.confirmedGamepadSprite;
+            }
+
+            if (visual.statusText != null)
+                visual.statusText.text = GetStatusText(slot, slot.assignedInput, isConfirmed: true);
         }
-
-        if (slot.statusText != null)
-            slot.statusText.text = GetStatusText(slot, slot.assignedInput, isConfirmed: true);
 
         SaveSlotData(slot);
     }
@@ -420,24 +484,29 @@ public class InputAssigner : MonoBehaviour
         if (slot.currentSelectionType == InputType.Gamepad && slot.currentSelectionGamepad != null)
             usedGamepads.Remove(slot.currentSelectionGamepad);
 
-        MoveVisualToCenter(slot, slot.isUsingSecondKeyboard);
+        MoveVisualToCenter(slot.selectedCharacter, slot.isUsingSecondKeyboard);
 
+        CharacterVisual visual = GetVisual(slot.selectedCharacter);
         slot.isSelecting = false;
         slot.currentSelectionType = InputType.None;
         slot.currentSelectionGamepad = null;
         slot.isUsingSecondKeyboard = false;
+        Character previouslySelected = slot.selectedCharacter;
         slot.selectedCharacter = Character.None;
 
-        if (slot.slotObject != null)
-            slot.slotObject.transform.DOScale(slot.inactiveScale, slot.animationDuration).SetEase(slot.easeType);
-
-        if (slot.characterSprite != null)
+        if (visual != null)
         {
-            if (slot.idleSprite != null) slot.characterSprite.sprite = slot.idleSprite;
-            slot.characterSprite.color = slot.inactiveColor;
-        }
+            if (visual.slotObject != null)
+                visual.slotObject.transform.DOScale(visual.inactiveScale, visual.animationDuration).SetEase(visual.easeType);
 
-        if (slot.statusText != null) slot.statusText.text = "";
+            if (visual.characterSprite != null)
+            {
+                if (visual.idleSprite != null) visual.characterSprite.sprite = visual.idleSprite;
+                visual.characterSprite.color = visual.inactiveColor;
+            }
+
+            if (visual.statusText != null) visual.statusText.text = "";
+        }
     }
 
     private void CancelAssignment(PlayerSlot slot)
@@ -445,8 +514,15 @@ public class InputAssigner : MonoBehaviour
         if (slot.assignedInput == InputType.Gamepad && slot.assignedGamepad != null)
             usedGamepads.Remove(slot.assignedGamepad);
 
-        MoveVisualToCenter(slot, slot.isUsingSecondKeyboard);
+        CharacterVisual visual = GetVisual(slot.selectedCharacter);
+        MoveVisualToCenter(slot.selectedCharacter, slot.isUsingSecondKeyboard);
+        
+        Character previouslySelected = slot.selectedCharacter;
         ResetSlot(slot);
+        if (previouslySelected != Character.None)
+        {
+            ResetCharacterVisual(GetVisual(previouslySelected));
+        }
 
         while (assignedPlayers.Count < 2)
             assignedPlayers.Add(new PlayerSlotData());
@@ -465,26 +541,15 @@ public class InputAssigner : MonoBehaviour
         slot.isLocked = false;
         slot.isUsingSecondKeyboard = false;
         slot.selectedCharacter = Character.None;
-
-        if (slot.slotObject != null)
-            slot.slotObject.transform.DOScale(slot.inactiveScale, slot.animationDuration).SetEase(slot.easeType);
-
-        if (slot.characterSprite != null)
-        {
-            if (slot.idleSprite != null) slot.characterSprite.sprite = slot.idleSprite;
-            slot.characterSprite.color = slot.inactiveColor;
-        }
-
-        if (slot.statusText != null) slot.statusText.text = "";
     }
 
-    private void MoveVisualToPlayer(PlayerSlot slot, InputType type, bool isSecondKeyboard)
+    private void MoveVisualToPlayer(Character character, InputType type, bool isSecondKeyboard)
     {
         GameObject visual = type == InputType.Keyboard
             ? (isSecondKeyboard ? keyboardVisual2 : keyboardVisual)
             : gamepadVisual;
 
-        Transform target = slot == player1Slot ? player1SpawnPoint : player2SpawnPoint;
+        Transform target = character == Character.Gloppk ? player1SpawnPoint : player2SpawnPoint;
 
         if (visual != null && target != null)
         {
@@ -493,8 +558,12 @@ public class InputAssigner : MonoBehaviour
         }
     }
 
-    private void MoveVisualToCenter(PlayerSlot slot, bool isSecondKeyboard)
+    private void MoveVisualToCenter(Character character, bool isSecondKeyboard)
     {
+        PlayerSlot slot = player1Slot.selectedCharacter == character ? player1Slot : 
+                           player2Slot.selectedCharacter == character ? player2Slot : null;
+        if (slot == null) return;
+        
         InputType type = slot.isSelecting ? slot.currentSelectionType : slot.assignedInput;
         GameObject visual = type == InputType.Keyboard
             ? (isSecondKeyboard ? keyboardVisual2 : keyboardVisual)
@@ -558,10 +627,16 @@ public class InputAssigner : MonoBehaviour
     {
         if (startButton != null) startButton.transform.DOKill();
         if (controlsPanel != null) controlsPanel.transform.DOKill();
-        if (player1Slot.slotObject != null) player1Slot.slotObject.transform.DOKill();
-        if (player2Slot.slotObject != null) player2Slot.slotObject.transform.DOKill();
-        if (player1Slot.characterSprite != null) player1Slot.characterSprite.DOKill();
-        if (player2Slot.characterSprite != null) player2Slot.characterSprite.DOKill();
+        if (gloppkVisual != null)
+        {
+            if (gloppkVisual.slotObject != null) gloppkVisual.slotObject.transform.DOKill();
+            if (gloppkVisual.characterSprite != null) gloppkVisual.characterSprite.DOKill();
+        }
+        if (chopiVisual != null)
+        {
+            if (chopiVisual.slotObject != null) chopiVisual.slotObject.transform.DOKill();
+            if (chopiVisual.characterSprite != null) chopiVisual.characterSprite.DOKill();
+        }
         if (promptText != null) promptText.DOKill();
         if (keyboardVisual != null) keyboardVisual.transform.DOKill();
         if (keyboardVisual2 != null) keyboardVisual2.transform.DOKill();

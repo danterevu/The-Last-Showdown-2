@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Enum centralizado: reemplaza los IDs numéricos mágicos en todo el proyecto.

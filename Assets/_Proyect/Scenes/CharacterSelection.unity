@@ -2854,10 +2854,10 @@ RectTransform:
   - {fileID: 1746418437}
   - {fileID: 477231633}
   - {fileID: 378289009}
-  - {fileID: 539456746}
   - {fileID: 2136317497}
   - {fileID: 2098993436}
   - {fileID: 291819971}
+  - {fileID: 539456746}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -6367,21 +6367,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player1Slot:
-    playerIndex: 0
-    slotObject: {fileID: 1079461444}
-    characterSprite: {fileID: 0}
-    idleSprite: {fileID: -6470683933377685500, guid: 0da65de3159d29843af38927b062cd78, type: 3}
-    selectingKeyboardSprite: {fileID: -1367647826244099272, guid: 5c7679d0cf01c444987f1ca173145cde, type: 3}
-    selectingGamepadSprite: {fileID: 8698055095178837273, guid: c5ad4b673ba8015479122a66ae1aeb0a, type: 3}
-    confirmedKeyboardSprite: {fileID: -1367647826244099272, guid: 5c7679d0cf01c444987f1ca173145cde, type: 3}
-    confirmedGamepadSprite: {fileID: 8698055095178837273, guid: c5ad4b673ba8015479122a66ae1aeb0a, type: 3}
-    inactiveColor: {r: 0.27450982, g: 0.27450982, b: 0.27450982, a: 1}
-    activeColor: {r: 1, g: 1, b: 1, a: 1}
-    statusText: {fileID: 94656944}
-    inactiveScale: {x: 1, y: 1, z: 1}
-    activeScale: {x: 1.2, y: 1.2, z: 1.2}
-    animationDuration: 0.3
-    easeType: 27
     assignedInput: 0
     isSelecting: 0
     currentSelectionType: 0
@@ -6389,27 +6374,42 @@ MonoBehaviour:
     isUsingSecondKeyboard: 0
     selectedCharacter: 0
   player2Slot:
-    playerIndex: 1
-    slotObject: {fileID: 1920039351}
-    characterSprite: {fileID: 0}
-    idleSprite: {fileID: 3571475882022369329, guid: 0da65de3159d29843af38927b062cd78, type: 3}
-    selectingKeyboardSprite: {fileID: -6194739524744703110, guid: 1704d90454c43884eb4c88dc228c389f, type: 3}
-    selectingGamepadSprite: {fileID: -4247929405377335659, guid: f8e6cf2caedadc04f85ab434f2ffd02a, type: 3}
-    confirmedKeyboardSprite: {fileID: -6194739524744703110, guid: 1704d90454c43884eb4c88dc228c389f, type: 3}
-    confirmedGamepadSprite: {fileID: -4247929405377335659, guid: f8e6cf2caedadc04f85ab434f2ffd02a, type: 3}
-    inactiveColor: {r: 0.2735849, g: 0.2735849, b: 0.2735849, a: 1}
-    activeColor: {r: 1, g: 1, b: 1, a: 1}
-    statusText: {fileID: 876120841}
-    inactiveScale: {x: 1, y: 1, z: 1}
-    activeScale: {x: 1.2, y: 1.2, z: 1.2}
-    animationDuration: 0.3
-    easeType: 27
     assignedInput: 0
     isSelecting: 0
     currentSelectionType: 0
     isLocked: 0
     isUsingSecondKeyboard: 0
     selectedCharacter: 0
+  gloppkVisual:
+    slotObject: {fileID: 1079461444}
+    characterSprite: {fileID: 355602216}
+    idleSprite: {fileID: -6470683933377685500, guid: 0da65de3159d29843af38927b062cd78, type: 3}
+    selectingKeyboardSprite: {fileID: -1367647826244099272, guid: 5c7679d0cf01c444987f1ca173145cde, type: 3}
+    selectingGamepadSprite: {fileID: 8698055095178837273, guid: c5ad4b673ba8015479122a66ae1aeb0a, type: 3}
+    confirmedKeyboardSprite: {fileID: -1367647826244099272, guid: 5c7679d0cf01c444987f1ca173145cde, type: 3}
+    confirmedGamepadSprite: {fileID: 8698055095178837273, guid: c5ad4b673ba8015479122a66ae1aeb0a, type: 3}
+    inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    activeColor: {r: 1, g: 1, b: 1, a: 1}
+    statusText: {fileID: 94656944}
+    inactiveScale: {x: 1, y: 1, z: 1}
+    activeScale: {x: 1.2, y: 1.2, z: 1.2}
+    animationDuration: 0.3
+    easeType: 27
+  chopiVisual:
+    slotObject: {fileID: 1920039351}
+    characterSprite: {fileID: 167617791}
+    idleSprite: {fileID: 3571475882022369329, guid: 0da65de3159d29843af38927b062cd78, type: 3}
+    selectingKeyboardSprite: {fileID: -6194739524744703110, guid: 1704d90454c43884eb4c88dc228c389f, type: 3}
+    selectingGamepadSprite: {fileID: -4247929405377335659, guid: f8e6cf2caedadc04f85ab434f2ffd02a, type: 3}
+    confirmedKeyboardSprite: {fileID: -6194739524744703110, guid: 1704d90454c43884eb4c88dc228c389f, type: 3}
+    confirmedGamepadSprite: {fileID: -4247929405377335659, guid: f8e6cf2caedadc04f85ab434f2ffd02a, type: 3}
+    inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    activeColor: {r: 1, g: 1, b: 1, a: 1}
+    statusText: {fileID: 876120841}
+    inactiveScale: {x: 1, y: 1, z: 1}
+    activeScale: {x: 1.2, y: 1.2, z: 1.2}
+    animationDuration: 0.3
+    easeType: 27
   promptText: {fileID: 1658068284}
   startButton: {fileID: 477231628}
   controlsPanel: {fileID: 539456745}
