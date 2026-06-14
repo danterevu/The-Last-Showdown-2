@@ -23,7 +23,7 @@ public class Deposit : MonoBehaviour
             DNA dnaInHand = controller.GetCarriedDNA();
             if (dnaInHand != null)
             {
-                GameManager.Instance.AddPoints(allowedPlayer, 50);
+                GameManager.Instance.AddPoints(allowedPlayer, 30);
                 OnAnyDeposit?.Invoke();
                 SpawnDepositParticles();
                 controller.DropDNA();
@@ -40,11 +40,19 @@ public class Deposit : MonoBehaviour
             int thrower = dna.GetLastThrower();
             if (thrower == allowedPlayer)
             {
-                GameManager.Instance.AddPoints(allowedPlayer, 25);
+                // MODIFICADOR: ThrowBonus da más puntos al depositar lanzando
+                int points = 30;
+                if (ModifierManager.Instance != null &&
+                    ModifierManager.Instance.activeDNAModifier == ModifierManager.MutantDNAModifier.ThrowBonus)
+                {
+                    points = 50; // bonus extra por lanzar con el modificador activo
+                }
+               
+                GameManager.Instance.AddPoints(allowedPlayer, points);
                 OnAnyDeposit?.Invoke();
                 SpawnDepositParticles();
                 dna.RespawnAfterDelay();
-                Debug.Log($"DNA lanzado depositado correctamente por el jugador {thrower} en su depósito.");
+                Debug.Log($"DNA lanzado depositado por jugador {thrower} — {points} pts");
             }
             else
             {

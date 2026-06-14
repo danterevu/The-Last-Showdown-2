@@ -149,6 +149,15 @@ public class Crate : MonoBehaviour
         target.Stun(stunDuration);
         lastStunTime = Time.time;
 
+        // MODIFICADOR: CrateStun resta puntos al aturdido
+        if (ModifierManager.Instance != null &&
+            ModifierManager.Instance.activeDNAModifier == ModifierManager.MutantDNAModifier.CrateStun)
+        {
+            int targetPlayer = target.CompareTag("Player1") ? 1 : 2;
+            GameManager.Instance.RemovePoints(targetPlayer, ModifierManager.Instance.crateStunPenalty);
+            Debug.Log($"[CrateStun] Jugador {targetPlayer} pierde {ModifierManager.Instance.crateStunPenalty} pts");
+        }
+
         int throwerPlayer = (lastThrower != null) ? (lastThrower.CompareTag("Player1") ? 1 : 2) : 0;
 
 
@@ -200,6 +209,7 @@ public class Crate : MonoBehaviour
         // Aplicar fuerza (ajusta el 5f según desees)
         rb.AddForce(direction * 5f, ForceMode2D.Impulse);
         rb.angularVelocity = Random.Range(-360f, 360f);
+        isHeld = false;
     }
 
     public void DestroyCrate()

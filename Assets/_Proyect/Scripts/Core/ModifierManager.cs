@@ -8,6 +8,7 @@ public class ModifierManager : MonoBehaviour
     public KOHModifier activeKOHModifier = KOHModifier.None;
     public DodgeDiskModifier activeDDModifier = DodgeDiskModifier.None;
     public SpaceModifier activeSpaceModifier = SpaceModifier.None;
+    public MutantDNAModifier activeDNAModifier = MutantDNAModifier.None;
 
     [Header("Valores configurables")]
     public float comebackMultiplier = 3f;
@@ -52,7 +53,20 @@ public class ModifierManager : MonoBehaviour
         WinnerBonus         // el ganador recibe un bonus al final
     }
 
-    // modificadores Space (Minigame_5)
+    public enum MutantDNAModifier
+    {
+        None,
+        CrateStun,      // ser aturdido con caja resta 5 puntos
+        PowerUpHit,     // afectar al rival con power up da 5 puntos
+        ThrowBonus      // depositar lanzando da 50 pts en vez de 30
+    }
+
+    // valores configurables
+    public int crateStunPenalty = 5;
+    public int powerUpHitBonus = 5;
+
+
+    // modificadores Space (Minigame_4)
     public enum SpaceModifier
     {
         None,
@@ -80,6 +94,11 @@ public class ModifierManager : MonoBehaviour
     public void SetDodgeDiskModifier(DodgeDiskModifier mod)
     {
         activeDDModifier = mod;
+    }
+
+    public void SetDNAModifier(MutantDNAModifier mod)
+    {
+        activeDNAModifier = mod;
     }
 
     // Llamado desde la ruleta antes de cargar el Minigame_5
@@ -204,6 +223,7 @@ public class ModifierManager : MonoBehaviour
     {
         activeKOHModifier = KOHModifier.None;
         activeDDModifier = DodgeDiskModifier.None;
+        activeDNAModifier = MutantDNAModifier.None;
         activeSpaceModifier = SpaceModifier.None;
         goldenKillAvailable = false;
         player1WinStreak = 0;

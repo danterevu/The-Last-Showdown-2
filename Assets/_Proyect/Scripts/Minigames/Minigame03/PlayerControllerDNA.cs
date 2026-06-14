@@ -432,12 +432,13 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     public void ReceiveKnockback(Vector2 direction, float force, PlayerControllerDNA attacker)
     {
-        Debug.Log($"{name} ReceiveKnockback - shieldActive={shieldActive}, hasCrate={heldCrate != null}, attacker={(attacker != null ? attacker.name : "null")}");
+        Debug.Log($"[RECIBE] {name}: shieldActive={shieldActive}, isInvulnerable={isInvulnerable}, hasCrate={heldCrate != null}, attacker={attacker?.name}, force={force}");
         if (isInvulnerable) return;
 
         // Si el escudo está activo y hay un atacante, redirigir el knockback hacia él
         if (shieldActive && attacker != null && attacker != this)
         {
+            Debug.Log($"[RECIBE] Escudo activo, redirigiendo a {attacker.name}");
             // Aplicar knockback al atacante SIN activar su animación "Hurt" (solo impulso)
             attacker.ApplyForcedKnockback(-direction, force * shieldMultiplier);
             // El defensor no recibe knockback ni stun
@@ -602,7 +603,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
                 heldCrate = crate;
                 SetHandsActive(true);
       
-                handsAnimator?.SetTrigger("Grab");
+
                 return true;
             }
         }
@@ -998,5 +999,15 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             heldCrate = null;
         }
         SetHandsActive(false);
+    }
+
+    public void NotifyPowerUpHit(int attackerPlayer)
+    {
+        if (ModifierManager.Instance != null &&
+            ModifierManager.Instance.activeDNAModifier == ModifierManager.MutantDNAModifier.PowerUpHit)
+        {
+            GameManager.Instance.AddPoints(attackerPlayer, ModifierManager.Instance.powerUpHitBonus);
+            Debug.Log($"[PowerUpHit] Jugador {attackerPlayer} gana {ModifierManager.Instance.powerUpHitBonus} pts");
+        }
     }
 }

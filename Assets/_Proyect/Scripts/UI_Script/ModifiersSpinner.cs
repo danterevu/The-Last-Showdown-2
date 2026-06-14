@@ -201,7 +201,8 @@ public class ModifiersSpinner : MonoBehaviour
                 break;
 
             case MinigameID.DNA:
-                Debug.Log($"[ModifiersSpinner] DNA modifier {modIndex} seleccionado (pendiente de implementar en ModifierManager).");
+                ModifierManager.Instance.SetDNAModifier(
+                    (ModifierManager.MutantDNAModifier)enumValue);
                 break;
 
             case MinigameID.ChaseRun:

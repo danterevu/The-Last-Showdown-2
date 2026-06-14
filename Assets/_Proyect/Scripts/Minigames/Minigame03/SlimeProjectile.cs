@@ -37,6 +37,8 @@ public class SlimeProjectile : MonoBehaviour
         if (target == null) return;
 
         target.ApplySlimeEffect();
+        int attackerPlayer = ownerPlayer;
+        target.NotifyPowerUpHit(attackerPlayer);
         Destroy(gameObject);
     }
 }

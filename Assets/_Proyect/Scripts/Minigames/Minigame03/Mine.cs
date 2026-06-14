@@ -111,6 +111,7 @@ public class Mine : MonoBehaviour
             float dirX = Random.value > 0.5f ? 1f : -1f;
             Vector2 knockDir = new Vector2(dirX, 0.5f).normalized;
             target.ReceiveMineHit(knockDir, knockbackForce, stunDuration);
+            target.NotifyPowerUpHit(ownerPlayer);
 
             // Si tiene DNA, hacerlo volar
             if (target.HasDNA() && target.GetCarriedDNA() != null)

@@ -31,93 +31,96 @@ public class PunchHitboxDNA : MonoBehaviour
     {
         if (!hitbox.enabled) return;
 
-        // Destruir caja si golpea
-        Crate crate = other.GetComponent<Crate>();
-        if (crate != null)
-        {
-            crate.DestroyCrate();
-            Deactivate();
-            return;
-        }
-
+        // 1. Detectar si golpea a un jugador
         PlayerControllerDNA target = other.GetComponentInParent<PlayerControllerDNA>();
-        if (target == null || target == owner) return;
-        Debug.Log($"PunchHitbox golpea a {target.name}. owner={owner.name}");
-        Debug.Log($"Hitbox golpea a {target.name} (tiene caja? {target.IsCarryingCrate()})");
-
-        // Dirección base del golpe
-        float dirX = owner.IsFacingRight() ? 1f : -1f;
-
-        // Si está en Berserk, la dirección tiene mucha más vertical
-        Vector2 knockDir;
-        float finalKnockbackForce = owner.knockbackForce;
-
-        if (target.IsCarryingCrate())
+        if (target != null && target != owner)
         {
-            crate = target.GetCarriedCrate();
-            Debug.Log($"Golpe a {target.name}. ¿Tiene caja? {target.IsCarryingCrate()}, crate = {crate}");
-            if (crate != null)
+
+            // --- PRIORIDAD: ESCUDO ---
+            if (target.IsShieldActive())
             {
-                int throwerPlayer = owner.CompareTag("Player1") ? 1 : 2;
-                Debug.Log($"Lanzando caja. Thrower: {throwerPlayer}");
-                knockDir = new Vector2(dirX, 0.3f).normalized;
-                crate.ThrowByHit(knockDir, owner.playerIndex + 1);
-                target.ForceDropCrate(); // Limpia la referencia en el jugador
+                float dirXShield = owner.IsFacingRight() ? 1f : -1f;
+                Vector2 knockDirShield = new Vector2(dirXShield, 0.3f).normalized;
+                float finalKnockback = owner.knockbackForce * (owner.IsBerserk() ? berserkKnockbackMultiplier : 1f);
+                Debug.Log($"[PRE-KNOCK] Golpe a {target.name}. ¿Shield? {target.IsShieldActive()}. ¿Caja? {target.IsCarryingCrate()}.");
+                target.ReceiveKnockback(knockDirShield, finalKnockback, owner);
+                target.NotifyPowerUpHit(target.CompareTag("Player1") ? 1 : 2);
+                Deactivate();
+                return;
             }
-        }
 
-        if (target.IsShieldActive()) //ojo esto
-        {
-            // Dirección del golpe
-            dirX = owner.IsFacingRight() ? 1f : -1f;
-            knockDir = new Vector2(dirX, 0.3f).normalized;
-            float finalKnockback = owner.knockbackForce * (owner.IsBerserk() ? berserkKnockbackMultiplier : 1f);
-            target.ReceiveKnockback(knockDir, finalKnockback, owner);
-            // No se aplica autoknockback al atacante, ni se suelta DNA
+            // --- GOLPE NORMAL ---
+            float dirX = owner.IsFacingRight() ? 1f : -1f;
+            Vector2 knockDir;
+            float finalKnockbackForce = owner.knockbackForce;
+
+            // Ajustar knockback si está en Berserk
+            if (owner.IsBerserk())
+            {
+                target.NotifyPowerUpHit(owner.CompareTag("Player1") ? 1 : 2);
+                knockDir = new Vector2(dirX * 0.8f, 1.2f).normalized;
+                finalKnockbackForce = owner.knockbackForce * berserkKnockbackMultiplier;
+            }
+            else
+            {
+                knockDir = new Vector2(dirX, 0.3f).normalized;
+                finalKnockbackForce = owner.knockbackForce;
+            }
+
+            // --- Lanzar caja si el objetivo la tiene (antes del knockback) ---
+            if (target.IsCarryingCrate())
+            {
+                Crate crate = target.GetCarriedCrate();
+                if (crate != null)
+                {
+                    // La caja agarrada NUNCA se destruye, solo se lanza
+                    int throwerPlayer = owner.CompareTag("Player1") ? 1 : 2;
+                    // Usar la dirección del golpe (misma que el knockback) para lanzar la caja
+                    crate.ThrowByHit(knockDir, throwerPlayer);
+                    target.ForceDropCrate(); // Limpia la referencia en el jugador
+                }
+            }
+
+            // --- Lanzar DNA si el objetivo lo tiene ---
+            if (target.HasDNA() && target.GetCarriedDNA() != null)
+            {
+                DNA dna = target.GetCarriedDNA();
+                dna.transform.position = target.transform.position;
+                dna.gameObject.SetActive(true);
+                Vector2 throwDir = new Vector2(dirX * Random.Range(0.8f, 1.2f), Random.Range(0.5f, 1f)).normalized;
+                dna.ThrowByHit(throwDir, owner.CompareTag("Player1") ? 1 : 2);
+                dna.SetSpinEffect();
+                target.DropDNA();
+            }
+
+            // --- Aplicar knockback al objetivo ---
+            target.ReceiveKnockback(knockDir, finalKnockbackForce, owner);
+
+            // --- Self-knockback al atacante ---
+            owner.ApplySelfKnockback(dirX);
+
+            // --- Si está en Berserk, comprobar colisión con pared ---
+            if (owner.IsBerserk())
+            {
+                StartCoroutine(CheckWallCollisionAfterKnockback(target, extraStunOnWall));
+            }
+
             Deactivate();
             return;
         }
 
-        if (owner.IsBerserk())
+        // 2. Si no golpeó a un jugador, puede ser una caja suelta
+        Crate looseCrate = other.GetComponent<Crate>();
+        if (looseCrate != null)
         {
-            // Dirección con mucha más altura (0.7 horizontal, 0.7 vertical ? normalizado da ~0.7 cada uno)
-            // O puedes usar (dirX, 1.2f) y normalizar. Yo pondré (dirX * 0.8f, 1.2f)
-            knockDir = new Vector2(dirX * 0.8f, 1.2f).normalized;
-            finalKnockbackForce = owner.knockbackForce * berserkKnockbackMultiplier;
+            // Solo destruir si NO está agarrada
+            if (!looseCrate.IsHeld())
+            {
+                looseCrate.DestroyCrate();
+            }
+            Deactivate();
+            return;
         }
-        else
-        {
-            knockDir = new Vector2(dirX, 0.3f).normalized;
-            finalKnockbackForce = owner.knockbackForce;
-        }
-
-        // Aplicar knockback
-        target.ReceiveKnockback(knockDir, finalKnockbackForce, owner);
-
-        // Si tiene DNA, lanzarlo
-        if (target.HasDNA() && target.GetCarriedDNA() != null)
-        {
-            DNA dna = target.GetCarriedDNA();
-            dna.transform.position = target.transform.position;
-            dna.gameObject.SetActive(true);
-
-            // Dirección del lanzamiento: hacia donde mira el atacante + aleatorio vertical
-            Vector2 throwDir = new Vector2(dirX * Random.Range(0.8f, 1.2f), Random.Range(0.5f, 1f)).normalized;
-            dna.ThrowByHit(throwDir, owner.playerIndex + 1);
-            dna.SetSpinEffect();
-            target.DropDNA();
-        }
-
-        // Self-knockback al atacante
-        owner.ApplySelfKnockback(dirX);
-
-        //  Si está en Berserk, comprobar si el rival choca con pared
-        if (owner.IsBerserk())
-        {
-            StartCoroutine(CheckWallCollisionAfterKnockback(target, extraStunOnWall));
-        }
-
-        Deactivate();
     }
 
     private IEnumerator CheckWallCollisionAfterKnockback(PlayerControllerDNA target, float extraStun)
