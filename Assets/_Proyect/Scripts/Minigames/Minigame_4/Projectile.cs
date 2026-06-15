@@ -62,7 +62,7 @@ public class Projectile : MonoBehaviour
 
     private void HandleCollision(GameObject other)
     {
-        Debug.Log($"Colision con: {other.name} | tag: {other.tag} | layer: {LayerMask.LayerToName(other.layer)}");
+        // Debug.Log($"Colision con: {other.name} | tag: {other.tag} | layer: {LayerMask.LayerToName(other.layer)}");
 
         if (other.GetComponent<SpaceZoneBoundary>() != null) return;
         

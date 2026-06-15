@@ -96,7 +96,7 @@ public class InteractiveAsteroid : MonoBehaviour
             Vector2 relativeVelocity = rb.linearVelocity - shipVelocity;
             Vector2 toPlayer = (Vector2)collision.gameObject.transform.position - rb.position;
             closingSpeed = Vector2.Dot(relativeVelocity, toPlayer.normalized);
-            Debug.Log($"[INTERACTIVE ASTEROID] Velocidad asteroide: {currentSpeed:F2} | Velocidad jugador: {shipVelocity.magnitude:F2} | Velocidad relativa: {relativeVelocity.magnitude:F2} | Velocidad de cierre: {closingSpeed:F2}");
+            //Debug.Log($"[INTERACTIVE ASTEROID] Velocidad asteroide: {currentSpeed:F2} | Velocidad jugador: {shipVelocity.magnitude:F2} | Velocidad relativa: {relativeVelocity.magnitude:F2} | Velocidad de cierre: {closingSpeed:F2}");
         }
 
         // Si la velocidad de CIERRE no es suficientemente alta (no se acerca), no matamos

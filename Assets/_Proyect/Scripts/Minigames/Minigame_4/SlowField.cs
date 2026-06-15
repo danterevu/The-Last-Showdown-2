@@ -33,7 +33,6 @@ public class SlowField : MonoBehaviour
     private Dictionary<SpaceShipController, float> originalAccelerations = new Dictionary<SpaceShipController, float>();
     private LineRenderer circleRenderer;
 
-    // ownerPlayer del SlowGrande que creo este campo (para dar puntos si el alien muere)
     private int ownerPlayer = 0;
 
     public void SetOwnerPlayer(int player) { ownerPlayer = player; }
@@ -47,11 +46,9 @@ public class SlowField : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // Nave
         SpaceShipController ship = other.GetComponent<SpaceShipController>();
         if (ship != null && !shipsInside.Contains(ship)) { shipsInside.Add(ship); ApplySlowToShip(ship); return; }
 
-        // Proyectil
         Projectile proj = other.GetComponent<Projectile>();
         if (proj != null)
         {
@@ -59,7 +56,6 @@ public class SlowField : MonoBehaviour
             if (rb != null && !bulletsInside.Contains(rb)) { bulletsInside.Add(rb); rb.linearVelocity *= bulletSpeedMultiplier; }
         }
 
-        // --- ALIEN ---
         SpaceAlien alien = other.GetComponent<SpaceAlien>();
         if (alien != null && !aliensInside.Contains(alien))
         {
@@ -82,28 +78,36 @@ public class SlowField : MonoBehaviour
 
     private void ApplySlowToShip(SpaceShipController ship)
     {
-        if (originalMaxSpeeds.ContainsKey(ship)) return;
-        originalMaxSpeeds[ship] = ship.MaxSpeed;
-        originalAccelerations[ship] = ship.Acceleration;
-        ship.SetMaxSpeed(ship.MaxSpeed * speedMultiplier);
-        ship.SetAcceleration(ship.Acceleration * speedMultiplier);
-        ship.SetInSlowField(true);
+        if (!originalMaxSpeeds.ContainsKey(ship))
+        {
+            originalMaxSpeeds[ship] = ship.OriginalMaxSpeed;
+            originalAccelerations[ship] = ship.OriginalAcceleration;
+        }
+
+        ship.SetMaxSpeed(originalMaxSpeeds[ship] * speedMultiplier);
+        ship.SetAcceleration(originalAccelerations[ship] * speedMultiplier);
         ship.SetVelocity(ship.GetVelocity() * speedMultiplier);
+        ship.SetInSlowField(true);
     }
 
     private void RestoreShip(SpaceShipController ship)
     {
         if (!originalMaxSpeeds.ContainsKey(ship)) return;
-        ship.SetMaxSpeed(originalMaxSpeeds[ship]);
-        ship.SetAcceleration(originalAccelerations[ship]);
         ship.SetInSlowField(false);
+
+        if (!ship.isInSlowField)
+        {
+            ship.SetMaxSpeed(originalMaxSpeeds[ship]);
+            ship.SetAcceleration(originalAccelerations[ship]);
+        }
+
         originalMaxSpeeds.Remove(ship);
         originalAccelerations.Remove(ship);
     }
 
     public static void RemoveShipFromAllSlowFields(SpaceShipController ship)
     {
-        SlowField[] allSlowFields = FindObjectsOfType<SlowField>();
+        SlowField[] allSlowFields = FindObjectsByType<SlowField>(FindObjectsSortMode.None);
         foreach (SlowField field in allSlowFields)
             if (field.shipsInside.Contains(ship)) { field.shipsInside.Remove(ship); field.RestoreShip(ship); }
     }

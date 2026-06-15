@@ -59,6 +59,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     private float coyoteTimeCounter;
     private float jumpBufferCounter;
     private bool jumpHeld = false;
+    private bool jumpBlocked = false;
 
     // doble salto
     private bool doubleJumpEnabled = false;
@@ -168,7 +169,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         Gamepad gp = InputAssigner.GetGamepadForPlayer(playerIndex);
         if (gp != null)
         {
-            if (gp.buttonSouth.wasPressedThisFrame)
+            if (gp.buttonSouth.wasPressedThisFrame && !jumpBlocked)
             {
                 Debug.Log($"{gameObject.name} (gamepad) saltó!");
                 jumpHeld = true;
@@ -348,14 +349,25 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
     private void ApplyBetterGravity()
     {
+        if (jetpackActive)
+            return;
+
         if (rb.linearVelocity.y < 0)
-            rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
+            rb.linearVelocity += Vector2.up * Physics2D.gravity.y *
+                                 (fallMultiplier - 1) *
+                                 Time.fixedDeltaTime;
         else if (rb.linearVelocity.y > 0 && !jumpHeld)
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * jumpCutMultiplier);
+            rb.linearVelocity = new Vector2(
+                rb.linearVelocity.x,
+                rb.linearVelocity.y * jumpCutMultiplier
+            );
     }
 
     private void OnJumpPerformed(InputAction.CallbackContext context)
     {
+        if (jumpBlocked)
+            return;
+
         if (!IsCorrectDevice(context.control.device)) return;
         if (isDead || isStunned) return;
         jumpHeld = true;
@@ -508,6 +520,15 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
     private IEnumerator Die()
     {
+
+        if (manager != null)
+        {
+            PowerUpEffects effects = FindAnyObjectByType<PowerUpEffects>();
+
+            if (effects != null)
+                effects.CancelAll(this, otherPlayer);
+        }
+
         isDead = true;
         manager?.OnPlayerDied(_nextDeathByPunch);
         _nextDeathByPunch = false;
@@ -515,6 +536,8 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         isStunned = false;
         isAttacking = false;
         punchHitbox?.Deactivate();
+        SetCrushed(false);
+        SetHeavyGravity(false, 0f);
         ClearPowerUpState();
         rb.linearVelocity = Vector2.zero;
         rb.gravityScale = 0f;
@@ -651,6 +674,8 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         canAttack = true;
         isCrushed = false;
         isForcedMove = false;
+        jumpBlocked = false;
+        mirrorJumpPending = false;
         forcedMoveInput = Vector2.zero;
         moveInput = Vector2.zero;
         animator?.SetBool("isCrushed", false);
@@ -677,6 +702,11 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
             scale.x = IsFacingRight() ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
             punchHitbox.transform.localScale = scale;
         }
+    }
+
+    public void SetJumpBlocked(bool blocked)
+    {
+        jumpBlocked = blocked;
     }
 
     public void SetPulled(bool active, Vector2 velocity = default) { isBeingPulled = active; pullVelocity = velocity; }

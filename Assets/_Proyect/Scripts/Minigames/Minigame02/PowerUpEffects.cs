@@ -194,16 +194,24 @@ public class PowerUpEffects : MonoBehaviour
     }
 
     // CONTROL ESPEJO
-    public IEnumerator ActivateMirrorControl(PlatformPlayerController user, PlatformPlayerController target)
+    public IEnumerator ActivateMirrorControl(
+    PlatformPlayerController user,
+    PlatformPlayerController target)
     {
-        Debug.Log($"[PowerUpEffects] ActivateMirrorControl: user={user.gameObject.name}, target={target.gameObject.name}");
         AudioManager.Instance?.PlaySFX(SoundID.PUMirror);
+
         AfterImageEffect afterImage = target.GetComponent<AfterImageEffect>();
         afterImage?.StartEffect(true);
 
         user.SetMirrorControl(true, target);
+
+        target.SetJumpBlocked(true);
+
         yield return new WaitForSeconds(mirrorDuration);
+
         user.SetMirrorControl(false, null);
+
+        target.SetJumpBlocked(false);
 
         afterImage?.StopEffect();
     }
@@ -297,24 +305,22 @@ public class PowerUpEffects : MonoBehaviour
 
 
     // CANCEL ALL
-    public void CancelAll(PlatformPlayerController p1, PlatformPlayerController p2)
+    public void CancelAll(
+     PlatformPlayerController p1,
+     PlatformPlayerController p2)
     {
         StopAllCoroutines();
+
+        p1.ClearPowerUpState();
+        p2.ClearPowerUpState();
 
         StopVFX(heavyGravityVFXPlayer1);
         StopVFX(heavyGravityVFXPlayer2);
 
-        p1.GetComponent<AfterImageEffect>()?.StopEffect();
-        p2.GetComponent<AfterImageEffect>()?.StopEffect();
+        AfterImageEffect a1 = p1.GetComponent<AfterImageEffect>();
+        AfterImageEffect a2 = p2.GetComponent<AfterImageEffect>();
 
-        p1.ClearActivePowerUpEffects();
-        p2.ClearActivePowerUpEffects();
-
-        // Cancelar aplastadoras activas
-        if (crusherZones != null)
-        {
-            foreach (var cz in crusherZones)
-                cz?.Cancel();
-        }
+        a1?.StopEffect();
+        a2?.StopEffect();
     }
 }

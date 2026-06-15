@@ -9,11 +9,13 @@ public class SpaceShipController : MonoBehaviour
     [Tooltip("Fuerza de empuje por segundo mientras hay input")]
     [SerializeField] private float acceleration = 14f;
     private float originalAcceleration;
+    public float OriginalAcceleration => originalAcceleration;
 
     [Header("Velocidad")]
     [Tooltip("Velocidad maxima que la nave puede alcanzar")]
     [SerializeField] private float maxSpeed = 9f;
     private float originalMaxSpeed;
+    public float OriginalMaxSpeed => originalMaxSpeed;
 
     [Header("Inercia / Damping")]
     [Tooltip("Coeficiente de damping mientras hay input (valor bajo = mas deslizamiento)")]
@@ -62,11 +64,11 @@ public class SpaceShipController : MonoBehaviour
     private bool hasInput;
     private bool isRocketSabotageActive;
     public bool isInSlowField { get; private set; }
-    
+    private int slowFieldCount = 0;
+
     private Color originalColor;
     private Coroutine blinkCoroutine;
 
-    // Stun
     private bool isStunned = false;
     private Coroutine stunCoroutine;
     private float currentSpinSpeed = 0f;
@@ -79,7 +81,7 @@ public class SpaceShipController : MonoBehaviour
         SetupInput();
         originalMaxSpeed = maxSpeed;
         originalAcceleration = acceleration;
-        
+
         if (shipSpriteRenderer == null)
             shipSpriteRenderer = GetComponent<SpriteRenderer>();
         if (shipSpriteRenderer != null)
@@ -95,7 +97,6 @@ public class SpaceShipController : MonoBehaviour
         }
         else
         {
-            // Durante el stun: girar el sprite como carton
             hasInput = false;
             transform.Rotate(0f, 0f, currentSpinSpeed * Time.deltaTime);
         }
@@ -103,16 +104,16 @@ public class SpaceShipController : MonoBehaviour
         UpdatePropulsionParticles();
         UpdateRocketParticles();
     }
-    
+
     private void UpdateRocketParticles()
     {
         if (rocketParticles == null) return;
-        
+
         if (isRocketSabotageActive)
         {
             var emission = rocketParticles.emission;
             emission.rateOverTime = rocketEmissionRate;
-            
+
             if (!rocketParticles.isPlaying)
                 rocketParticles.Play();
         }
@@ -123,13 +124,8 @@ public class SpaceShipController : MonoBehaviour
         ApplyMovement();
     }
 
-    // -------------------------------------------------------------------------
-    //  SLOW API PUBLICA
-    // -------------------------------------------------------------------------
-
     private Coroutine slowCoroutine;
 
-    /// Aplica slow a la nave: reduce velocidad y aceleracion durante X segundos.
     public void ApplySlow(float duration, float multiplier)
     {
         if (slowCoroutine != null)
@@ -149,12 +145,6 @@ public class SpaceShipController : MonoBehaviour
         ResetSpeedToOriginal();
     }
 
-    // -------------------------------------------------------------------------
-    //  STUN API PUBLICA
-    // -------------------------------------------------------------------------
-
-    /// Aplica stun a la nave: la inmoviliza, la hace girar como carton.
-    /// La fuerza de empuje la aplica el que llama (SpaceCrossingShip).
     public void ApplyStun(float duration)
     {
         if (stunCoroutine != null)
@@ -163,7 +153,6 @@ public class SpaceShipController : MonoBehaviour
         stunCoroutine = StartCoroutine(StunRoutine(duration));
     }
 
-    /// Cancela el stun inmediatamente (por si se necesita limpiar al cambiar de zona).
     public void CancelStun()
     {
         if (stunCoroutine != null)
@@ -190,14 +179,12 @@ public class SpaceShipController : MonoBehaviour
         {
             elapsed += Time.deltaTime;
 
-            // Fade de la rotacion en los ultimos stunSpinFadeTime segundos
             if (elapsed >= fadeStart)
             {
                 float t = (elapsed - fadeStart) / stunSpinFadeTime;
                 currentSpinSpeed = Mathf.Lerp(stunSpinSpeed, 0f, t);
             }
 
-            // Mientras esta stunneado, velocity = 0 (no puede moverse)
             velocity = Vector2.zero;
             rb.linearVelocity = Vector2.zero;
 
@@ -212,19 +199,12 @@ public class SpaceShipController : MonoBehaviour
     {
         isStunned = false;
         currentSpinSpeed = 0f;
-        // Resetear rotacion al angulo correcto segun inputDirection que tenia antes
-        // (si no habia input, queda como esta, que es aceptable)
     }
-
-    // -------------------------------------------------------------------------
-    //  RESTO DEL CODIGO ORIGINAL SIN CAMBIOS
-    // -------------------------------------------------------------------------
 
     private void UpdatePropulsionParticles()
     {
         if (propulsionParticles == null) return;
-        
-        // Si está activado el rocket sabotage, no tocar las partículas de propulsión normal
+
         if (isRocketSabotageActive) return;
 
         float speed = velocity.magnitude;
@@ -263,7 +243,7 @@ public class SpaceShipController : MonoBehaviour
     {
         if (isRocketSabotageActive) return;
         isRocketSabotageActive = true;
-        
+
         StartBlinking();
     }
 
@@ -273,21 +253,19 @@ public class SpaceShipController : MonoBehaviour
         isRocketSabotageActive = false;
 
         if (rocketParticles != null)
-        {
             rocketParticles.Stop();
-        }
-        
+
         StopBlinking();
     }
-    
+
     private void StartBlinking()
     {
         if (blinkCoroutine != null)
             StopCoroutine(blinkCoroutine);
-        
+
         blinkCoroutine = StartCoroutine(BlinkCoroutine());
     }
-    
+
     private void StopBlinking()
     {
         if (blinkCoroutine != null)
@@ -295,11 +273,11 @@ public class SpaceShipController : MonoBehaviour
             StopCoroutine(blinkCoroutine);
             blinkCoroutine = null;
         }
-        
+
         if (shipSpriteRenderer != null)
             shipSpriteRenderer.color = originalColor;
     }
-    
+
     private IEnumerator BlinkCoroutine()
     {
         while (true)
@@ -307,7 +285,7 @@ public class SpaceShipController : MonoBehaviour
             if (shipSpriteRenderer != null)
                 shipSpriteRenderer.color = blinkColor;
             yield return new WaitForSeconds(blinkSpeed);
-            
+
             if (shipSpriteRenderer != null)
                 shipSpriteRenderer.color = originalColor;
             yield return new WaitForSeconds(blinkSpeed);
@@ -319,17 +297,14 @@ public class SpaceShipController : MonoBehaviour
         if (!isRocketSabotageActive) return;
 
         GameObject other = collision.gameObject;
+
         BreakableAsteroid breakableAsteroid = other.GetComponent<BreakableAsteroid>();
         if (breakableAsteroid != null)
-        {
             Destroy(other);
-        }
 
         InteractiveAsteroid interactiveAsteroid = other.GetComponent<InteractiveAsteroid>();
         if (interactiveAsteroid != null)
-        {
             Destroy(other);
-        }
 
         SplittableObject splittable = other.GetComponent<SplittableObject>();
         if (splittable != null)
@@ -350,9 +325,7 @@ public class SpaceShipController : MonoBehaviour
         GetComponent<Explodable>()?.Explode();
 
         if (explosionVfxPrefab != null)
-        {
             Instantiate(explosionVfxPrefab, transform.position, Quaternion.identity);
-        }
 
         int hitPlayer = isPlayer1 ? 1 : 2;
         int killerPlayer = isPlayer1 ? 2 : 1;
@@ -420,7 +393,6 @@ public class SpaceShipController : MonoBehaviour
 
     private void ApplyMovement()
     {
-        // Si esta stunneado, no aplicar movimiento
         if (isStunned)
         {
             velocity = Vector2.zero;
@@ -473,7 +445,6 @@ public class SpaceShipController : MonoBehaviour
             propulsionParticles.Clear();
         }
 
-        // No detener las partículas del rocket sabotage
         if (rocketParticles != null && !isRocketSabotageActive)
         {
             rocketParticles.Stop();
@@ -496,13 +467,19 @@ public class SpaceShipController : MonoBehaviour
 
     public void SetInSlowField(bool value)
     {
-        isInSlowField = value;
+        if (value)
+            slowFieldCount++;
+        else
+            slowFieldCount = Mathf.Max(0, slowFieldCount - 1);
+
+        isInSlowField = slowFieldCount > 0;
     }
 
     public void ResetSpeedToOriginal()
     {
         maxSpeed = originalMaxSpeed;
         acceleration = originalAcceleration;
+        slowFieldCount = 0;
         isInSlowField = false;
     }
 }

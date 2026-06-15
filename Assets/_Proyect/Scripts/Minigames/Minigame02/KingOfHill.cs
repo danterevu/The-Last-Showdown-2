@@ -256,7 +256,7 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
             countdownText.gameObject.SetActive(true);
 
         bool fadeDone = false;
-        bool countdownDone = false;
+       
         bool playersReleased = false;
 
         StartCoroutine(FadeFromBlackCoroutine(() => fadeDone = true));
@@ -289,7 +289,7 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
                 yield return new WaitForSeconds(0.5f);
         }
 
-        countdownDone = true;
+      
 
         while (!fadeDone || !playersReleased)
         {
@@ -878,7 +878,7 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
         // Buscar SceneLoader si Instance es nulo
         if (SceneLoader.Instance == null)
         {
-            SceneLoader.Instance = FindObjectOfType<SceneLoader>();
+            SceneLoader.Instance = FindAnyObjectByType<SceneLoader>();
         }
         
         // Null check para SceneLoader antes de llamar LoadResults

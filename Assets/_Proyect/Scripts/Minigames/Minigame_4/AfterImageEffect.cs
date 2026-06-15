@@ -31,6 +31,11 @@ public class AfterImageEffect : MonoBehaviour
             StopCoroutine(spawnCoroutine);
             spawnCoroutine = null;
         }
+
+        GameObject[] ghosts = GameObject.FindGameObjectsWithTag("AfterImage");
+
+        foreach (GameObject g in ghosts)
+            Destroy(g);
     }
 
     private IEnumerator SpawnLoop()
