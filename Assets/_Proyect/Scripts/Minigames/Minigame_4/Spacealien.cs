@@ -35,6 +35,12 @@ public class SpaceAlien : MonoBehaviour
     [Header("Rotacion del sprite")]
     [SerializeField] private float spriteRotationOffset = 0f;
 
+    [Header("Muerte")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private float deathAnimDuration = 0.5f;
+
+    private CircleCollider2D col;
+
     // -------------------------------------------------------------------------
 
     private SpaceAlienShipsEvent eventManager;
@@ -76,6 +82,7 @@ public class SpaceAlien : MonoBehaviour
 
     private void Awake()
     {
+       
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
         rb.linearDamping = 3f;
@@ -83,7 +90,7 @@ public class SpaceAlien : MonoBehaviour
         rb.bodyType = RigidbodyType2D.Dynamic;
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
-        CircleCollider2D col = GetComponent<CircleCollider2D>();
+        col = GetComponent<CircleCollider2D>();
         if (col != null) col.isTrigger = true;
 
         interactiveAsteroidLayerIndex = LayerMask.NameToLayer(interactiveAsteroidLayer);
@@ -380,6 +387,7 @@ public class SpaceAlien : MonoBehaviour
 
         int killerPlayer = isP1 ? 2 : 1;
         Die(killerPlayer);
+        ship.ApplyAlienHitTint();
 
         if (eventManager != null)
             ship.ApplySlow(eventManager.GetSlowDuration(), eventManager.GetSlowMultiplier());
@@ -400,7 +408,18 @@ public class SpaceAlien : MonoBehaviour
         else
             eventManager?.OnAlienDiedNoPoints(this);
 
-        Destroy(gameObject);
+        if (col != null) col.enabled = false;
+        rb.linearVelocity = Vector2.zero;
+
+        if (animator != null)
+        {
+            animator.SetTrigger("Death");
+            Destroy(gameObject, deathAnimDuration);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     // -------------------------------------------------------------------------

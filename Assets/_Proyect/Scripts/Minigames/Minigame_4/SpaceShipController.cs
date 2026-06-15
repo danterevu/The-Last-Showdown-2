@@ -57,6 +57,11 @@ public class SpaceShipController : MonoBehaviour
     [Tooltip("Cuantos segundos antes del fin del stun empieza a desacelerarse la rotacion")]
     [SerializeField] private float stunSpinFadeTime = 0.4f;
 
+    [Header("Visuales - Colision con Alien")]
+    [SerializeField] private Color alienHitColor = Color.green;
+    [SerializeField] private float alienHitColorDuration = 0.3f;
+
+    private Coroutine alienHitColorCoroutine;
     private Rigidbody2D rb;
     private InputAction moveAction;
     private Vector2 velocity;
@@ -481,5 +486,36 @@ public class SpaceShipController : MonoBehaviour
         acceleration = originalAcceleration;
         slowFieldCount = 0;
         isInSlowField = false;
+    }
+    public void ApplyAlienHitTint()
+    {
+        if (shipSpriteRenderer == null) return;
+
+        if (alienHitColorCoroutine != null)
+            StopCoroutine(alienHitColorCoroutine);
+
+        alienHitColorCoroutine = StartCoroutine(AlienHitTintRoutine());
+    }
+
+    private IEnumerator AlienHitTintRoutine()
+    {
+        float elapsed = 0f;
+        while (elapsed < alienHitColorDuration)
+        {
+            elapsed += Time.deltaTime;
+            shipSpriteRenderer.color = Color.Lerp(originalColor, alienHitColor, elapsed / alienHitColorDuration);
+            yield return null;
+        }
+
+        elapsed = 0f;
+        while (elapsed < alienHitColorDuration)
+        {
+            elapsed += Time.deltaTime;
+            shipSpriteRenderer.color = Color.Lerp(alienHitColor, originalColor, elapsed / alienHitColorDuration);
+            yield return null;
+        }
+
+        shipSpriteRenderer.color = originalColor;
+        alienHitColorCoroutine = null;
     }
 }

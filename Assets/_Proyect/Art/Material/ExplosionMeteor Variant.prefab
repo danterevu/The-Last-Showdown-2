@@ -10,11 +10,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3397532609739655789, guid: d55748e8395e90c47b0d094778876503, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -236.72935
+      value: -168
       objectReference: {fileID: 0}
     - target: {fileID: 3397532609739655789, guid: d55748e8395e90c47b0d094778876503, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 186.10223
+      value: 327.439
       objectReference: {fileID: 0}
     - target: {fileID: 3397532609739655789, guid: d55748e8395e90c47b0d094778876503, type: 3}
       propertyPath: m_LocalPosition.z
@@ -86,7 +86,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9000068220814058031, guid: d55748e8395e90c47b0d094778876503, type: 3}
       propertyPath: EmissionModule.m_BurstCount
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9000068220814058031, guid: d55748e8395e90c47b0d094778876503, type: 3}
       propertyPath: RotationModule.separateAxes
@@ -118,11 +118,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9000068220814058031, guid: d55748e8395e90c47b0d094778876503, type: 3}
       propertyPath: EmissionModule.m_Bursts.Array.size
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9000068220814058031, guid: d55748e8395e90c47b0d094778876503, type: 3}
       propertyPath: InitialModule.startLifetime.scalar
-      value: 0.8
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 9000068220814058031, guid: d55748e8395e90c47b0d094778876503, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.g
+      value: 0.9447043
+      objectReference: {fileID: 0}
+    - target: {fileID: 9000068220814058031, guid: d55748e8395e90c47b0d094778876503, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.r
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9000068220814058031, guid: d55748e8395e90c47b0d094778876503, type: 3}
       propertyPath: InitialModule.startSize.minMaxState

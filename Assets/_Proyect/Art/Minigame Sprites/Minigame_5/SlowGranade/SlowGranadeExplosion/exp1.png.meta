@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 9ce50039754831049931d555672b69ec
+guid: 757d04013d7e38548aa131fc3b29a675
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6058013528500979232
-    second: SlowGranade0_0
+      213: 4292555644840565022
+    second: exp1_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: SlowGranade0_0
+      name: exp1_0
       rect:
         serializedVersion: 2
-        x: 11
-        y: 8
-        width: 78
-        height: 81
+        x: 83
+        y: 85
+        width: 83
+        height: 79
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0e93035eacc9deba0800000000000000
-      internalID: -6058013528500979232
+      spriteID: e19d155bd98329b30800000000000000
+      internalID: 4292555644840565022
       vertices: []
       indices: 
       edges: []
@@ -134,8 +134,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      SlowGranade0_0: -6058013528500979232
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

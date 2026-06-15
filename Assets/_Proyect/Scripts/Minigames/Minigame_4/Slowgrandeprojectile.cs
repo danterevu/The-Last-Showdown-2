@@ -1,4 +1,4 @@
- using System.Collections;
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -7,10 +7,13 @@ public class SlowGrandeProjectile : MonoBehaviour
     [Header("Movimiento")]
     [SerializeField] private float speed = 8f;
     [SerializeField] private float range = 12f;
+    [Tooltip("Segundos antes de terminar el recorrido para activar la explosión")]
+    [SerializeField] private float secondsBeforeExplosion = 1f;
 
     [Header("Explosion")]
     [SerializeField] private GameObject slowFieldPrefab;
-    [Tooltip("Cu�nto m�s grande que el SlowField normal es la explosi�n")]
+    [SerializeField] private ParticleSystem explosionParticles;
+    [Tooltip("Cuánto más grande que el SlowField normal es la explosión")]
     [SerializeField] private float explosionScale = 3f;
     [SerializeField] private bool hideFieldVisual = true;
 
@@ -18,7 +21,10 @@ public class SlowGrandeProjectile : MonoBehaviour
     [SerializeField] private float collisionDisableTime = 0.5f;
 
     [Header("Void (Agujero Negro)")]
-    [SerializeField] private GameObject voidPrefab; // arrastrá el PREFAB del "Void" aquí
+    [SerializeField] private GameObject voidPrefab;
+    [Tooltip("Tiempo después del cual se destruye el Void (segundos)")]
+    [SerializeField] private float voidLifetime = 3f;
+
     private float traveledDistance;
     private int ownerPlayer;
     private Rigidbody2D rb;
@@ -26,6 +32,8 @@ public class SlowGrandeProjectile : MonoBehaviour
     private Vector2 lastPosition;
     private bool deployed;
     private bool collisionWasDisabled;
+    private bool explosionTriggered;
+    private SpriteRenderer spriteRenderer;
 
     private void Awake()
     {
@@ -33,6 +41,7 @@ public class SlowGrandeProjectile : MonoBehaviour
         rb.gravityScale = 0f;
         rb.linearDamping = 0f;
         col = GetComponent<Collider2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
 
         if (collisionDisableTime > 0f && col != null)
         {
@@ -76,6 +85,15 @@ public class SlowGrandeProjectile : MonoBehaviour
         traveledDistance += Vector2.Distance(currentPosition, lastPosition);
         lastPosition = currentPosition;
 
+        // Calcular cuánto tiempo falta para llegar al rango
+        float distanceLeft = range - traveledDistance;
+        float timeLeft = distanceLeft / speed;
+
+        if (timeLeft <= secondsBeforeExplosion && !explosionTriggered)
+        {
+            TriggerExplosion();
+        }
+
         if (traveledDistance >= range)
             Deploy();
     }
@@ -91,7 +109,26 @@ public class SlowGrandeProjectile : MonoBehaviour
         if (other.GetComponent<SpacePowerUpPickup>() != null) return;
         if (other.GetComponent<HomingMissile>() != null) return;
 
+        TriggerExplosion();
         Deploy();
+    }
+
+    private void TriggerExplosion()
+    {
+        if (explosionTriggered) return;
+        explosionTriggered = true;
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = Color.black;
+        }
+
+        if (explosionParticles != null)
+        {
+            ParticleSystem instance = Instantiate(explosionParticles, transform.position, explosionParticles.transform.rotation);
+            float lifetime = instance.main.duration + instance.main.startLifetime.constantMax;
+            if (lifetime > 0f) Destroy(instance.gameObject, lifetime);
+        }
     }
 
     private void Deploy()
@@ -102,19 +139,22 @@ public class SlowGrandeProjectile : MonoBehaviour
         if (rb != null)
             rb.linearVelocity = Vector2.zero;
 
-        // Instanciar el Void como un GameObject separado en el centro de la explosión
+        // Instanciar el Void
         if (voidPrefab != null)
         {
-            GameObject spawnedVoid = Instantiate(voidPrefab, transform.position, Quaternion.identity);
-            spawnedVoid.SetActive(true);
+            GameObject spawnedVoidInstance = Instantiate(voidPrefab, transform.position, Quaternion.identity);
+            spawnedVoidInstance.SetActive(true);
+            // Destruir el Void después del tiempo establecido
+            Destroy(spawnedVoidInstance, voidLifetime);
         }
 
+        // Instanciar el SlowField
         if (slowFieldPrefab != null)
         {
             GameObject field = Instantiate(slowFieldPrefab, transform.position, Quaternion.identity);
 
             // Guardar escala original del Void antes de escalar el padre
-            Transform voidChild = field.transform.Find("Void"); // Buscar el GO llamado "Void" dentro del campo
+            Transform voidChild = field.transform.Find("Void");
             Vector3 originalVoidScale = voidChild != null ? voidChild.localScale : Vector3.one;
 
             // Aplicar escala de explosión al campo completo
@@ -136,6 +176,8 @@ public class SlowGrandeProjectile : MonoBehaviour
 
         Destroy(gameObject);
     }
+
+
 
     private IEnumerator EnableCollisionAfterDelay(float delay)
     {
