@@ -662,7 +662,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     public void ClearPowerUpState()
     {
         hasPowerUp = false;
-        ClearActivePowerUpEffects();
+        ClearActivePowerUpEffects();    
     }
 
     private void LateUpdate()

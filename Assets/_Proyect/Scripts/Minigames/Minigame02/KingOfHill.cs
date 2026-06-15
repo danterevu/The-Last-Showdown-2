@@ -606,6 +606,7 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
         zoneCamera.SetZoneCenter(zones[index].position, index);
 
         powerUpSpawner.SetActiveZone(index);
+        powerUpEffects.SetCurrentZone(index);
     }
 
     private IEnumerator Flash()
@@ -648,7 +649,9 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
             case PowerUpPickup.PowerUpType.MirrorControl:
                 StartCoroutine(powerUpEffects.ActivateMirrorControl(user, target));
                 break;
-           
+            case PowerUpPickup.PowerUpType.Crusher:
+                StartCoroutine(powerUpEffects.ActivateCrusher(user, target));
+                break;
 
             case PowerUpPickup.PowerUpType.Jetpack:
                 StartCoroutine(powerUpEffects.ActivateJetpack(user));
