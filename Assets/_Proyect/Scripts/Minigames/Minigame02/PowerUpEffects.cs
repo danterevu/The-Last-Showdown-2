@@ -305,11 +305,18 @@ public class PowerUpEffects : MonoBehaviour
 
 
     // CANCEL ALL
-    public void CancelAll(
-     PlatformPlayerController p1,
-     PlatformPlayerController p2)
+    public void CancelAll(PlatformPlayerController p1, PlatformPlayerController p2)
     {
         StopAllCoroutines();
+
+        // ← AGREGAR: cancelar todas las CrusherZones activas
+        if (crusherZones != null)
+        {
+            foreach (CrusherZone zone in crusherZones)
+            {
+                if (zone != null) zone.Cancel();
+            }
+        }
 
         p1.ClearPowerUpState();
         p2.ClearPowerUpState();

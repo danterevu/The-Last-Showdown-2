@@ -572,14 +572,25 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
         if (p1Controller != null)
         {
             var rb1 = p1Controller.GetComponent<Rigidbody2D>();
-            if (rb1 != null) rb1.simulated = !freeze;
-            p1Controller.enabled = !freeze;
+            if (rb1 != null)
+            {
+                rb1.linearVelocity = Vector2.zero;
+                rb1.constraints = freeze
+                    ? RigidbodyConstraints2D.FreezeAll
+                    : RigidbodyConstraints2D.FreezeRotation;
+            }
+            // NO tocar enabled del controller
         }
         if (p2Controller != null)
         {
             var rb2 = p2Controller.GetComponent<Rigidbody2D>();
-            if (rb2 != null) rb2.simulated = !freeze;
-            p2Controller.enabled = !freeze;
+            if (rb2 != null)
+            {
+                rb2.linearVelocity = Vector2.zero;
+                rb2.constraints = freeze
+                    ? RigidbodyConstraints2D.FreezeAll
+                    : RigidbodyConstraints2D.FreezeRotation;
+            }
         }
     }
 

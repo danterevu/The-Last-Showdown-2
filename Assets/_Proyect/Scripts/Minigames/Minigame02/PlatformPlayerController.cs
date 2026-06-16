@@ -520,11 +520,9 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
     private IEnumerator Die()
     {
-
         if (manager != null)
         {
             PowerUpEffects effects = FindAnyObjectByType<PowerUpEffects>();
-
             if (effects != null)
                 effects.CancelAll(this, otherPlayer);
         }
@@ -541,10 +539,12 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         ClearPowerUpState();
         rb.linearVelocity = Vector2.zero;
         rb.gravityScale = 0f;
+        rb.constraints = RigidbodyConstraints2D.FreezeAll; // ← AGREGAR: evita que se mueva durante die
         animator.SetTrigger("Die");
         yield return new WaitForSeconds(respawnDelay);
         sr.enabled = false;
         transform.position = spawnPoint;
+        rb.constraints = RigidbodyConstraints2D.FreezeRotation; // ← AGREGAR: liberar antes de respawn
         rb.gravityScale = gravityScale;
         yield return new WaitForSeconds(0.1f);
         sr.enabled = true;
