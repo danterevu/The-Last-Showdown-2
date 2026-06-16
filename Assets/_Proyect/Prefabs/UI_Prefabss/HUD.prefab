@@ -169,7 +169,7 @@ RectTransform:
   m_Father: {fileID: 3795232584152282661}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -652,7 +652,7 @@ RectTransform:
   m_Father: {fileID: 718343855736613422}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -2113,7 +2113,7 @@ RectTransform:
   m_Father: {fileID: 1747669880012835329}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -4172,7 +4172,7 @@ RectTransform:
   m_Father: {fileID: 716466517561102989}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -7715,7 +7715,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5867518562684915181, guid: b43750f5dc18b7540983a1e4378348c6, type: 3}
       propertyPath: onCountdownComplete.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: IniciarMinijuego
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 5867518562684915181, guid: b43750f5dc18b7540983a1e4378348c6, type: 3}
       propertyPath: onCountdownComplete.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
