@@ -34,7 +34,19 @@ public class PowerUpPickup : MonoBehaviour
         if (!other.CompareTag("Player1") && !other.CompareTag("Player2")) return;
         PlatformPlayerController player = other.GetComponent<PlatformPlayerController>();
         if (player == null) return;
-        if (player.HasPowerUp()) return;
+
+        // si ya tiene un power up, dropear el actual como esfera antes de darle el nuevo
+        if (player.HasPowerUp())
+        {
+            DroppedPowerUpSpawner dropSpawner = Object.FindFirstObjectByType<DroppedPowerUpSpawner>();
+            if (dropSpawner != null)
+            {
+                // sale hacia un lado aleatorio con algo de altura
+                Vector2 dir = new Vector2(Random.Range(-1f, 1f), Random.Range(0.4f, 1f)).normalized;
+                dropSpawner.SpawnDropped(player.GetCurrentPowerUp(), player.transform.position, dir);
+            }
+        }
+
         player.ReceivePowerUp(type);
         spawner.OnPickupCollected(spawnPoint);
         Explode();
