@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 public class SpaceBackgroundShips : MonoBehaviour
 {
-    [Header("Prefab")]
-    [Tooltip("Prefab de la nave de fondo. Solo necesita SpriteRenderer.")]
-    [SerializeField] private GameObject shipPrefab;
+    [Header("Prefabs")]
+    [Tooltip("Array de prefabs de naves de fondo. Solo necesitan SpriteRenderer.")]
+    [SerializeField] private GameObject[] shipPrefabs;
 
     [Header("Cantidad")]
     [SerializeField] private int shipCount = 10;
@@ -127,15 +127,16 @@ public class SpaceBackgroundShips : MonoBehaviour
         }
         ships.Clear();
 
-        if (shipPrefab == null)
+        if (shipPrefabs == null || shipPrefabs.Length == 0)
         {
-            Debug.LogError("[SpaceBackgroundShips] shipPrefab es NULL.");
+            Debug.LogError("[SpaceBackgroundShips] shipPrefabs es NULL o vacío.");
             return;
         }
 
         for (int i = 0; i < shipCount; i++)
         {
-            GameObject go = Instantiate(shipPrefab, transform);
+            GameObject randomPrefab = shipPrefabs[Random.Range(0, shipPrefabs.Length)];
+            GameObject go = Instantiate(randomPrefab, transform);
             go.name = "BgShip_" + i;
             go.SetActive(false);
 

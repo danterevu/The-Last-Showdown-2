@@ -182,6 +182,8 @@ MonoBehaviour:
   detectionRadius: 15
   investigateDuration: 2
   spriteRotationOffset: 0
+  animator: {fileID: 5931675069773216241}
+  deathAnimDuration: 0.5
 --- !u!95 &5931675069773216241
 Animator:
   serializedVersion: 7
