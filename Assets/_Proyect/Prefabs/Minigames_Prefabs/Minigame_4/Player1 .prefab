@@ -143,6 +143,7 @@ GameObject:
   - component: {fileID: 5622894836061713576}
   - component: {fileID: 631253211340706981}
   - component: {fileID: 5402876301586875707}
+  - component: {fileID: 3999393989885135751}
   m_Layer: 0
   m_Name: 'Player1 '
   m_TagString: Player1
@@ -217,11 +218,18 @@ MonoBehaviour:
   playerIndex: 0
   isPlayer1: 1
   rocketParticles: {fileID: 582124230564520445, guid: 3406d020ea333524190601ab2d74ec61, type: 3}
+  explosionVfxPrefab: {fileID: 7298288805043694994, guid: d55748e8395e90c47b0d094778876503, type: 3}
+  shipSpriteRenderer: {fileID: 0}
+  blinkColor: {r: 1, g: 0, b: 0, a: 1}
+  blinkSpeed: 0.2
+  rocketEmissionRate: 100
   propulsionParticles: {fileID: 0}
   minSpeedForParticles: 2
   maxEmissionRate: 50
-  lethalSpeed: 4
-  explosionVfxPrefab: {fileID: 7298288805043694994, guid: d55748e8395e90c47b0d094778876503, type: 3}
+  stunSpinSpeed: 720
+  stunSpinFadeTime: 0.4
+  alienHitColor: {r: 0, g: 1, b: 0, a: 1}
+  alienHitColorDuration: 0.3
 --- !u!114 &7417864839006377122
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -355,6 +363,23 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 4.1929474, y: 2.5333252}
   m_EdgeRadius: 0
+--- !u!114 &3999393989885135751
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6611711051927232053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b8eafbde81f0bf49a98646b0cfb782c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visualType: 2
+  animator: {fileID: 0}
+  spriteRenderer: {fileID: 0}
+  fallbackController: {fileID: 0}
+  fallbackIdleSprite: {fileID: 0}
 --- !u!1 &7825477121813717767
 GameObject:
   m_ObjectHideFlags: 0

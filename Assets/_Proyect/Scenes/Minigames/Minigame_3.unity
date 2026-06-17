@@ -12226,6 +12226,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2397895827337248385, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
       insertIndex: 2
       addedObject: {fileID: 708058473}
+    - targetCorrespondingSourceObject: {fileID: 2397895827337248385, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 708058482}
     - targetCorrespondingSourceObject: {fileID: 3406031974916220079, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
       insertIndex: -1
       addedObject: {fileID: 708058474}
@@ -12334,6 +12337,25 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6589293998364306632, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
   m_PrefabInstance: {fileID: 708058470}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &708058482
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708058471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e41142aeb5c76ee4a825e2d0ded3ebf7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visualType: 0
+  handsAnimator: {fileID: 1012780251}
+  handsSpriteRenderer: {fileID: 1012780252}
+  gloppkController: {fileID: 9100000, guid: 239f34e2258630a4994eac64509d30a2, type: 2}
+  gloppkIdle: {fileID: 21300000, guid: 8a638d997dd74be4fa77308aeb35ec54, type: 3}
+  chopiController: {fileID: 9100000, guid: 188e28f421e6ccd4787e823a409538b1, type: 2}
+  chopiIdle: {fileID: 21300000, guid: ef15688eeba039e4783aa1c2d82e8818, type: 3}
 --- !u!1 &708742360
 GameObject:
   m_ObjectHideFlags: 0
@@ -15311,7 +15333,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5435322689610896039, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5559834181913966426, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: m_fontColor.b
@@ -15428,6 +15450,10 @@ PrefabInstance:
     - target: {fileID: 6583258087438702457, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6765232459688769154, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: m_text
+      value: DESCRIPCION DEL POWER UP
       objectReference: {fileID: 0}
     - target: {fileID: 6940618838065255572, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: m_Color.b
@@ -19137,7 +19163,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 3
+  m_SortingOrder: 5
   m_Sprite: {fileID: 7968368601800150899, guid: f5d83d903362ee849a94d4d0b7e16b45, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -26026,6 +26052,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1929242598546552070, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
       insertIndex: 2
       addedObject: {fileID: 1585737175}
+    - targetCorrespondingSourceObject: {fileID: 1929242598546552070, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1585737184}
     - targetCorrespondingSourceObject: {fileID: 4647883122135337479, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1585737176}
@@ -26134,6 +26163,25 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 218947745283897739, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
   m_PrefabInstance: {fileID: 1585737172}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1585737184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1585737173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e41142aeb5c76ee4a825e2d0ded3ebf7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visualType: 0
+  handsAnimator: {fileID: 1023190905}
+  handsSpriteRenderer: {fileID: 1023190906}
+  gloppkController: {fileID: 9100000, guid: 239f34e2258630a4994eac64509d30a2, type: 2}
+  gloppkIdle: {fileID: 21300000, guid: 8a638d997dd74be4fa77308aeb35ec54, type: 3}
+  chopiController: {fileID: 9100000, guid: 188e28f421e6ccd4787e823a409538b1, type: 2}
+  chopiIdle: {fileID: 21300000, guid: ef15688eeba039e4783aa1c2d82e8818, type: 3}
 --- !u!1 &1603494149
 GameObject:
   m_ObjectHideFlags: 0
@@ -42862,7 +42910,7 @@ TilemapRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 93
+  m_SortingOrder: 50
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0.13999999, y: 0.13999999, z: 0}
   m_MaxChunkCount: 16

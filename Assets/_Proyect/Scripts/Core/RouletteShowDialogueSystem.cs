@@ -526,6 +526,11 @@ public class RouletteShowDialogueSystem : MonoBehaviour
             }
         }
 
+        // Guardar en PlayerPrefs para MinigameUiManager
+        PlayerPrefs.SetInt("SelectedMinigame", (int)selectedMinigameId);
+        PlayerPrefs.SetInt("SelectedModifier", selectedModifierIndex);
+        PlayerPrefs.Save();
+
         TransitionTo(RoulettePhase.ModifierResultDialogue);
     }
 

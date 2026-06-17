@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3002537271218251575}
   - component: {fileID: 3226933138572375385}
   - component: {fileID: 4434388874885046720}
+  - component: {fileID: 336421280208992159}
   m_Layer: 7
   m_Name: Player1
   m_TagString: Player1
@@ -86,6 +87,8 @@ MonoBehaviour:
   actionMapName: Player1_TopDown
   playerIndex: 0
   isGrounded: 0
+  controlsInverted: 0
+  isFrozen: 0
 --- !u!68 &3002537271218251575
 EdgeCollider2D:
   m_ObjectHideFlags: 0
@@ -226,3 +229,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &336421280208992159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1355413625400800343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b8eafbde81f0bf49a98646b0cfb782c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visualType: 1
+  animator: {fileID: 0}
+  spriteRenderer: {fileID: 0}
+  fallbackController: {fileID: 0}
+  fallbackIdleSprite: {fileID: 0}

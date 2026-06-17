@@ -10,6 +10,21 @@ public class InputAssigner : MonoBehaviour
     public enum SelectionPhase { Player1Selecting, Player2Selecting, SelectionComplete }
     public enum Character { None, Gloppk, Chopi } // Gloppk = izquierda, Chopi = derecha
 
+    // NUEVO: tipo de vista/control del minijuego. Coincide con los nombres
+    // que ya usan en los InputActionAsset ("Player1_Platform", "Player1_TopDown");
+    // Ship se agrega aparte porque visualmente es una nave, no el personaje caminando.
+    public enum VisualType { Platform, TopDown, Ship }
+
+    // NUEVO: un set de Animator Controller + sprite idle para un tipo de minijuego puntual.
+    // Cada personaje puede tener uno por cada VisualType que efectivamente use.
+    [System.Serializable]
+    public class GameplayVisualSet
+    {
+        public VisualType type;
+        public RuntimeAnimatorController animatorController;
+        public Sprite idleSprite;
+    }
+
     [System.Serializable]
     public class CharacterVisual
     {
@@ -27,8 +42,23 @@ public class InputAssigner : MonoBehaviour
         public Vector3 activeScale = Vector3.one * 1.2f;
         public float animationDuration = 0.3f;
         public Ease easeType = Ease.OutBack;
+
+        // NUEVO: esto es lo que se aplica al jugador REAL dentro de cada minijuego
+        // (no confundir con idleSprite/characterSprite, que son solo del icono
+        // grande de esta pantalla de selección). Una entrada por cada VisualType
+        // que este personaje necesite (Platform / TopDown / Ship).
+        [Header("Gameplay (se aplica al jugador real dentro de los minijuegos)")]
+        [Tooltip("Agregá una entrada por cada tipo de minijuego que use este personaje: Platform, TopDown y/o Ship.")]
+        public List<GameplayVisualSet> gameplayVisuals = new List<GameplayVisualSet>();
+
+        public GameplayVisualSet GetGameplayVisual(VisualType type)
+        {
+            foreach (var v in gameplayVisuals)
+                if (v.type == type) return v;
+            return null;
+        }
     }
-    
+
     [System.Serializable]
     public class PlayerSlot
     {
@@ -49,6 +79,10 @@ public class InputAssigner : MonoBehaviour
         public Gamepad gamepad;
         public Character character; // personaje elegido
         public int internalPlayerIndex; // índice interno real (1=Gloppk, 2=Chopi)
+
+        // NUEVO: todos los sets de gameplay (Platform/TopDown/Ship) del personaje
+        // elegido, listos para que cualquier minijuego pida el que le corresponda.
+        public List<GameplayVisualSet> gameplayVisuals;
     }
 
     public static List<PlayerSlotData> assignedPlayers = new List<PlayerSlotData>();
@@ -74,6 +108,27 @@ public class InputAssigner : MonoBehaviour
     {
         foreach (var p in assignedPlayers)
             if (p.internalPlayerIndex == internalIndex) return p;
+        return null;
+    }
+
+    // NUEVO: helpers estáticos para que cualquier minijuego pida directamente
+    // el Animator Controller / sprite idle del personaje que ocupa ese slot,
+    // según el tipo de minijuego (Platform / TopDown / Ship).
+    public static RuntimeAnimatorController GetAnimatorController(int internalIndex, VisualType type)
+    {
+        var data = GetInternalPlayer(internalIndex);
+        if (data?.gameplayVisuals == null) return null;
+        foreach (var v in data.gameplayVisuals)
+            if (v.type == type) return v.animatorController;
+        return null;
+    }
+
+    public static Sprite GetIdleSprite(int internalIndex, VisualType type)
+    {
+        var data = GetInternalPlayer(internalIndex);
+        if (data?.gameplayVisuals == null) return null;
+        foreach (var v in data.gameplayVisuals)
+            if (v.type == type) return v.idleSprite;
         return null;
     }
 
@@ -143,11 +198,11 @@ public class InputAssigner : MonoBehaviour
         while (assignedPlayers.Count < 2)
             assignedPlayers.Add(new PlayerSlotData());
     }
-    
+
     private void ResetCharacterVisual(CharacterVisual visual)
     {
         if (visual == null) return;
-        
+
         if (visual.slotObject != null)
             visual.slotObject.transform.DOScale(visual.inactiveScale, visual.animationDuration).SetEase(visual.easeType);
 
@@ -388,7 +443,7 @@ public class InputAssigner : MonoBehaviour
             }
         }
     }
-    
+
     private bool IsCharacterTaken(Character character, bool isFirstPlayer)
     {
         // Player 1 can choose anything
@@ -468,15 +523,18 @@ public class InputAssigner : MonoBehaviour
         while (assignedPlayers.Count < 2)
             assignedPlayers.Add(new PlayerSlotData());
 
-        // El slot de "primer jugador en elegir" va al índice 0,
-        // el segundo al índice 1 — esto no cambia.
-        // Lo que cambia es internalPlayerIndex según el personaje elegido.
         int slotIndex = slot == player1Slot ? 0 : 1;
+
+        CharacterVisual visual = GetVisual(slot.selectedCharacter);
 
         assignedPlayers[slotIndex].inputType = slot.assignedInput;
         assignedPlayers[slotIndex].gamepad = slot.assignedGamepad;
         assignedPlayers[slotIndex].character = slot.selectedCharacter;
-        assignedPlayers[slotIndex].internalPlayerIndex = slot.selectedCharacter == Character.Gloppk ? 1 : 2;
+
+        
+        assignedPlayers[slotIndex].internalPlayerIndex = slotIndex + 1;
+
+        assignedPlayers[slotIndex].gameplayVisuals = visual?.gameplayVisuals;
     }
 
     private void CancelSelection(PlayerSlot slot)
@@ -516,7 +574,7 @@ public class InputAssigner : MonoBehaviour
 
         CharacterVisual visual = GetVisual(slot.selectedCharacter);
         MoveVisualToCenter(slot.selectedCharacter, slot.isUsingSecondKeyboard);
-        
+
         Character previouslySelected = slot.selectedCharacter;
         ResetSlot(slot);
         if (previouslySelected != Character.None)
@@ -560,10 +618,10 @@ public class InputAssigner : MonoBehaviour
 
     private void MoveVisualToCenter(Character character, bool isSecondKeyboard)
     {
-        PlayerSlot slot = player1Slot.selectedCharacter == character ? player1Slot : 
+        PlayerSlot slot = player1Slot.selectedCharacter == character ? player1Slot :
                            player2Slot.selectedCharacter == character ? player2Slot : null;
         if (slot == null) return;
-        
+
         InputType type = slot.isSelecting ? slot.currentSelectionType : slot.assignedInput;
         GameObject visual = type == InputType.Keyboard
             ? (isSecondKeyboard ? keyboardVisual2 : keyboardVisual)

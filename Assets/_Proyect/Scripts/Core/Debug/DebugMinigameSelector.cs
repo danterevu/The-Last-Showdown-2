@@ -17,6 +17,8 @@ public class DebugMinigameSelector : MonoBehaviour
     public void SelectMinigame(int id)
     {
         DebugManager.SetMinigame(id);
+        PlayerPrefs.SetInt("SelectedMinigame", id);
+        PlayerPrefs.Save();
         SceneLoader.Instance.LoadMinigame(id);
     }
 }

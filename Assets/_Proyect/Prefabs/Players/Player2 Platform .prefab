@@ -4959,6 +4959,7 @@ GameObject:
   - component: {fileID: 2193797284578817671}
   - component: {fileID: 6580697724506949206}
   - component: {fileID: 5012171423441400107}
+  - component: {fileID: 7719557025584051790}
   m_Layer: 0
   m_Name: 'Player2 Platform '
   m_TagString: Player2
@@ -5201,6 +5202,23 @@ MonoBehaviour:
   lifetime: 0.3
   color: {r: 0.57286924, g: 0.033018887, b: 1, a: 0.6}
   flipped: 0
+--- !u!114 &7719557025584051790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1929242598546552070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b8eafbde81f0bf49a98646b0cfb782c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visualType: 0
+  animator: {fileID: 0}
+  spriteRenderer: {fileID: 0}
+  fallbackController: {fileID: 0}
+  fallbackIdleSprite: {fileID: 0}
 --- !u!1 &3889397113209306519
 GameObject:
   m_ObjectHideFlags: 0
