@@ -84153,6 +84153,10 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: KingOfHill, Assembly-CSharp
       objectReference: {fileID: 0}
+    - target: {fileID: 5435322689610896039, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5468745557041431146, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: m_text
       value: 'Titulo '
@@ -84219,7 +84223,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6290995525688977619, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6394197777100737606, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: m_LocalRotation.w

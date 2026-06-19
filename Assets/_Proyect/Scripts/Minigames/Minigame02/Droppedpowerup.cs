@@ -78,12 +78,12 @@ public class DroppedPowerUp : MonoBehaviour
             Destroy(gameObject);
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private void OnCollisionEnter2D(Collision2D col)
     {
         if (collected) return;
-        if (!other.CompareTag("Player1") && !other.CompareTag("Player2")) return;
+        if (!col.gameObject.CompareTag("Player1") && !col.gameObject.CompareTag("Player2")) return;
 
-        PlatformPlayerController player = other.GetComponent<PlatformPlayerController>();
+        PlatformPlayerController player = col.gameObject.GetComponent<PlatformPlayerController>();
         if (player == null) return;
 
         collected = true;
