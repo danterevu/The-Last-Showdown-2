@@ -33059,7 +33059,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 59654aa4ddc87eb4b90f78e4a0c03101, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -33135,7 +33135,7 @@ LineRenderer:
     numCapVertices: 0
     alignment: 1
     textureMode: 0
-    textureScale: {x: 1, y: 1}
+    textureScale: {x: 0.5, y: 1}
     shadowBias: 0.5
     generateLightingData: 0
   m_MaskInteraction: 0
@@ -120775,6 +120775,10 @@ PrefabInstance:
       propertyPath: blinkInterval
       value: 0.08
       objectReference: {fileID: 0}
+    - target: {fileID: 5174909186247142567, guid: c9292edcf213ddb4dba42cbdadc58a96, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -4367152544549098815, guid: bb7fcde5d566bab4ab9a8f1b84b4e1b8, type: 3}
     - target: {fileID: 5438128024290247318, guid: c9292edcf213ddb4dba42cbdadc58a96, type: 3}
       propertyPath: m_Mass
       value: 0.1
