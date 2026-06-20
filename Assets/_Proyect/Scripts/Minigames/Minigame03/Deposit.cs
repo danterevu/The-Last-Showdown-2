@@ -5,6 +5,7 @@ public class Deposit : MonoBehaviour
 {
     [SerializeField] private int allowedPlayer; // 1 o 2
     public static event System.Action OnAnyDeposit;
+    [SerializeField] MutantDNAManager mutantDNAManager;
 
     [Header("Partículas")]
     [Tooltip("Prefab de partículas que se instancia al depositar el DNA (arrastrá tu prefab acá)")]
@@ -14,6 +15,13 @@ public class Deposit : MonoBehaviour
 
     private bool hasDeposited = false;
 
+    [System.Obsolete]
+    private void Awake()
+    {
+        // Si no se asignó en Inspector, intentar encontrar automáticamente
+        if (mutantDNAManager == null)
+            mutantDNAManager = GetComponent<MutantDNAManager>();
+    }
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (hasDeposited) return; // evitar doble disparo
@@ -34,6 +42,8 @@ public class Deposit : MonoBehaviour
             hasDeposited = true;
             int points = 30;
             GameManager.Instance.AddPoints(allowedPlayer, points);
+            if (mutantDNAManager != null)
+                mutantDNAManager.TryComment(CommentTrigger.DepositDNA, 1f);
             OnAnyDeposit?.Invoke();
             SpawnDepositParticles();
             controller.DropDNA();
@@ -60,6 +70,9 @@ public class Deposit : MonoBehaviour
 
             int points = throwBonus ? 50 : 30;
             GameManager.Instance.AddPoints(allowedPlayer, points);
+            if (mutantDNAManager != null)
+                mutantDNAManager.TryComment(CommentTrigger.ThrowDnaToDeposit, 1f);
+
             OnAnyDeposit?.Invoke();
             SpawnDepositParticles();
             dna.RespawnAfterDelay();

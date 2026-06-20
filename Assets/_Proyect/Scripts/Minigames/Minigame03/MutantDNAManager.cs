@@ -447,6 +447,13 @@ public class MutantDNAManager : MonoBehaviour, IMinijuegoControlable
         if (p2Controller != null) p2Controller.SetFrozen(freeze);
     }
 
+    public void TryComment(CommentTrigger trigger, float chance = 1f)
+    {
+        if (CommentarySystem.Instance == null) return;
+        if (Random.value <= chance)
+            CommentarySystem.Instance.TriggerComment(trigger);
+    }
+
     public void EndMinigame()
     {
         gameRunning = false;

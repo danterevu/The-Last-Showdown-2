@@ -8,6 +8,9 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [Header("Crush")]
     [SerializeField] private bool isCrushed = false;
 
+    [Header("Manager")]
+    [SerializeField] MutantDNAManager mutantDNAManager;
+
     [Header("Movimiento")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float gravityScale = 4f;
@@ -143,6 +146,8 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         col = GetComponent<Collider2D>();
         animator = GetComponent<Animator>();
         rc = GetComponent<RemoteControl>();
+        if (mutantDNAManager == null)
+            mutantDNAManager = GetComponent<MutantDNAManager>();
         baseMoveSpeed = moveSpeed;
         originalScale = transform.localScale;
         baseJumpForce = jumpForce;
@@ -746,6 +751,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
                 heldCrate = null;
             }
             animator?.SetTrigger("Hurt");
+            if (mutantDNAManager != null) mutantDNAManager.TryComment(CommentTrigger.HittinWithBox, 0.8f);
         }
     }
 
@@ -784,7 +790,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         // animator?.SetTrigger("Grow"); // Comentado: trigger no existe en Animator
         yield return new WaitForSeconds(growAnimationDelay); // Esperar a que termine la animación de grow
         transform.localScale = originalScale;
-        moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
     }
 
     private IEnumerator ShieldEffect()
@@ -808,6 +813,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         StartCoroutine(ResetHurtTrigger());
         rb.linearVelocity = direction * force;
         StartCoroutine(MineKnockback(stunDuration));
+        if (mutantDNAManager != null) mutantDNAManager.TryComment(CommentTrigger.MineExplosion, 0.8f);
     }
 
     private IEnumerator MineKnockback(float stunDuration)
@@ -827,6 +833,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     {
         WallManager.Instance?.DeactivateAll();
         Debug.Log(gameObject.name + " cerró las puertas con el Remote Control");
+        if (mutantDNAManager != null) mutantDNAManager.TryComment(CommentTrigger.DoorActivated, 0.8f);
     }
 
     private IEnumerator BerserkEffect()
@@ -839,7 +846,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         isBerserk = false;
         animator?.SetBool("IsBerserk", false);
         transform.localScale = originalScale;
-        moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
        // ClearPowerUpState();  // Esto limpia el estado y notifica al HUD
     }
 
@@ -883,6 +889,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     {
         if (isSlimed) return;
         slimeCoroutine = StartCoroutine(SlimeEffect());
+        if (mutantDNAManager != null) mutantDNAManager.TryComment(CommentTrigger.HitSlimeShoot, 0.8f);
     }
 
     private IEnumerator SlimeEffect()
@@ -920,7 +927,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         hasDNA = true;
         carriedDNA = dna;
         dna.PickUp(this);
-       // moveSpeed = baseMoveSpeed * 0.6f;
     }
     public void DropDNA()
     {
@@ -932,7 +938,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             carriedDNA.Drop();
             carriedDNA = null;
         }
-        moveSpeed = baseMoveSpeed;
     }
     private void ThrowDNA()
     {
@@ -945,16 +950,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         hasDNA = false;
         moveSpeed = baseMoveSpeed;
         
-        /*if (playerSpeed >= 0.5f)
-        {
-            Debug.Log($"[MANOS] Throw DNA trigger activado - Hands Animator: {(handsAnimator != null ? "Asignado" : "NULL")}");
-            handsAnimator?.SetTrigger("Throw");
-            StartCoroutine(HideHandsAfterDelay());
-        }
-        else
-        {
-            SetHandsActive(false);
-        }*/
     }
 
     private IEnumerator HideHandsAfterDelay()

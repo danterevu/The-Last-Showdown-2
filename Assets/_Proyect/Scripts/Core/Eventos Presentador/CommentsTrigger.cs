@@ -22,9 +22,6 @@ public enum CommentTrigger // Nombre de eventos del presentador
     ThrowDnaToDeposit,
     MineExplosion,
     HittinWithBox,
-    AwareChangeZoneDNA,
-    BigPunchingSmall,
-    SmallPunchingBig,
     HitSlimeShoot,
     DoorActivated,
 
