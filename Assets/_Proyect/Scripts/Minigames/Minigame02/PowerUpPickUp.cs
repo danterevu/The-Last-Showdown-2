@@ -35,15 +35,16 @@ public class PowerUpPickup : MonoBehaviour
         PlatformPlayerController player = other.GetComponent<PlatformPlayerController>();
         if (player == null) return;
 
-        // si ya tiene un power up, dropear el actual como esfera antes de darle el nuevo
         if (player.HasPowerUp())
         {
             DroppedPowerUpSpawner dropSpawner = Object.FindFirstObjectByType<DroppedPowerUpSpawner>();
             if (dropSpawner != null)
             {
-                // sale hacia un lado aleatorio con algo de altura
                 Vector2 dir = new Vector2(Random.Range(-1f, 1f), Random.Range(0.4f, 1f)).normalized;
-                dropSpawner.SpawnDropped(player.GetCurrentPowerUp(), player.transform.position, dir);
+                // pasar player como owner para que tenga 1s de cooldown
+                DroppedPowerUp.Spawn(dropSpawner.Prefabs, player.GetCurrentPowerUp(),
+                                     player.transform.position, dir, player);
+                player.ClearPowerUpState();
             }
         }
 

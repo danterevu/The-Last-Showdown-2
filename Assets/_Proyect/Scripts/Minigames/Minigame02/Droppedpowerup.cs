@@ -1,110 +1,135 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 /// <summary>
-/// Poner este script en cada prefab de esfera (uno por power up).
-/// La esfera tiene un Rigidbody2D y un CircleCollider2D (NO trigger).
-/// El icono es un SpriteRenderer hijo con el sprite del power up.
-/// 
-/// Cuando un jugador agarra un power up teniendo ya uno,
-/// PowerUpPickup llama a DroppedPowerUp.Spawn() en lugar de descartarlo.
+/// Va en el hijo "PickupTrigger" (CircleCollider2D Is Trigger).
+/// El padre tiene el Rigidbody2D + CircleCollider2D físico para rebotar.
 /// </summary>
 public class DroppedPowerUp : MonoBehaviour
 {
     [Header("Tiempo de vida")]
     [SerializeField] private float lifetime = 6f;
-    [SerializeField] private float blinkStartTime = 2f; // cuándo antes de morir empieza a parpadear
+    [SerializeField] private float blinkStartTime = 2f;
 
     [Header("Físicas")]
-    [SerializeField] private float launchForce = 6f;       // impulso inicial al salir del jugador
-    [SerializeField] private PhysicsMaterial2D bounceMaterial;  // bounciness ~0.4, friction ~0.4
+    [SerializeField] private float launchForce = 4f;
+
+    // cooldown global por jugador para agarrar esferas dropeadas
+    // key: instanceID del jugador, value: tiempo hasta que puede agarrar
+    private static Dictionary<int, float> pickupCooldowns = new Dictionary<int, float>();
+
+    private static void SetCooldown(PlatformPlayerController player, float seconds)
+    {
+        pickupCooldowns[player.GetInstanceID()] = Time.time + seconds;
+    }
+
+    private static bool IsOnCooldown(PlatformPlayerController player)
+    {
+        int id = player.GetInstanceID();
+        return pickupCooldowns.ContainsKey(id) && Time.time < pickupCooldowns[id];
+    }
 
     private PowerUpPickup.PowerUpType storedType;
     private Rigidbody2D rb;
-    private SpriteRenderer sr;
+    private Collider2D triggerCol;
+    private Collider2D physicsCol;
+    private SpriteRenderer[] srs;
     private bool collected = false;
-    private float timeLeft;
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
-        // el SpriteRenderer del icono puede estar en un hijo
-        sr = GetComponentInChildren<SpriteRenderer>();
+        triggerCol = GetComponent<Collider2D>();
+        rb = GetComponentInParent<Rigidbody2D>();
+        physicsCol = transform.parent != null
+            ? transform.parent.GetComponent<Collider2D>()
+            : null;
+        srs = GetComponentsInChildren<SpriteRenderer>(true);
     }
 
-    /// <summary>
-    /// Llamado desde PowerUpPickup justo después de instanciar la esfera.
-    /// </summary>
-    public void Initialize(PowerUpPickup.PowerUpType type, Vector2 launchDirection)
+    public void Initialize(PowerUpPickup.PowerUpType type, Vector2 launchDirection,
+                           PlatformPlayerController owner = null)
     {
         storedType = type;
-        timeLeft = lifetime;
 
         if (rb != null)
-        {
-            if (bounceMaterial != null)
-                rb.GetComponent<Collider2D>().sharedMaterial = bounceMaterial;
+            rb.AddForce(launchDirection.normalized * launchForce, ForceMode2D.Impulse);
 
-            rb.AddForce(launchDirection * launchForce, ForceMode2D.Impulse);
-        }
+        // el dueño no puede agarrarla por 1 segundo
+        if (owner != null)
+            SetCooldown(owner, 1f);
 
         StartCoroutine(LifetimeRoutine());
     }
 
     private IEnumerator LifetimeRoutine()
     {
-        // esperar hasta que quede blinkStartTime
         float waitTime = lifetime - blinkStartTime;
         if (waitTime > 0f)
             yield return new WaitForSeconds(waitTime);
 
-        // parpadeo
-        if (sr != null)
+        float elapsed = 0f;
+        while (elapsed < blinkStartTime)
         {
-            float elapsed = 0f;
-            float blinkSpeed = 8f;
-            while (elapsed < blinkStartTime)
-            {
-                elapsed += Time.deltaTime;
-                // acelera el parpadeo al final
-                blinkSpeed = Mathf.Lerp(8f, 20f, elapsed / blinkStartTime);
-                sr.enabled = Mathf.FloorToInt(elapsed * blinkSpeed) % 2 == 0;
-                yield return null;
-            }
-            sr.enabled = true;
+            elapsed += Time.deltaTime;
+            float blinkSpeed = Mathf.Lerp(8f, 20f, elapsed / blinkStartTime);
+            bool visible = Mathf.FloorToInt(elapsed * blinkSpeed) % 2 == 0;
+            foreach (var sr in srs) if (sr != null) sr.enabled = visible;
+            yield return null;
         }
+        foreach (var sr in srs) if (sr != null) sr.enabled = true;
 
-        if (!collected)
-            Destroy(gameObject);
+        if (!collected) Collect(null);
     }
 
-    private void OnCollisionEnter2D(Collision2D col)
+    private void OnTriggerEnter2D(Collider2D other)
     {
         if (collected) return;
-        if (!col.gameObject.CompareTag("Player1") && !col.gameObject.CompareTag("Player2")) return;
+        if (!other.CompareTag("Player1") && !other.CompareTag("Player2")) return;
 
-        PlatformPlayerController player = col.gameObject.GetComponent<PlatformPlayerController>();
+        PlatformPlayerController player = other.GetComponent<PlatformPlayerController>();
         if (player == null) return;
 
+        // cooldown: este jugador dropeó una esfera hace menos de 1 segundo
+        if (IsOnCooldown(player)) return;
+
+        Collect(player);
+    }
+
+    private void Collect(PlatformPlayerController player)
+    {
+        if (collected) return;
         collected = true;
         StopAllCoroutines();
 
-        if (player.HasPowerUp())
+        if (triggerCol != null) triggerCol.enabled = false;
+
+        if (player != null)
         {
-            // el jugador ya tiene uno — dropeamos el suyo y le damos este
-            SpawnDropped(player, player.GetCurrentPowerUp());
+            if (player.HasPowerUp())
+            {
+                // dropear el actual
+                Vector2 dir = ((Vector2)transform.position - (Vector2)player.transform.position).normalized;
+                dir.y = Mathf.Max(dir.y, 0.4f);
+                SpawnDropped(player, player.GetCurrentPowerUp(), dir);
+                player.ClearPowerUpState();
+            }
+            player.ReceivePowerUp(storedType);
         }
 
-        player.ReceivePowerUp(storedType);
-        Destroy(gameObject);
+        Destroy(transform.parent != null ? transform.parent.gameObject : gameObject);
     }
 
-    /// <summary>
-    /// Instancia una esfera dropeada. Llamado desde PowerUpPickup y desde aquí mismo.
-    /// prefabs: array con un prefab por tipo, en el mismo orden que el enum PowerUpType.
-    /// </summary>
+    private void SpawnDropped(PlatformPlayerController player, PowerUpPickup.PowerUpType type, Vector2 dir)
+    {
+        DroppedPowerUpSpawner spawner = Object.FindFirstObjectByType<DroppedPowerUpSpawner>();
+        if (spawner == null) return;
+        DroppedPowerUp.Spawn(spawner.Prefabs, type, player.transform.position, dir, player);
+    }
+
     public static void Spawn(GameObject[] prefabsByType, PowerUpPickup.PowerUpType type,
-                             Vector3 position, Vector2 launchDir)
+                             Vector3 position, Vector2 launchDir,
+                             PlatformPlayerController owner = null)
     {
         int index = (int)type;
         if (prefabsByType == null || index >= prefabsByType.Length || prefabsByType[index] == null)
@@ -114,20 +139,8 @@ public class DroppedPowerUp : MonoBehaviour
         }
 
         GameObject go = Instantiate(prefabsByType[index], position, Quaternion.identity);
-        DroppedPowerUp dropped = go.GetComponent<DroppedPowerUp>();
+        DroppedPowerUp dropped = go.GetComponentInChildren<DroppedPowerUp>();
         if (dropped != null)
-            dropped.Initialize(type, launchDir);
-    }
-
-    // helper interno para dropear el power up actual del jugador
-    private void SpawnDropped(PlatformPlayerController player, PowerUpPickup.PowerUpType type)
-    {
-        // busca el DroppedPowerUpSpawner en la escena para obtener los prefabs
-        DroppedPowerUpSpawner spawner = Object.FindFirstObjectByType<DroppedPowerUpSpawner>();
-        if (spawner == null) return;
-
-        Vector2 dir = Random.insideUnitCircle.normalized;
-        dir.y = Mathf.Abs(dir.y) * 0.5f + 0.3f; // siempre sube un poco
-        DroppedPowerUp.Spawn(spawner.Prefabs, type, player.transform.position, dir);
+            dropped.Initialize(type, launchDir, owner);
     }
 }
