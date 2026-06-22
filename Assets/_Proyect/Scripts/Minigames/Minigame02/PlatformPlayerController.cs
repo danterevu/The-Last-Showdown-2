@@ -94,6 +94,8 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     private bool isBeingPulled = false;
     private Vector2 pullVelocity = Vector2.zero;
 
+    private bool canPickupDropped = true;
+
     [Header("PowerUp")]
     [SerializeField] private PowerUpPickup.PowerUpType currentPowerUp;
     [SerializeField] private bool hasPowerUp = false;
@@ -687,7 +689,9 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     public void ClearPowerUpState()
     {
         hasPowerUp = false;
-        ClearActivePowerUpEffects();    
+        ClearActivePowerUpEffects();
+       
+
     }
 
     private void LateUpdate()
@@ -711,4 +715,18 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
     public void SetPulled(bool active, Vector2 velocity = default) { isBeingPulled = active; pullVelocity = velocity; }
     public void MarkNextDeathAsPunch() => _nextDeathByPunch = true;
+
+    public bool CanPickupDropped() => canPickupDropped;
+
+    public void BlockDroppedPickup(float seconds)
+    {
+        StartCoroutine(BlockDroppedPickupRoutine(seconds));
+    }
+
+    private IEnumerator BlockDroppedPickupRoutine(float seconds)
+    {
+        canPickupDropped = false;
+        yield return new WaitForSeconds(seconds);
+        canPickupDropped = true;
+    }
 }
