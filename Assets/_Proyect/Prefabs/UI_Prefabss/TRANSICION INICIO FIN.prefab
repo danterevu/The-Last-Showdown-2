@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4030642592750573527}
   - component: {fileID: 8642966899751564595}
   m_Layer: 5
-  m_Name: Panel
+  m_Name: Panel del Minijuego
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1228,7 +1228,7 @@ GameObject:
   - component: {fileID: 2755300127568868872}
   - component: {fileID: 1763066651614513937}
   m_Layer: 5
-  m_Name: Panel
+  m_Name: Fondo del Panel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1325,7 +1325,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.000028133, y: 217.26}
+  m_AnchoredPosition: {x: -0.000028133, y: 189}
   m_SizeDelta: {x: 985.026, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6175838817229267706
@@ -1827,7 +1827,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 2
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0

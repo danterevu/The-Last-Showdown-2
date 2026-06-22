@@ -8,7 +8,7 @@ public class HUDManager : MonoBehaviour
 {
     [Header("Tema visual")]
     [SerializeField] private HUDTheme theme;
-    [SerializeField] private Image[] hudColorImages; 
+    [SerializeField] private Image[] hudColorImages;
 
     [Header("Score")]
     [SerializeField] private TextMeshProUGUI player1ScoreText;
@@ -25,6 +25,9 @@ public class HUDManager : MonoBehaviour
     [Header("Personajes HUD")]
     [SerializeField] private Animator character1Animator;
     [SerializeField] private Animator character2Animator;
+
+    [Header("Animacion de personajes")]
+    [SerializeField] private float characterBoolDuration = 1.5f;
 
     [Header("Animacion del score")]
     [SerializeField] private float countDuration = 0.4f;
@@ -55,21 +58,28 @@ public class HUDManager : MonoBehaviour
     private Coroutine punchCoroutine1;
     private Coroutine punchCoroutine2;
     private Coroutine timerCoroutine;
+    private Coroutine charAnim1;
+    private Coroutine charAnim2;
 
     private int timerState = 0;
+
     // Ciclo de vida
     private void OnEnable()
     {
         GameManager.OnPointsChanged += HandlePointsChanged;
+
+        GameManager.OnPlayerHit += HandlePlayerHit;
     }
+
     private void OnDisable()
     {
         GameManager.OnPointsChanged -= HandlePointsChanged;
+        GameManager.OnPlayerHit -= HandlePlayerHit;
     }
-   
-    void Start()
+
+    private void Start()
     {
-     if(GameManager.Instance!= null) 
+        if (GameManager.Instance != null)
         {
             displayedScore1 = GameManager.Instance.player1RoundPoints;
             displayedScore2 = GameManager.Instance.player2RoundPoints;
@@ -78,8 +88,9 @@ public class HUDManager : MonoBehaviour
         UpdateTexts();
         if (player1ScoreText != null) score1OriginalScale = player1ScoreText.transform.localScale;
         if (player2ScoreText != null) score2OriginalScale = player2ScoreText.transform.localScale;
-        timerState = -1; 
+        timerState = -1;
     }
+
     private void Update()
     {
         if (cooldownTimer1 > 0f)
@@ -95,6 +106,7 @@ public class HUDManager : MonoBehaviour
                 FlushScore(2);
         }
     }
+
     private void HandlePointsChanged(int player, int amount, bool isAdd)
     {
         if (player == 1)
@@ -103,6 +115,10 @@ public class HUDManager : MonoBehaviour
             pendingIsAdd1 = isAdd;
             if (cooldownTimer1 <= 0f)
                 cooldownTimer1 = scoreDisplayCooldown;
+
+            // animación inmediata, sin esperar el cooldown
+            if (isAdd) { SetCharacterBool(1, "Winning"); SetCharacterBool(2, "Angry"); }
+            else { SetCharacterBool(1, "Death"); }
         }
         else
         {
@@ -110,8 +126,12 @@ public class HUDManager : MonoBehaviour
             pendingIsAdd2 = isAdd;
             if (cooldownTimer2 <= 0f)
                 cooldownTimer2 = scoreDisplayCooldown;
+
+            if (isAdd) { SetCharacterBool(2, "Winning"); SetCharacterBool(1, "Angry"); }
+            else { SetCharacterBool(2, "Death"); }
         }
     }
+
     private void FlushScore(int player)
     {
         if (player == 1)
@@ -120,8 +140,7 @@ public class HUDManager : MonoBehaviour
             if (punchCoroutine1 != null) StopCoroutine(punchCoroutine1);
             countCoroutine1 = StartCoroutine(CountScore(1, displayedScore1, pendingScore1));
             punchCoroutine1 = StartCoroutine(PunchText(player1ScoreText, pendingIsAdd1));
-            if (pendingIsAdd1) NotifyCharacterPoint(1);
-            else NotifyCharacterLosePoint(1);
+            
         }
         else
         {
@@ -129,10 +148,46 @@ public class HUDManager : MonoBehaviour
             if (punchCoroutine2 != null) StopCoroutine(punchCoroutine2);
             countCoroutine2 = StartCoroutine(CountScore(2, displayedScore2, pendingScore2));
             punchCoroutine2 = StartCoroutine(PunchText(player2ScoreText, pendingIsAdd2));
-            if (pendingIsAdd2) NotifyCharacterPoint(2);
-            else NotifyCharacterLosePoint(2);
+         
         }
     }
+    // Animaciones de personajes
+    private void SetCharacterBool(int player, string boolName)
+    {
+        Animator anim = player == 1 ? character1Animator : character2Animator;
+        if (anim == null) return;
+
+        ref Coroutine cor = ref (player == 1 ? ref charAnim1 : ref charAnim2);
+        if (cor != null) StopCoroutine(cor);
+        cor = StartCoroutine(CharacterBoolRoutine(anim, boolName));
+    }
+    private void SetCharacterBoolSafe(int player, string boolName)
+    {
+        // si le quiero poner Angry pero ya está festejando, ignorar
+        if (boolName == "Angry")
+        {
+            Animator anim = player == 1 ? character1Animator : character2Animator;
+            if (anim != null && anim.GetBool("Winning")) return;
+        }
+        SetCharacterBool(player, boolName);
+    }
+    private IEnumerator CharacterBoolRoutine(Animator anim, string boolName)
+    {
+        anim.SetBool("Death", false);
+        anim.SetBool("Winning", false);
+        anim.SetBool("Angry", false);
+        anim.SetBool(boolName, true);
+        yield return new WaitForSeconds(characterBoolDuration);
+        anim.SetBool(boolName, false);
+    }
+
+
+    public void NotifyRoundWin(int player)
+    {
+        SetCharacterBool(player, "Winning");
+    }
+
+    // Tema visual
     private void ApplyTheme()
     {
         if (theme == null) return;
@@ -145,50 +200,48 @@ public class HUDManager : MonoBehaviour
         if (timerText != null) timerNormalColor = theme.timerTextColor;
     }
 
+    // Score
     private IEnumerator CountScore(int player, int from, int to)
     {
         float elapsed = 0f;
         while (elapsed < countDuration)
         {
             float t = elapsed / countDuration;
-                int current = Mathf.RoundToInt(Mathf.Lerp(from, to, t));
+            int current = Mathf.RoundToInt(Mathf.Lerp(from, to, t));
             if (player == 1) displayedScore1 = current;
             else displayedScore2 = current;
             UpdateTexts();
             elapsed += Time.deltaTime;
             yield return null;
         }
-        if(player == 1) { displayedScore1 = to; countCoroutine1 = null; }
-        else
-        {
-            displayedScore2 = to; countCoroutine2 = null;
-        }
+        if (player == 1) { displayedScore1 = to; countCoroutine1 = null; }
+        else { displayedScore2 = to; countCoroutine2 = null; }
         UpdateTexts();
     }
-    private IEnumerator PunchText(TextMeshProUGUI text,bool isAdd) 
+
+    private IEnumerator PunchText(TextMeshProUGUI text, bool isAdd)
     {
-
         if (text == null) yield break;
-
 
         Vector3 originalScale = text == player1ScoreText ? score1OriginalScale : score2OriginalScale;
         if (originalScale == Vector3.zero) originalScale = Vector3.one;
         Color targetColor = isAdd ? addColor : removeColor;
         text.color = targetColor;
 
-        if(!isAdd)
+        if (!isAdd)
         {
             float shakeElapsed = 0f;
             float shakeDur = 0.3f;
             Vector3 originalPos = text.transform.localPosition;
-            while(shakeElapsed<shakeDur)
+            while (shakeElapsed < shakeDur)
             {
-                text.transform.localPosition = originalPos + new Vector3(Random.Range(-4f, 4f),0f, 0f);
+                text.transform.localPosition = originalPos + new Vector3(Random.Range(-4f, 4f), 0f, 0f);
                 shakeElapsed += Time.deltaTime;
                 yield return null;
             }
             text.transform.localPosition = originalPos;
         }
+
         float elapsed = 0f;
         while (elapsed < punchDuration)
         {
@@ -211,19 +264,17 @@ public class HUDManager : MonoBehaviour
         text.transform.localScale = originalScale;
         text.color = normalColor;
     }
-    //parte del timer
+
+    // Timer
     public void UpdateTimer(float timeRemaining)
     {
         if (timerText == null) return;
 
-
         int minutes = Mathf.FloorToInt(timeRemaining / 60f);
         int seconds = Mathf.FloorToInt(timeRemaining % 60f);
         timerText.text = minutes.ToString("00") + ":" + seconds.ToString("00");
-        //Debug.Log("time: " + timeRemaining + " warning: " + timerWarningTime + " danger: " + timerDangerTime + " state: " + timerState);
 
         if (timeRemaining <= timerDangerTime)
-            if (timeRemaining <= timerDangerTime)
         {
             if (timerState != 2)
             {
@@ -251,6 +302,7 @@ public class HUDManager : MonoBehaviour
             }
         }
     }
+
     private IEnumerator TimerPulse(Color pulseColor, float speed)
     {
         while (true)
@@ -261,30 +313,23 @@ public class HUDManager : MonoBehaviour
             yield return null;
         }
     }
+
     public void StopTimerPulse()
     {
         if (timerCoroutine != null) { StopCoroutine(timerCoroutine); timerCoroutine = null; }
         if (timerText != null) timerText.color = timerNormalColor;
+    }
 
-    }
-    //Interaciones de los personajes
-    
-    public void NotifyCharacterPoint(int player)
-    {
-        Animator anim = player == 1 ? character1Animator : character2Animator;
-        if (anim != null) anim.SetTrigger("Win");
-    }
-        public void NotifyCharacterLosePoint(int player)
-    {
-        Animator anim = player == 1 ? character1Animator : character2Animator;
-        if (anim != null) anim.SetTrigger("Lose");
-    }
-    // extra
     private void UpdateTexts()
     {
         if (player1ScoreText != null) player1ScoreText.text = " " + displayedScore1;
         if (player2ScoreText != null) player2ScoreText.text = " " + displayedScore2;
     }
+
+    private void HandlePlayerHit(int hitter, int receiver)
+    {
+        SetCharacterBool(receiver, "Death");
+        SetCharacterBool(hitter, "Angry");
+    }
+
 }
-
-

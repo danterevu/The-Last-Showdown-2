@@ -96,6 +96,8 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
     private bool canPickupDropped = true;
 
+    public int PlayerIndex => playerIndex;
+
     [Header("PowerUp")]
     [SerializeField] private PowerUpPickup.PowerUpType currentPowerUp;
     [SerializeField] private bool hasPowerUp = false;
@@ -423,9 +425,13 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     public void ApplyAttackHit() { punchHitbox?.Activate(); }
     public void OnAttackFinished() { isAttacking = false; punchHitbox?.Deactivate(); }
 
+    // sacar el parámetro attackerIndex, volver a esto:
     public void ReceiveKnockback(Vector2 direction)
+
     {
         if (isInvulnerable) return;
+
+
 
         bool wasAttacking = isAttacking;
         isAttacking = false;

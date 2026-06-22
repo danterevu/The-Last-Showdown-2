@@ -8,7 +8,12 @@ public class GameManager : MonoBehaviour
     // evento que dispara cada vez que cambian los puntos
     // int player, int amount, bool isAdd
     public static event System.Action<int, int, bool> OnPointsChanged;
+    public static event System.Action<int, int> OnPlayerHit;
 
+    public static void RaisePlayerHit(int hitter, int receiver)
+    {
+        OnPlayerHit?.Invoke(hitter, receiver);
+    }
     [Header("Puntos Globales (persisten entre minijuegos)")]
     public int player1Score;
     public int player2Score;

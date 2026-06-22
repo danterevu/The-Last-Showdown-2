@@ -7,8 +7,13 @@ public class CommentarySystem : MonoBehaviour
 
     [Header("Paneles (uno por cara del presentador)")]
     [SerializeField] private CommentatorPanel[] panels;
-
+    private bool isReady = false;
     [System.Serializable]
+
+    // campo
+ 
+
+   
     public class CommentPool
     {
         public CommentTrigger trigger;
@@ -49,6 +54,15 @@ public class CommentarySystem : MonoBehaviour
             panel.HideImmediate();
     }
 
+   
+    public void SetReady()
+    {
+        isReady = true;
+    }
+
+    // al inicio de TriggerComment, antes de todo lo demás
+  
+
     // Llena y mezcla la bolsa con todos los índices
     private void RefillBag(CommentPool pool)
     {
@@ -77,6 +91,7 @@ public class CommentarySystem : MonoBehaviour
 
     public void TriggerComment(CommentTrigger trigger)
     {
+        if (!isReady) return;
         // No-overlap: si CUALQUIER panel está activo, ignorar
         foreach (var panel in panels)
             if (panel.IsActive) return;

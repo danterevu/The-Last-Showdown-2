@@ -31,6 +31,7 @@ public class PunchHitbox : MonoBehaviour
         target.MarkNextDeathAsPunch();
         // Knockback al rival
         target.ReceiveKnockback(knockDir);
+        GameManager.RaisePlayerHit(owner.PlayerIndex + 1, target.PlayerIndex + 1); // línea nueva
 
         // Mini knockback al atacante en dirección contraria
         owner.GetRigidbody().linearVelocity = new Vector2(-dirX * owner.SelfKnockback, owner.SelfKnockback * 0.3f);
