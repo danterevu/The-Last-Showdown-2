@@ -10396,6 +10396,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2397895827337248385, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
       insertIndex: -1
       addedObject: {fileID: 417903409}
+    - targetCorrespondingSourceObject: {fileID: 2397895827337248385, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 417903410}
   m_SourcePrefab: {fileID: 100100000, guid: 4adc2295d2c89954a993d07d19792747, type: 3}
 --- !u!1 &417903407 stripped
 GameObject:
@@ -10441,13 +10444,36 @@ MonoBehaviour:
   inputActions: {fileID: -944628639613478452, guid: e3270181fb3993c478a2ddab4e8b288a, type: 3}
   actionMapName: Player1_Platform
   playerIndex: 0
-  respawnDelay: 0.8
-  invulnerableTime: 1.5
   dbgGrounded: 0
   dbgWallL: 0
   dbgWallR: 0
   dbgWallSliding: 0
   dbgExtraJumps: 0
+--- !u!114 &417903410
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 417903407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a65b0a8cc260b894f89d7bb09c878a91, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  respawnDelay: 0.5
+  bubbleDuration: 4
+  blinkTime: 1.2
+  blinkInterval: 0.1
+  bubbleFlySpeed: 4
+  bubbleSprite: {fileID: -2966200626249415253, guid: 0c62e7d9a6b92d345a11946aab54cdc9, type: 3}
+  bubbleScale: {x: 1.6, y: 1.6, z: 1}
+  bubbleObject: {fileID: 0}
+  spawnAboveCamera: 1.5
+  playerXOffset: 1
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 1024
 --- !u!1 &484044201
 GameObject:
   m_ObjectHideFlags: 0
@@ -11002,6 +11028,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1929242598546552070, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1363148816}
+    - targetCorrespondingSourceObject: {fileID: 1929242598546552070, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1363148823}
   m_SourcePrefab: {fileID: 100100000, guid: 905f0265f049b2f4480a10c0a01ef17a, type: 3}
 --- !u!1 &1363148814 stripped
 GameObject:
@@ -11047,13 +11076,36 @@ MonoBehaviour:
   inputActions: {fileID: -944628639613478452, guid: 2eefc3655699b6b4c94338e68a1d94bb, type: 3}
   actionMapName: Player2_Platform
   playerIndex: 1
-  respawnDelay: 0.8
-  invulnerableTime: 1.5
   dbgGrounded: 0
   dbgWallL: 0
   dbgWallR: 0
   dbgWallSliding: 0
   dbgExtraJumps: 0
+--- !u!114 &1363148823
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1363148814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a65b0a8cc260b894f89d7bb09c878a91, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  respawnDelay: 0.5
+  bubbleDuration: 4
+  blinkTime: 1.2
+  blinkInterval: 0.1
+  bubbleFlySpeed: 4
+  bubbleSprite: {fileID: -2966200626249415253, guid: 0c62e7d9a6b92d345a11946aab54cdc9, type: 3}
+  bubbleScale: {x: 1.6, y: 1.6, z: 1}
+  bubbleObject: {fileID: 0}
+  spawnAboveCamera: 1.5
+  playerXOffset: 1
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 1024
 --- !u!1 &1459653525
 GameObject:
   m_ObjectHideFlags: 0
