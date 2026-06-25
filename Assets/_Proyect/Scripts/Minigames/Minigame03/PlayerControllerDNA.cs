@@ -67,8 +67,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [SerializeField] private string actionMapName = "Player1_Platform";
     [SerializeField] public int playerIndex = 0;
 
-    [Header("RemoteControl")]
-    [SerializeField] RemoteControl rc;
+    
 
     [Header("Debug")]
     [SerializeField] private bool isGrounded;
@@ -131,7 +130,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     private SpriteRenderer sr;
     private Collider2D col;
     private InputAction moveAction;
-    private InputAction remoteControl;
+   
     private InputAction jumpAction;
     private InputAction attackAction;
     private InputAction interactAction;
@@ -145,7 +144,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         sr = GetComponent<SpriteRenderer>();
         col = GetComponent<Collider2D>();
         animator = GetComponent<Animator>();
-        rc = GetComponent<RemoteControl>();
+       
         if (mutantDNAManager == null)
             mutantDNAManager = GetComponent<MutantDNAManager>();
         baseMoveSpeed = moveSpeed;
@@ -182,7 +181,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         jumpAction = map.FindAction("Jump");
         attackAction = map.FindAction("Attack");
         interactAction = map.FindAction("Interact");
-        remoteControl = map.FindAction("RemoteControl");
+       
 
         moveAction?.Enable();
         if (jumpAction != null) { jumpAction.Enable(); jumpAction.performed += OnJumpPerformed; jumpAction.canceled += OnJumpCanceled; }
@@ -647,10 +646,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
                 Debug.Log("  → Mine powerup activated!");
                 PlaceMine();
                 break;
-            case DNAPowerUpPickup.DNAPowerUpType.RemoteControl:
-                Debug.Log("  → Remote Control powerup activated! Closing doors...");
-                UseRemoteControl();
-                break;
             case DNAPowerUpPickup.DNAPowerUpType.Berserk:
                 Debug.Log("  → Berserk powerup activated!");
                 StartCoroutine(BerserkEffect());
@@ -829,12 +824,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         isKnockedBack = false;
     }
 
-    private void UseRemoteControl()
-    {
-        WallManager.Instance?.DeactivateAll();
-        Debug.Log(gameObject.name + " cerró las puertas con el Remote Control");
-        if (mutantDNAManager != null) mutantDNAManager.TryComment(CommentTrigger.DoorActivated, 0.8f);
-    }
+    
 
     private IEnumerator BerserkEffect()
     {

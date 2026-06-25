@@ -4,16 +4,17 @@ public class DNAPowerUpPickup : MonoBehaviour
 {
     public enum DNAPowerUpType
     {
-        Shrink,
-        Mine,
-        RemoteControl,
-        Berserk,
-        SlimeShot,
-        Shield
+        Shrink,       // 0
+        Mine,         // 1
+        Berserk,      // 2
+        SlimeShot,    // 3
+        Shield        // 4
+        // RemoteControl eliminado: ahora es mecánica de nivel, no power up
     }
 
     [SerializeField] private DNAPowerUpType type;
     [SerializeField] private GameObject explodeParticles;
+
     private DNAPowerUpSpawner spawner;
     private Transform spawnPoint;
 
@@ -39,19 +40,14 @@ public class DNAPowerUpPickup : MonoBehaviour
         if (player.HasPowerUp())
         {
             DNAPowerUpPickup.DNAPowerUpType currentType = player.GetCurrentPowerUp();
+            Vector2 launchDir = new Vector2(
+                player.IsFacingRight() ? -1f : 1f,
+                0.5f
+            ).normalized;
 
-            // Solo spawnear esfera si el tipo tiene esfera (no RemoteControl)
-            if (currentType != DNAPowerUpType.RemoteControl)
-            {
-                Vector2 launchDir = new Vector2(
-                    player.IsFacingRight() ? -1f : 1f, // sale por atrás del jugador
-                    0.5f
-                ).normalized;
-
-                DNADroppedPowerUpSpawner dnaSpawner = Object.FindFirstObjectByType<DNADroppedPowerUpSpawner>();
-                if (dnaSpawner != null)
-                    DNADroppedPowerUp.Spawn(dnaSpawner.Prefabs, currentType, player.transform.position, launchDir, player);
-            }
+            DNADroppedPowerUpSpawner dnaSpawner = Object.FindFirstObjectByType<DNADroppedPowerUpSpawner>();
+            if (dnaSpawner != null)
+                DNADroppedPowerUp.Spawn(dnaSpawner.Prefabs, currentType, player.transform.position, launchDir, player);
 
             player.ClearPowerUpState();
         }
