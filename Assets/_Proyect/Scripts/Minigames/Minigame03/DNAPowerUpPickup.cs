@@ -4,17 +4,16 @@ public class DNAPowerUpPickup : MonoBehaviour
 {
     public enum DNAPowerUpType
     {
-        Shrink,  // se vuelve más chiquito y rápido
-        Mine,    // deja una mina que se arma y despues explota
-        RemoteControl, // Activa paredes
-        Berserk, //se vuelve loco y ataca hacia adelante
-        SlimeShot, //baba babosa que relentiza y no deja saltar al rival por unos segundos
+        Shrink,
+        Mine,
+        RemoteControl,
+        Berserk,
+        SlimeShot,
         Shield
     }
 
     [SerializeField] private DNAPowerUpType type;
     [SerializeField] private GameObject explodeParticles;
-
     private DNAPowerUpSpawner spawner;
     private Transform spawnPoint;
 
@@ -26,7 +25,7 @@ public class DNAPowerUpPickup : MonoBehaviour
         Vector3 spawnPos = transform.position;
         spawnPos.z = 0f;
         transform.position = spawnPos;
-        transform.rotation = Quaternion.identity; //  rotación siempre en 0
+        transform.rotation = Quaternion.identity;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -35,7 +34,27 @@ public class DNAPowerUpPickup : MonoBehaviour
 
         PlayerControllerDNA player = other.GetComponent<PlayerControllerDNA>();
         if (player == null) return;
-        if (player.HasPowerUp()) return;
+
+        // Si ya tiene un powerup, soltarlo como esfera antes de agarrar este
+        if (player.HasPowerUp())
+        {
+            DNAPowerUpPickup.DNAPowerUpType currentType = player.GetCurrentPowerUp();
+
+            // Solo spawnear esfera si el tipo tiene esfera (no RemoteControl)
+            if (currentType != DNAPowerUpType.RemoteControl)
+            {
+                Vector2 launchDir = new Vector2(
+                    player.IsFacingRight() ? -1f : 1f, // sale por atrás del jugador
+                    0.5f
+                ).normalized;
+
+                DNADroppedPowerUpSpawner dnaSpawner = Object.FindFirstObjectByType<DNADroppedPowerUpSpawner>();
+                if (dnaSpawner != null)
+                    DNADroppedPowerUp.Spawn(dnaSpawner.Prefabs, currentType, player.transform.position, launchDir, player);
+            }
+
+            player.ClearPowerUpState();
+        }
 
         player.ReceiveDNAPowerUp(type);
         spawner?.OnPickupCollected(spawnPoint);
