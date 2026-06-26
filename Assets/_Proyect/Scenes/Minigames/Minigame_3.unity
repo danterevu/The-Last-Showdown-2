@@ -12900,7 +12900,6 @@ MonoBehaviour:
   inputActions: {fileID: -944628639613478452, guid: e3270181fb3993c478a2ddab4e8b288a, type: 3}
   actionMapName: Player1_Platform
   playerIndex: 0
-  rc: {fileID: 0}
   isGrounded: 0
   isInvulnerable: 0
   isDead: 0
@@ -16229,8 +16228,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: minigamesData.Array.data[2].description
-      value: Lleva el DNA a los puntos de exctraccion y agarra las mutaciones para
-        defenderte del rival
+      value: Lleva el vial de ADN al deposito y lanza las cajas, usa los power ups
+        o usa tus nudillos para impedir que el rival deposite
       objectReference: {fileID: 0}
     - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: minigamesData.Array.data[3].description
@@ -16245,6 +16244,18 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[2].modifiers.Array.data[0].title
+      value: Cajas peligrosas
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[2].modifiers.Array.data[1].title
+      value: POWER UP  POWERR
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[2].modifiers.Array.data[2].title
+      value: Triple party
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: onCompletado.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
       value: 1
       objectReference: {fileID: 0}
@@ -16252,6 +16263,18 @@ PrefabInstance:
       propertyPath: onCompletado.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
       objectReference: {fileID: 1252551364}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[2].modifiers.Array.data[0].description
+      value: Si eres aturdido por una caja, pierdes una leve cantidad de puntos
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[2].modifiers.Array.data[1].description
+      value: Afectar al rival con power ups otorga una leve cantidad de puntos
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[2].modifiers.Array.data[2].description
+      value: Si el vial es lanzado al deposito, este otorga mas puntos
+      objectReference: {fileID: 0}
     - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: onCompletado.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
       value: 2
@@ -27319,7 +27342,6 @@ MonoBehaviour:
   inputActions: {fileID: -944628639613478452, guid: 2eefc3655699b6b4c94338e68a1d94bb, type: 3}
   actionMapName: Player2_Platform
   playerIndex: 1
-  rc: {fileID: 0}
   isGrounded: 0
   isInvulnerable: 0
   isDead: 0
