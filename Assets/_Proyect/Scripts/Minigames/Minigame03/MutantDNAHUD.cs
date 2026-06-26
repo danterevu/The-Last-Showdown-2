@@ -296,9 +296,6 @@ public class MutantDNAHUD : MonoBehaviour
             case DNAPowerUpPickup.DNAPowerUpType.Mine:
                 selectedSprite = isPlayer1 ? mineSpriteP1 : mineSpriteP2;
                 break;
-            case DNAPowerUpPickup.DNAPowerUpType.RemoteControl:
-                selectedSprite = isPlayer1 ? remoteSpriteP1 : remoteSpriteP2;
-                break;
             case DNAPowerUpPickup.DNAPowerUpType.SlimeShot:
                 selectedSprite = isPlayer1 ? slimeSpriteP1 : slimeSpriteP2;
                 break;
