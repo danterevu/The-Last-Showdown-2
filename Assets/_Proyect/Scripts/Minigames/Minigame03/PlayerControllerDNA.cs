@@ -634,7 +634,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         OnPowerUpUsed?.Invoke(this);
         hasDNAPowerUp = false;
 
-        Debug.Log($"🎮 {gameObject.name} activated powerup: {currentDNAPowerUp}");
+        Debug.Log($" {gameObject.name} activated powerup: {currentDNAPowerUp}");
         
         switch (currentDNAPowerUp)
         {
@@ -701,7 +701,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
         // Restaurar escala y velocidad base
         transform.localScale = originalScale;
-        moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
+       
 
         // Salir del modo Berserk si estaba activo
         if (isBerserk)
@@ -713,7 +713,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         isSlimed = false;
         jumpForce = baseJumpForce;
         gravityScale = baseGravityScale;
-        moveSpeed = hasDNA ? baseMoveSpeed * 0.6f : baseMoveSpeed;
+        
 
         SetShield(false, 1f);
     }
@@ -939,7 +939,6 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         carriedDNA = null;
         hasDNA = false;
         moveSpeed = baseMoveSpeed;
-        
     }
 
     private IEnumerator HideHandsAfterDelay()
