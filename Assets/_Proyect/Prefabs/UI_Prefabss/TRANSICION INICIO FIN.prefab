@@ -1580,7 +1580,8 @@ MonoBehaviour:
   minigamesData:
   - id: 1
     title: Dodge Disk
-    description: 'Esquiva los discos mientras ganas puntos de forma pasiva '
+    description: Esquiva los discos mientras ganas puntos de forma pasiva e intentas
+      matar al rival para restarle puntos!
     modifiers:
     - title: 0?
       description: 'El que lea esto debe rellenar la informacion del modificador
@@ -1598,8 +1599,8 @@ MonoBehaviour:
         El
         presentador no puede recordar'
   - id: 2
-    title: El Rey del Monte Paraguayo
-    description: 'Domina el punto el maximo tiempo posible para ganar puntos '
+    title: El Rey de la colina
+    description: 'Domina el punto el maximo tiempo posible para ganar puntos  '
     modifiers:
     - title: 0?
       description: 'El que lea esto debe rellenar la informacion del modificador
@@ -1637,7 +1638,7 @@ MonoBehaviour:
         El
         presentador no puede recordar'
   - id: 4
-    title: Spce
+    title: Space
     description: 'Rondas de Lucha libre a base de tiros y eventos catastroficos '
     modifiers:
     - title: 0?
