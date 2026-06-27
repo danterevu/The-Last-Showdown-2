@@ -12,6 +12,7 @@ public class DNA : MonoBehaviour
     [SerializeField] private float throwUpward = 2f;
     [SerializeField] private GameObject[] spawnPoints;
     [SerializeField] private float respawnDelay = 1f;
+    private bool isRespawning = false;
 
     [Header("Física del golpe (cuando es lanzado por golpe enemigo)")]
     [SerializeField] private float hitThrowForceX = 6f;
@@ -116,10 +117,12 @@ public class DNA : MonoBehaviour
 
         SetGlow(true);
         StartBobbing(); // empieza a flotar al spawnear
+        isRespawning = false;
     }
 
     public void RespawnAfterDelay()
     {
+        isRespawning = true;
         StopBobbing();
         sr.enabled = false;
         triggerCol.enabled = false;
@@ -243,6 +246,7 @@ public class DNA : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        if (isPickedUp || isRespawning) return;
         if (isPickedUp) return;
         if (isThrown && Time.time - throwTime < 0.2f) return;
 
