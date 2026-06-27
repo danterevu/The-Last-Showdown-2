@@ -21,6 +21,11 @@ public class FinalScreenManager : MonoBehaviour
     [SerializeField] private GameObject choppyLoserBottom;
     [SerializeField] private GameObject cinematicPresenter;
     [SerializeField] private GameObject cinematicPresenterHand;
+    [SerializeField] private GameObject cinematicPresenterHandTie; 
+
+    [Header("Animators ganador")]
+    [SerializeField] private Animator gloppyWinnerAnimator;
+    [SerializeField] private Animator choppyWinnerAnimator;
 
     [Header("Animators perdedor")]
     [SerializeField] private Animator gloppyLoserAnimator;
@@ -33,6 +38,8 @@ public class FinalScreenManager : MonoBehaviour
     [Header("Camara")]
     [SerializeField] private Transform cameraDestination;
     [SerializeField] private float cameraDuration = 2f;
+    [SerializeField] private string cinematicTitleText = "Y el perdedor es...";
+    [SerializeField] private string cinematicTitleTextTie = "Para estos empates...";
 
     [Header("UI secuencia")]
     [SerializeField] private GameObject winnerScoreObject;
@@ -50,8 +57,8 @@ public class FinalScreenManager : MonoBehaviour
     [SerializeField] private int debugP1Score = 3;
     [SerializeField] private int debugP2Score = 1;
 
-
     private bool isPlayer1Winner;
+    private bool isTie;
 
     private void Start()
     {
@@ -68,20 +75,19 @@ public class FinalScreenManager : MonoBehaviour
             p2 = GameManager.Instance.player2Score;
         }
 
-        isPlayer1Winner = p1 >= p2;
+        isTie = p1 == p2;
+        isPlayer1Winner = p1 > p2;
 
         // Desactivar todo al inicio
         winnerScoreObject.SetActive(false);
         loserScoreObject.SetActive(false);
         continueButton.SetActive(false);
 
-        // Desactivar todos los personajes arriba
         gloppyWinner.SetActive(false);
         choppyWinner.SetActive(false);
         gloppyLoser.SetActive(false);
         choppyLoser.SetActive(false);
 
-        // Desactivar todos los objetos de abajo
         SetAlpha(gloppyLoserBottom, 0f);
         SetAlpha(choppyLoserBottom, 0f);
         SetAlpha(cinematicPresenter, 0f);
@@ -92,29 +98,33 @@ public class FinalScreenManager : MonoBehaviour
         cinematicPresenter.SetActive(false);
         cinematicPresenterHand.SetActive(false);
 
-        if (p1 > p2)
-        {
-            winnerText.text = $"¡Ganó Gloppy!\n{p1}";
-            loserScoreText.text = $"Choppy: {p2}";
-        }
-        else if (p2 > p1)
-        {
-            winnerText.text = $"¡Ganó Choppy!\n{p2}";
-            loserScoreText.text = $"Gloppy: {p1}";
-        }
-        else
+        if (isTie)
         {
             winnerText.text = $"¡Empate!\n{p1}";
             loserScoreText.text = "";
         }
+        else if (isPlayer1Winner)
+        {
+            winnerText.text = $"¡ Gloppy!\n{p1}";
+            loserScoreText.text = $"Choppy: {p2}";
+        }
+        else
+        {
+            winnerText.text = $"¡ Choppy!\n{p2}";
+            loserScoreText.text = $"Gloppy: {p1}";
+        }
     }
 
-    // Llamado por Animation Event del presentador intro
     public void OnIntroFinished()
     {
         blackPanel.SetActive(false);
 
-        if (isPlayer1Winner)
+        if (isTie)
+        {
+            gloppyWinner.SetActive(true);
+            choppyWinner.SetActive(true);
+        }
+        else if (isPlayer1Winner)
         {
             gloppyWinner.SetActive(true);
             choppyLoser.SetActive(true);
@@ -171,20 +181,49 @@ public class FinalScreenManager : MonoBehaviour
         t.localScale = Vector3.one;
     }
 
+    private IEnumerator PunchDisappear(GameObject target)
+    {
+        Transform t = target.transform;
+        float elapsed = 0f;
+        float halfDuration = punchDuration * 0.5f;
+
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            float scale = Mathf.Lerp(1f, punchScale, elapsed / halfDuration);
+            t.localScale = Vector3.one * scale;
+            yield return null;
+        }
+
+        elapsed = 0f;
+
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            float scale = Mathf.Lerp(punchScale, 0f, elapsed / halfDuration);
+            t.localScale = Vector3.one * scale;
+            yield return null;
+        }
+
+        t.localScale = Vector3.zero;
+        target.SetActive(false);
+    }
+
     public void OnContinueButton()
     {
         continueButton.GetComponent<Button>().interactable = false;
         StartCoroutine(MoveCameraAndStartCinematic());
     }
-  
+
     private IEnumerator MoveCameraAndStartCinematic()
     {
         if (titleText != null)
-            titleText.text = titleText.text;
-        Camera cam = Camera.main;
-     
+            titleText.text = isTie ? cinematicTitleTextTie : cinematicTitleText;
+
         StartCoroutine(PunchDisappear(winnerScoreObject));
         StartCoroutine(PunchDisappear(loserScoreObject));
+
+        Camera cam = Camera.main;
         Vector3 startPos = cam.transform.position;
         Vector3 endPos = new Vector3(cameraDestination.position.x, cameraDestination.position.y, cam.transform.position.z);
 
@@ -203,41 +242,60 @@ public class FinalScreenManager : MonoBehaviour
 
     private IEnumerator FadeInBottomObjects()
     {
-        // Activar solo el perdedor correcto abajo
-        GameObject activeLoserBottom;
-        if (isPlayer1Winner)
-        {
-            choppyLoserBottom.SetActive(true);
-            activeLoserBottom = choppyLoserBottom;
-            gloppyLoserBottom.SetActive(false);
-        }
-        else
-        {
-            gloppyLoserBottom.SetActive(true);
-            activeLoserBottom = gloppyLoserBottom;
-            choppyLoserBottom.SetActive(false);
-        }
-
         cinematicPresenter.SetActive(true);
         cinematicPresenterHand.SetActive(true);
 
-        // Fade in de todos los objetos de abajo juntos
-        float elapsed = 0f;
-        while (elapsed < fadeDuration)
+        if (isTie)
         {
-            elapsed += Time.deltaTime;
-            float alpha = Mathf.Clamp01(elapsed / fadeDuration);
-            SetAlpha(activeLoserBottom, alpha);
-            SetAlpha(cinematicPresenter, alpha);
-            SetAlpha(cinematicPresenterHand, alpha);
-            yield return null;
+            cinematicPresenterHand.SetActive(false);
+            // En empate se activan los dos losers y los dos winners abajo
+            gloppyLoserBottom.SetActive(true);
+            choppyLoserBottom.SetActive(true);
+
+            // Worried a los dos ganadores
+            if (gloppyWinnerAnimator != null)
+                gloppyWinnerAnimator.SetTrigger("Worried");
+            if (choppyWinnerAnimator != null)
+                choppyWinnerAnimator.SetTrigger("Worried");
+
+            float elapsed = 0f;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                float alpha = Mathf.Clamp01(elapsed / fadeDuration);
+                SetAlpha(gloppyLoserBottom, alpha);
+                SetAlpha(choppyLoserBottom, alpha);
+                SetAlpha(cinematicPresenter, alpha);
+                SetAlpha(cinematicPresenterHand, alpha);
+                yield return null;
+            }
+
+            SetAlpha(gloppyLoserBottom, 1f);
+            SetAlpha(choppyLoserBottom, 1f);
+        }
+        else
+        {
+            cinematicPresenterHand.SetActive(true);
+            GameObject activeLoserBottom = isPlayer1Winner ? choppyLoserBottom : gloppyLoserBottom;
+            activeLoserBottom.SetActive(true);
+
+            float elapsed = 0f;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                float alpha = Mathf.Clamp01(elapsed / fadeDuration);
+                SetAlpha(activeLoserBottom, alpha);
+                SetAlpha(cinematicPresenter, alpha);
+                SetAlpha(cinematicPresenterHand, alpha);
+                yield return null;
+            }
+
+            SetAlpha(activeLoserBottom, 1f);
         }
 
-        SetAlpha(activeLoserBottom, 1f);
         SetAlpha(cinematicPresenter, 1f);
         SetAlpha(cinematicPresenterHand, 1f);
 
-        // Activar animator del presentador cinematico
         Animator presenterAnim = cinematicPresenter.GetComponent<Animator>();
         if (presenterAnim != null)
             presenterAnim.enabled = true;
@@ -270,34 +328,5 @@ public class FinalScreenManager : MonoBehaviour
     {
         GameManager.Instance.ResetGame();
         SceneLoader.Instance.LoadMenu();
-    }
-    private IEnumerator PunchDisappear(GameObject target)
-    {
-        Transform t = target.transform;
-        float elapsed = 0f;
-        float halfDuration = punchDuration * 0.5f;
-
-        // Scale up leve
-        while (elapsed < halfDuration)
-        {
-            elapsed += Time.deltaTime;
-            float scale = Mathf.Lerp(1f, punchScale, elapsed / halfDuration);
-            t.localScale = Vector3.one * scale;
-            yield return null;
-        }
-
-        elapsed = 0f;
-
-        // Scale down a cero
-        while (elapsed < halfDuration)
-        {
-            elapsed += Time.deltaTime;
-            float scale = Mathf.Lerp(punchScale, 0f, elapsed / halfDuration);
-            t.localScale = Vector3.one * scale;
-            yield return null;
-        }
-
-        t.localScale = Vector3.zero;
-        target.SetActive(false);
     }
 }
