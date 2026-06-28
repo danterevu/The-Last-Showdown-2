@@ -20,6 +20,9 @@ public class Mine : MonoBehaviour
     private int ownerPlayer;
     private bool hasHitWall = false;      // para que solo se active una vez al golpear pared
 
+    [Header("Efecto")]
+    [SerializeField] private GameObject explosionPrefab;
+    [SerializeField] private float explosionLifetime = 1f;
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -72,7 +75,16 @@ public class Mine : MonoBehaviour
             StartCoroutine(ArmSequence());
         }
     }
+    private void Explode()
+    {
+        if (explosionPrefab != null)
+        {
+            GameObject explosion = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+            Destroy(explosion, explosionLifetime);
+        }
 
+        Destroy(gameObject);
+    }
     private IEnumerator ArmSequence()
     {
         // Esperar el tiempo de armado (puede ser 0 si quieres instantáneo)
@@ -103,7 +115,7 @@ public class Mine : MonoBehaviour
         if (target.IsShieldActive()) //si no tiene escudo ejecuta todo, si lo tino no ejecuta nada
         {
             // Destruir la mina
-            Destroy(gameObject);
+            Explode();
         }
         else 
         {
@@ -126,7 +138,7 @@ public class Mine : MonoBehaviour
             }
 
             // Destruir la mina
-            Destroy(gameObject);
+            Explode();
         }
     }
 }

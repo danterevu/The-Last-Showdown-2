@@ -207,3 +207,8 @@ MonoBehaviour:
   armedAlpha: 0.15
   dnaThrowForceX: 6
   dnaThrowForceY: 8
+  explosionPrefab: {fileID: 8898363707345506596, guid: e18528f66d5689c40af9cbe3b8e52dba, type: 3}
+  explosionLifetime: 1
+  mineLayer:
+    serializedVersion: 2
+    m_Bits: 1024

@@ -1,25 +1,25 @@
 fileFormatVersion: 2
-guid: 465e3a79dceb714478999f5c8f55b6b9
+guid: a0494fa4d8027954b8eae393b2fab749
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8160878622211999812
-    second: Mecanse de llamarlo fuego_0
+      213: 7663064044857235205
+    second: Explosion5_0
   - first:
-      213: 2501050647092797946
-    second: Mecanse de llamarlo fuego_1
+      213: 6653012257173642956
+    second: Explosion5_1
   - first:
-      213: -3765143706235653706
-    second: Mecanse de llamarlo fuego_2
+      213: -8493597730865236545
+    second: Explosion5_2
   - first:
-      213: 2561947937260535138
-    second: Mecanse de llamarlo fuego_3
+      213: 4371645027113471104
+    second: Explosion5_3
   - first:
-      213: -510906255384171442
-    second: Mecanse de llamarlo fuego_4
+      213: 7759991108740243908
+    second: Explosion5_4
   - first:
-      213: 3110886191079142977
-    second: Mecanse de llamarlo fuego_5
+      213: 764112148335015044
+    second: Explosion5_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -62,7 +62,7 @@ TextureImporter:
   lightmap: 0
   compressionQuality: 50
   spriteMode: 1
-  spriteExtrude: 1
+  spriteExtrude: 0
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
@@ -115,13 +115,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Mecanse de llamarlo fuego_0
+      name: Explosion5_0
       rect:
         serializedVersion: 2
-        x: 14
-        y: 3
-        width: 272
-        height: 281
+        x: 25
+        y: 175
+        width: 129
+        height: 103
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -130,20 +130,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cb779fb912cbebe80800000000000000
-      internalID: -8160878622211999812
+      spriteID: 50798cce52ca85a60800000000000000
+      internalID: 7663064044857235205
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mecanse de llamarlo fuego_1
+      name: Explosion5_1
       rect:
         serializedVersion: 2
-        x: 55
-        y: 206
-        width: 33
-        height: 89
+        x: 171
+        y: 239
+        width: 27
+        height: 31
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -152,20 +152,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: af12a39ff4485b220800000000000000
-      internalID: 2501050647092797946
+      spriteID: cce9723166f345c50800000000000000
+      internalID: 6653012257173642956
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mecanse de llamarlo fuego_2
+      name: Explosion5_2
       rect:
         serializedVersion: 2
-        x: 86
-        y: 263
+        x: 243
+        y: 182
         width: 48
-        height: 27
+        height: 104
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -174,20 +174,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6b1b68d6fb58fbbc0800000000000000
-      internalID: -3765143706235653706
+      spriteID: fb5b6b26ddda02a80800000000000000
+      internalID: -8493597730865236545
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mecanse de llamarlo fuego_3
+      name: Explosion5_3
       rect:
         serializedVersion: 2
-        x: 136
-        y: 269
-        width: 24
-        height: 30
+        x: 19
+        y: 141
+        width: 31
+        height: 25
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -196,20 +196,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 26d757d331edd8320800000000000000
-      internalID: 2561947937260535138
+      spriteID: 08c833d7df33bac30800000000000000
+      internalID: 4371645027113471104
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mecanse de llamarlo fuego_4
+      name: Explosion5_4
       rect:
         serializedVersion: 2
-        x: 163
-        y: 261
-        width: 41
-        height: 36
+        x: 78
+        y: 3
+        width: 218
+        height: 224
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -218,20 +218,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e4c2d46b775e8e8f0800000000000000
-      internalID: -510906255384171442
+      spriteID: 4c1e6a89cc601bb60800000000000000
+      internalID: 7759991108740243908
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mecanse de llamarlo fuego_5
+      name: Explosion5_5
       rect:
         serializedVersion: 2
-        x: 205
-        y: 205
-        width: 38
-        height: 83
+        x: 15
+        y: 9
+        width: 125
+        height: 116
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -240,8 +240,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 146b0f332861c2b20800000000000000
-      internalID: 3110886191079142977
+      spriteID: 484b11253fbaa9a00800000000000000
+      internalID: 764112148335015044
       vertices: []
       indices: 
       edges: []
@@ -260,12 +260,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Mecanse de llamarlo fuego_0: -8160878622211999812
-      Mecanse de llamarlo fuego_1: 2501050647092797946
-      Mecanse de llamarlo fuego_2: -3765143706235653706
-      Mecanse de llamarlo fuego_3: 2561947937260535138
-      Mecanse de llamarlo fuego_4: -510906255384171442
-      Mecanse de llamarlo fuego_5: 3110886191079142977
+      Explosion5_0: 7663064044857235205
+      Explosion5_1: 6653012257173642956
+      Explosion5_2: -8493597730865236545
+      Explosion5_3: 4371645027113471104
+      Explosion5_4: 7759991108740243908
+      Explosion5_5: 764112148335015044
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

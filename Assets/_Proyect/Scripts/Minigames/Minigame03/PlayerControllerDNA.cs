@@ -101,6 +101,10 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
     [SerializeField] private float berserkScale = 1.25f;
     [SerializeField] private float berserkStunDuration = 1.5f;
     [SerializeField] private bool isBerserk = false;
+    [SerializeField] private GameObject berserkAuraVFX;
+    [SerializeField] private float berserkAuraFadeDuration = 0.5f;
+    private Coroutine berserkAuraCoroutine;
+    private float berserkAuraOriginalAlpha; 
 
 
     [Header("SlimeShot")]
@@ -140,6 +144,12 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
     private void Awake()
     {
+        if (berserkAuraVFX != null)
+        {
+            SpriteRenderer auraSR = berserkAuraVFX.GetComponent<SpriteRenderer>();
+            if (auraSR != null)
+                berserkAuraOriginalAlpha = auraSR.color.a;
+        }
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
         col = GetComponent<Collider2D>();
@@ -399,12 +409,24 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
             ThrowDNA();
             return;
         }
-        if (!canAttack || isAttacking || hasDNA || isStunned || heldCrate != null) return;
+
+        // Berserk tiene su propio trigger para no pisarse con el punch
+        if (isBerserk)
+        {
+            Debug.Log($"TryAttack berserk - canAttack:{canAttack} isAttacking:{isAttacking} isStunned:{isStunned}");
+            if (!canAttack || isAttacking || isStunned) return;
+            isAttacking = true;
+            animator.SetTrigger("BerserkAttack");
+            StartCoroutine(AttackCooldown());
+            StartCoroutine(ResetBerserkAttacking());
+            return;
+        }
+
+        if (!canAttack || isAttacking || heldCrate != null || isStunned) return;
         isAttacking = true;
         animator.SetTrigger("Attack");
         StartCoroutine(AttackCooldown());
     }
-
     // Llamado por Animation Event cuando el pu�o conecta
     public void ApplyAttackHit()
     {
@@ -701,23 +723,35 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
 
         // Restaurar escala y velocidad base
         transform.localScale = originalScale;
-       
+
 
         // Salir del modo Berserk si estaba activo
         if (isBerserk)
         {
-            isBerserk = false;
-            // No es necesario volver a restaurar escala y velocidad porque ya se hizo arriba
+            if (!canAttack || isAttacking || isStunned) return;
+            isAttacking = true;
+            animator.SetTrigger("BerserkAttack");
+            StartCoroutine(AttackCooldown());
+            StartCoroutine(ResetBerserkAttacking());
+            return;
         }
-
         isSlimed = false;
         jumpForce = baseJumpForce;
+
         gravityScale = baseGravityScale;
         
 
         SetShield(false, 1f);
     }
-
+    private IEnumerator ResetBerserkAttacking()
+    {
+        yield return null;
+        Debug.Log("Estado actual: " + animator.GetCurrentAnimatorStateInfo(0).IsName("BerserkAttack"));
+        while (animator.GetCurrentAnimatorStateInfo(0).IsName("BerserkAttack"))
+            yield return null;
+        Debug.Log("BerserkAttack terminado, reseteando isAttacking");
+        isAttacking = false;
+    }
     private IEnumerator ResetHurtTrigger()
     {
         yield return new WaitForSeconds(0.1f); // Ajusta según la duración de la animación de daño
@@ -824,7 +858,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         isKnockedBack = false;
     }
 
-    
+
 
     private IEnumerator BerserkEffect()
     {
@@ -832,11 +866,52 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         animator?.SetBool("IsBerserk", true);
         transform.localScale = originalScale * berserkScale;
         moveSpeed = baseMoveSpeed * berserkSpeedMult;
+
+        // Activar aura con fade in
+        if (berserkAuraCoroutine != null) StopCoroutine(berserkAuraCoroutine);
+        berserkAuraCoroutine = StartCoroutine(FadeBerserkAura(true));
+
         yield return new WaitForSeconds(berserkDuration);
+
         isBerserk = false;
         animator?.SetBool("IsBerserk", false);
+       
         transform.localScale = originalScale;
-       // ClearPowerUpState();  // Esto limpia el estado y notifica al HUD
+        moveSpeed = baseMoveSpeed;
+        canAttack = true;
+        // Fade out y desactivar aura
+        if (berserkAuraCoroutine != null) StopCoroutine(berserkAuraCoroutine);
+        berserkAuraCoroutine = StartCoroutine(FadeBerserkAura(false));
+    }
+
+    private IEnumerator FadeBerserkAura(bool fadeIn)
+    {
+        if (berserkAuraVFX == null) yield break;
+
+        SpriteRenderer auraSR = berserkAuraVFX.GetComponent<SpriteRenderer>();
+        if (auraSR == null) yield break;
+
+        berserkAuraVFX.SetActive(true);
+
+        float start = fadeIn ? 0f : auraSR.color.a;
+        float end = fadeIn ? berserkAuraOriginalAlpha : 0f;
+        float elapsed = 0f;
+
+        Color c = auraSR.color;
+        while (elapsed < berserkAuraFadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / berserkAuraFadeDuration;
+            c.a = Mathf.Lerp(start, end, t);
+            auraSR.color = c;
+            yield return null;
+        }
+
+        c.a = end;
+        auraSR.color = c;
+
+        if (!fadeIn)
+            berserkAuraVFX.SetActive(false);
     }
 
     public void ReceiveBerserkHit(Vector2 direction)
@@ -854,6 +929,7 @@ public class PlayerControllerDNA : MonoBehaviour, IPlayerController
         isKnockedBack = false;
     }
 
+   
     private void ShootSlime()
     {
         animator?.SetTrigger("SlimeShot");
