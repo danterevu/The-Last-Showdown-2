@@ -219,11 +219,11 @@ MonoBehaviour:
   isPlayer1: 1
   rocketParticles: {fileID: 582124230564520445, guid: 3406d020ea333524190601ab2d74ec61, type: 3}
   explosionVfxPrefab: {fileID: 7298288805043694994, guid: d55748e8395e90c47b0d094778876503, type: 3}
-  shipSpriteRenderer: {fileID: 0}
+  shipSpriteRenderer: {fileID: 6973245657306175276}
   blinkColor: {r: 1, g: 0, b: 0, a: 1}
   blinkSpeed: 0.2
   rocketEmissionRate: 100
-  propulsionParticles: {fileID: 0}
+  propulsionParticles: {fileID: 7864370536725242605}
   minSpeedForParticles: 2
   maxEmissionRate: 50
   stunSpinSpeed: 720
@@ -243,17 +243,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   piecePrefabs:
-  - {fileID: 1354517147386666141, guid: f8f3a289845551b44ac14fa774262886, type: 3}
-  - {fileID: 5604640576571976928, guid: 01c1c75c82c28be4f9e34ee13ade42b7, type: 3}
-  - {fileID: 5363163854818937578, guid: 2d68349c6c3d24f439371bfbba2801bc, type: 3}
-  - {fileID: 561167940174046301, guid: 43b8ea6477301754c97e6448c447430f, type: 3}
-  - {fileID: 1112806974759842961, guid: e460e399c05332f41b2d970ec9e1bf67, type: 3}
-  - {fileID: 3127189112757846560, guid: 4d233d330c1d6764fa6e4a1f8dcf15d5, type: 3}
-  - {fileID: 8522147227989906036, guid: 24db7381f74a9eb4191db3387a64fab5, type: 3}
-  - {fileID: 5813887235207327813, guid: 081fb2cad730a9f439212af5550d7f0c, type: 3}
-  - {fileID: 8351671351080678374, guid: 4364e8cc8c8477b44ade0753c757c6e5, type: 3}
-  - {fileID: 5084222105632993803, guid: b465d4d45537c964fb5f319d1d504895, type: 3}
-  - {fileID: 5174424688409403206, guid: 9c47b703863cfb2488055b08b692f81a, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   explosionForce: 5
   torqueForce: 200
   piecesLifetime: 2
@@ -298,7 +293,7 @@ MonoBehaviour:
   isPlayer1: 1
   playerIndex: 0
   rivalTransform: {fileID: 0}
-  firePoint: {fileID: 7106099884189426224}
+  firePoint: {fileID: 5186068860516421327}
 --- !u!114 &631253211340706981
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5289,7 +5284,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: -7451426116336585031, guid: 40f75e4bdae379c48845ee52047182fa, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
