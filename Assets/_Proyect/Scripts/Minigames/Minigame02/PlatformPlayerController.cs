@@ -96,6 +96,9 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
 
     private bool canPickupDropped = true;
 
+    // [NUEVO] Almacena la velocidad actual transmitida por la plataforma móvil
+    private Vector2 platformVelocity;
+
     public int PlayerIndex => playerIndex;
 
     [Header("PowerUp")]
@@ -309,12 +312,20 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         else if (!isKnockedBack && !isStunned)
         {
             Vector2 inputToUse = isForcedMove ? forcedMoveInput : moveInput;
-            rb.linearVelocity = new Vector2(inputToUse.x * moveSpeed, rb.linearVelocity.y);
+
+            // [MODIFICADO] Se añade la componente horizontal de la plataforma al cálculo de velocidad final
+            rb.linearVelocity = new Vector2(inputToUse.x * moveSpeed + platformVelocity.x, rb.linearVelocity.y);
         }
 
         isForcedMove = false;
         ApplyBetterGravity();
         ApplyMirrorControl();
+    }
+
+    // [NUEVO] Permite a la MovingPlatform inyectar su velocidad en cada FixedUpdate
+    public void SetPlatformVelocity(Vector2 velocity)
+    {
+        platformVelocity = velocity;
     }
 
     private Vector2 ReadFilteredMove()
@@ -425,13 +436,9 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     public void ApplyAttackHit() { punchHitbox?.Activate(); }
     public void OnAttackFinished() { isAttacking = false; punchHitbox?.Deactivate(); }
 
-    // sacar el parámetro attackerIndex, volver a esto:
     public void ReceiveKnockback(Vector2 direction)
-
     {
         if (isInvulnerable) return;
-
-
 
         bool wasAttacking = isAttacking;
         isAttacking = false;
@@ -487,7 +494,6 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         }
         else if (other.CompareTag("aplastadora"))
         {
-            // Muerte por aplastadora: no da puntos al rival (diedByPunch = false)
             StartCoroutine(Die());
         }
     }
@@ -502,6 +508,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     {
         if (rb.linearVelocity.y > 0.1f) { isGrounded = false; return; }
 
+        // Si el jugador está sobre una plataforma móvil horizontal, mantenemos groundcheck estándar
         Vector2 leftOrigin = new Vector2(col.bounds.min.x, col.bounds.min.y);
         Vector2 rightOrigin = new Vector2(col.bounds.max.x, col.bounds.min.y);
 
@@ -547,12 +554,12 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         ClearPowerUpState();
         rb.linearVelocity = Vector2.zero;
         rb.gravityScale = 0f;
-        rb.constraints = RigidbodyConstraints2D.FreezeAll; // ← AGREGAR: evita que se mueva durante die
+        rb.constraints = RigidbodyConstraints2D.FreezeAll;
         animator.SetTrigger("Die");
         yield return new WaitForSeconds(respawnDelay);
         sr.enabled = false;
         transform.position = spawnPoint;
-        rb.constraints = RigidbodyConstraints2D.FreezeRotation; // ← AGREGAR: liberar antes de respawn
+        rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         rb.gravityScale = gravityScale;
         yield return new WaitForSeconds(0.1f);
         sr.enabled = true;
@@ -686,6 +693,7 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
         mirrorJumpPending = false;
         forcedMoveInput = Vector2.zero;
         moveInput = Vector2.zero;
+        platformVelocity = Vector2.zero; // [NUEVO] Reset de velocidad de plataforma al limpiar efectos
         animator?.SetBool("isCrushed", false);
         SetPulled(false);
         rb.linearVelocity = Vector2.zero;
@@ -696,8 +704,6 @@ public class PlatformPlayerController : MonoBehaviour, IPlayerController
     {
         hasPowerUp = false;
         ClearActivePowerUpEffects();
-       
-
     }
 
     private void LateUpdate()

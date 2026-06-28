@@ -14,6 +14,7 @@ public class PowerUpHUD : MonoBehaviour
     [SerializeField] private Sprite spriteHeavyGravity;
     [SerializeField] private Sprite spriteMirrorControl;
     [SerializeField] private Sprite spriteJetpack;
+    [SerializeField] private Sprite spriteCrusher; // [NUEVO] Sprite para el Crusher
     [SerializeField] private Sprite spriteEmpty;
 
     private PlatformPlayerController trackedPlayer;
@@ -63,11 +64,12 @@ public class PowerUpHUD : MonoBehaviour
     {
         switch (type)
         {
-            
             case PowerUpPickup.PowerUpType.Hook: return spriteHook;
             case PowerUpPickup.PowerUpType.HeavyGravity: return spriteHeavyGravity;
             case PowerUpPickup.PowerUpType.MirrorControl: return spriteMirrorControl;
             case PowerUpPickup.PowerUpType.Jetpack: return spriteJetpack;
+           
+            case PowerUpPickup.PowerUpType.Crusher: return spriteCrusher;
             default: return spriteEmpty;
         }
     }
