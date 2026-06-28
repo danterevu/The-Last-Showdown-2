@@ -200,9 +200,6 @@ public class SpaceLaserTurret : MonoBehaviour
         if (_isDestroyed) return;
 
         _currentTarget = FindBestTarget();
-
-      
-
         if (_currentTarget == null) { _hasSmoothedTarget = false; return; }
 
         Vector3 targetPos = _currentTarget.position;
@@ -298,23 +295,11 @@ public class SpaceLaserTurret : MonoBehaviour
         if (dir.sqrMagnitude < 0.0001f) return false;
         dir.Normalize();
 
-        RaycastHit2D[] hits = Physics2D.RaycastAll(origin, dir, range, lineOfSightMask);
-        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
-
-        foreach (var hit in hits)
-        {
-            // Ignorar colliders propios
-            if (hit.collider.transform.IsChildOf(transform) ||
-                hit.collider.transform == transform) continue;
-
-            // Ignorar triggers (Boundary, zonas, etc.)
-            if (hit.collider.isTrigger) continue;
-
-            // El primer collider sólido: ¿es el player?
-            return IsPlayerCollider(hit.collider);
-        }
-        return false;
+        RaycastHit2D hit = Physics2D.Raycast(origin, dir, range, lineOfSightMask);
+        if (hit.collider == null) return false;
+        return IsPlayerCollider(hit.collider);
     }
+
     private bool IsPlayerCollider(Collider2D col)
     {
         if (col == null) return false;
