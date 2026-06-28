@@ -1520,12 +1520,12 @@ MonoBehaviour:
   - {fileID: 867359047}
   - {fileID: 1971095315}
   - {fileID: 877063452}
-  debugMode: 0
+  debugMode: 1
   debugP1RoundScore: 10
   debugP2RoundScore: 5
   debugP1TotalScore: 20
   debugP2TotalScore: 15
-  debugTheme: {fileID: 0}
+  debugTheme: {fileID: 11400000, guid: e1b9055439c927248b44d6fb10b463f4, type: 2}
   blackScreen: {fileID: 1585084411}
   typewriterText: {fileID: 2009351040}
   typewriterMessage: Minijuego Terminado
@@ -1718,7 +1718,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1585084409
 RectTransform:
   m_ObjectHideFlags: 0
