@@ -19,10 +19,17 @@ public class TextBackgroundFitter : MonoBehaviour
         if (background == null) return;
 
         tmp.ForceMeshUpdate();
-        Vector2 textSize = tmp.GetRenderedValues(onlyVisibleCharacters: false);
 
-        if (textSize.x < 0.01f || textSize.y < 0.01f) return;
+        float height = tmp.preferredHeight;
+        if (height < 0.01f) return;
 
-        background.size = textSize + padding * 2f;
+        // Agrandar el rect del texto para que no se corte
+        Vector2 size = tmp.rectTransform.sizeDelta;
+        size.y = height;
+        tmp.rectTransform.sizeDelta = size;
+
+        // Ajustar el fondo al rect actualizado
+        float width = tmp.rectTransform.rect.width;
+        background.size = new Vector2(width, height) + padding * 2f;
     }
 }

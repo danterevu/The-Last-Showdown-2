@@ -63,16 +63,9 @@ public class CharacterSelectionButtonConfig : MonoBehaviour
             backToMenuButton.onClick.AddListener(inputAssigner.BackToMenu);
         }
 
-        // Controls Panel Buttons
-        if (openControlsButton != null && inputAssigner != null)
-        {
-            openControlsButton.onClick.AddListener(inputAssigner.OpenControlsPanel);
-        }
+   
 
-        if (closeControlsButton != null && inputAssigner != null)
-        {
-            closeControlsButton.onClick.AddListener(inputAssigner.CloseControlsPanel);
-        }
+      
     }
 
     private void CheckPlayersReady()

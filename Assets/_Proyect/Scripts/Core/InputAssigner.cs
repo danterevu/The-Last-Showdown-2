@@ -8,15 +8,9 @@ public class InputAssigner : MonoBehaviour
 {
     public enum InputType { None, Gamepad, Keyboard }
     public enum SelectionPhase { Player1Selecting, Player2Selecting, SelectionComplete }
-    public enum Character { None, Gloppk, Chopi } // Gloppk = izquierda, Chopi = derecha
-
-    // NUEVO: tipo de vista/control del minijuego. Coincide con los nombres
-    // que ya usan en los InputActionAsset ("Player1_Platform", "Player1_TopDown");
-    // Ship se agrega aparte porque visualmente es una nave, no el personaje caminando.
+    public enum Character { None, Gloppk, Chopi }
     public enum VisualType { Platform, TopDown, Ship }
 
-    // NUEVO: un set de Animator Controller + sprite idle para un tipo de minijuego puntual.
-    // Cada personaje puede tener uno por cada VisualType que efectivamente use.
     [System.Serializable]
     public class GameplayVisualSet
     {
@@ -43,12 +37,7 @@ public class InputAssigner : MonoBehaviour
         public float animationDuration = 0.3f;
         public Ease easeType = Ease.OutBack;
 
-        // NUEVO: esto es lo que se aplica al jugador REAL dentro de cada minijuego
-        // (no confundir con idleSprite/characterSprite, que son solo del icono
-        // grande de esta pantalla de selección). Una entrada por cada VisualType
-        // que este personaje necesite (Platform / TopDown / Ship).
-        [Header("Gameplay (se aplica al jugador real dentro de los minijuegos)")]
-        [Tooltip("Agregá una entrada por cada tipo de minijuego que use este personaje: Platform, TopDown y/o Ship.")]
+        [Header("Gameplay")]
         public List<GameplayVisualSet> gameplayVisuals = new List<GameplayVisualSet>();
 
         public GameplayVisualSet GetGameplayVisual(VisualType type)
@@ -69,7 +58,7 @@ public class InputAssigner : MonoBehaviour
         [HideInInspector] public Gamepad currentSelectionGamepad = null;
         [HideInInspector] public bool isLocked = false;
         [HideInInspector] public bool isUsingSecondKeyboard = false;
-        [HideInInspector] public Character selectedCharacter = Character.None; // qué eligió
+        [HideInInspector] public Character selectedCharacter = Character.None;
     }
 
     [System.Serializable]
@@ -77,11 +66,8 @@ public class InputAssigner : MonoBehaviour
     {
         public InputType inputType;
         public Gamepad gamepad;
-        public Character character; // personaje elegido
-        public int internalPlayerIndex; // índice interno real (1=Gloppk, 2=Chopi)
-
-        // NUEVO: todos los sets de gameplay (Platform/TopDown/Ship) del personaje
-        // elegido, listos para que cualquier minijuego pida el que le corresponda.
+        public Character character;
+        public int internalPlayerIndex;
         public List<GameplayVisualSet> gameplayVisuals;
     }
 
@@ -89,8 +75,7 @@ public class InputAssigner : MonoBehaviour
 
     public static PlayerSlotData GetPlayerData(int playerIndex)
     {
-        if (assignedPlayers.Count > playerIndex)
-            return assignedPlayers[playerIndex];
+        if (assignedPlayers.Count > playerIndex) return assignedPlayers[playerIndex];
         return null;
     }
 
@@ -100,10 +85,6 @@ public class InputAssigner : MonoBehaviour
         return data?.gamepad;
     }
 
-    /// <summary>
-    /// Devuelve el input del jugador que controla internamente a Player1 (Gloppk).
-    /// Usalo en minijuegos si necesitás saber qué mando/teclado mueve a Player1.
-    /// </summary>
     public static PlayerSlotData GetInternalPlayer(int internalIndex)
     {
         foreach (var p in assignedPlayers)
@@ -111,9 +92,6 @@ public class InputAssigner : MonoBehaviour
         return null;
     }
 
-    // NUEVO: helpers estáticos para que cualquier minijuego pida directamente
-    // el Animator Controller / sprite idle del personaje que ocupa ese slot,
-    // según el tipo de minijuego (Platform / TopDown / Ship).
     public static RuntimeAnimatorController GetAnimatorController(int internalIndex, VisualType type)
     {
         var data = GetInternalPlayer(internalIndex);
@@ -135,8 +113,8 @@ public class InputAssigner : MonoBehaviour
     public static void Clear() => assignedPlayers.Clear();
 
     [Header("Player Slots")]
-    [SerializeField] private PlayerSlot player1Slot; // primer jugador en elegir
-    [SerializeField] private PlayerSlot player2Slot; // segundo jugador en elegir
+    [SerializeField] private PlayerSlot player1Slot;
+    [SerializeField] private PlayerSlot player2Slot;
 
     [Header("Character Visuals")]
     [SerializeField] private CharacterVisual gloppkVisual;
@@ -145,7 +123,6 @@ public class InputAssigner : MonoBehaviour
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI promptText;
     [SerializeField] private GameObject startButton;
-    [SerializeField] private GameObject controlsPanel;
     [SerializeField] private string player1PromptText = "Jugador 1: Elige tu personaje con A/D o gamepad";
     [SerializeField] private string player2PromptText = "Jugador 2: Elige tu personaje con flechas o gamepad";
     [SerializeField] private GameObject player1ControlsImage;
@@ -163,10 +140,9 @@ public class InputAssigner : MonoBehaviour
 
     private SelectionPhase currentPhase = SelectionPhase.Player1Selecting;
     private List<Gamepad> usedGamepads = new List<Gamepad>();
-    private bool isControlsPanelManuallyClosed = false;
-    private bool forceControlsPanelOpen = false;
-    private bool hasAutoOpenedControlsPanel = false;
     private bool bothAssignedPrevious = false;
+
+    private bool ignoreNextEnter = false;
 
     private void OnEnable() => InitializeAll();
     private void Start() => InitializeAll();
@@ -187,11 +163,7 @@ public class InputAssigner : MonoBehaviour
         ResetSlot(player2Slot);
         ResetCharacterVisual(gloppkVisual);
         ResetCharacterVisual(chopiVisual);
-        isControlsPanelManuallyClosed = true;
-        forceControlsPanelOpen = false;
-        hasAutoOpenedControlsPanel = false;
         bothAssignedPrevious = false;
-        if (controlsPanel != null) controlsPanel.SetActive(false);
         InitializeTurnUI();
         UpdateUI();
         InitializeVisuals();
@@ -202,16 +174,13 @@ public class InputAssigner : MonoBehaviour
     private void ResetCharacterVisual(CharacterVisual visual)
     {
         if (visual == null) return;
-
         if (visual.slotObject != null)
             visual.slotObject.transform.DOScale(visual.inactiveScale, visual.animationDuration).SetEase(visual.easeType);
-
         if (visual.characterSprite != null)
         {
             if (visual.idleSprite != null) visual.characterSprite.sprite = visual.idleSprite;
             visual.characterSprite.color = visual.inactiveColor;
         }
-
         if (visual.statusText != null) visual.statusText.text = "";
     }
 
@@ -265,34 +234,78 @@ public class InputAssigner : MonoBehaviour
         else if (currentPhase == SelectionPhase.Player2Selecting)
             HandlePlayerTurn(player2Slot, isFirstPlayer: false);
 
+        // Start de cualquier gamepad avanza si ambos están listos
+        if (currentPhase == SelectionPhase.SelectionComplete)
+        {
+            if (ignoreNextEnter)
+            {
+                ignoreNextEnter = false;
+            }
+            else
+            {
+                // P2 cancela
+                bool cancelP2 = false;
+                if (player2Slot.assignedInput == InputType.Keyboard && Keyboard.current != null)
+                    cancelP2 = Keyboard.current.backspaceKey.wasPressedThisFrame;
+                else if (player2Slot.assignedInput == InputType.Gamepad && player2Slot.assignedGamepad != null)
+                    cancelP2 = player2Slot.assignedGamepad.buttonEast.wasPressedThisFrame ||
+                               player2Slot.assignedGamepad.selectButton.wasPressedThisFrame;
+
+                // P1 cancela
+                bool cancelP1 = false;
+                if (player1Slot.assignedInput == InputType.Keyboard && Keyboard.current != null)
+                    cancelP1 = Keyboard.current.escapeKey.wasPressedThisFrame;
+                else if (player1Slot.assignedInput == InputType.Gamepad && player1Slot.assignedGamepad != null)
+                    cancelP1 = player1Slot.assignedGamepad.buttonEast.wasPressedThisFrame ||
+                               player1Slot.assignedGamepad.selectButton.wasPressedThisFrame;
+
+                if (cancelP2)
+                {
+                    CancelAssignment(player2Slot);
+                    currentPhase = SelectionPhase.Player2Selecting;
+                    return;
+                }
+                else if (cancelP1)
+                {
+                    CancelAssignment(player2Slot);
+                    CancelAssignment(player1Slot);
+                    currentPhase = SelectionPhase.Player1Selecting;
+                    return;
+                }
+
+                foreach (var gp in Gamepad.all)
+                {
+                    if (gp != null && gp.startButton.wasPressedThisFrame)
+                    {
+                        LoadNextScene();
+                        return;
+                    }
+                }
+
+                if (Keyboard.current != null && Keyboard.current.enterKey.wasPressedThisFrame)
+                    LoadNextScene();
+            }
+        }
+
         UpdateTurnUI();
         UpdateUI();
     }
-
-    // ─── Lógica unificada de turno ────────────────────────────────────
 
     private void HandlePlayerTurn(PlayerSlot slot, bool isFirstPlayer)
     {
         var keyboard = Keyboard.current;
 
-        // Y / Triangle = toggle controles (siempre)
-        foreach (var gp in Gamepad.all)
-        {
-            if (gp != null && gp.buttonNorth.wasPressedThisFrame)
-            {
-                ToggleControlsPanel();
-                return;
-            }
-        }
-
         if (slot.assignedInput == InputType.None)
         {
             if (!slot.isSelecting)
             {
-                // B / Escape sin nada = volver / deshacer al anterior
+                // B / Escape sin nada = volver al menú
                 if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
                 {
-                    HandleBackPress(isFirstPlayer);
+                    if (isFirstPlayer)
+                        BackToMenu();
+                    else
+                        HandleBackPress(isFirstPlayer);
                     return;
                 }
                 foreach (var gp in Gamepad.all)
@@ -304,11 +317,11 @@ public class InputAssigner : MonoBehaviour
                     }
                 }
 
-                // ── Teclado: detectar izquierda o derecha ──
+                // Teclado: detectar izquierda o derecha
                 if (keyboard != null)
                 {
                     bool leftKey = isFirstPlayer ? keyboard.aKey.wasPressedThisFrame
-                                                  : keyboard.leftArrowKey.wasPressedThisFrame;
+                                                 : keyboard.leftArrowKey.wasPressedThisFrame;
                     bool rightKey = isFirstPlayer ? keyboard.dKey.wasPressedThisFrame
                                                   : keyboard.rightArrowKey.wasPressedThisFrame;
 
@@ -334,7 +347,7 @@ public class InputAssigner : MonoBehaviour
                     }
                 }
 
-                // ── Gamepad libre: detectar izquierda o derecha ──
+                // Gamepad libre: detectar izquierda o derecha
                 foreach (var gamepad in Gamepad.all)
                 {
                     if (gamepad == null || usedGamepads.Contains(gamepad)) continue;
@@ -383,7 +396,7 @@ public class InputAssigner : MonoBehaviour
                     confirm = slot.currentSelectionGamepad.buttonSouth.wasPressedThisFrame ||
                               slot.currentSelectionGamepad.startButton.wasPressedThisFrame;
                     cancel = slot.currentSelectionGamepad.buttonEast.wasPressedThisFrame ||
-                              slot.currentSelectionGamepad.selectButton.wasPressedThisFrame;
+                             slot.currentSelectionGamepad.selectButton.wasPressedThisFrame;
                 }
 
                 if (confirm)
@@ -391,6 +404,7 @@ public class InputAssigner : MonoBehaviour
                     ConfirmSelection(slot);
                     currentPhase = isFirstPlayer ? SelectionPhase.Player2Selecting
                                                  : SelectionPhase.SelectionComplete;
+                    if (!isFirstPlayer) ignoreNextEnter = true; 
                 }
                 else if (cancel)
                 {
@@ -400,7 +414,7 @@ public class InputAssigner : MonoBehaviour
         }
         else
         {
-            // Ya confirmó → solo puede cancelar
+            // Ya confirmó → solo puede cancelar para volver atrás
             bool cancel = false;
 
             if (slot.assignedInput == InputType.Keyboard && keyboard != null)
@@ -431,7 +445,6 @@ public class InputAssigner : MonoBehaviour
         }
         else
         {
-            // Deshace la elección de P1 y vuelve a su turno
             if (player1Slot.assignedInput != InputType.None)
             {
                 CancelAssignment(player1Slot);
@@ -446,13 +459,9 @@ public class InputAssigner : MonoBehaviour
 
     private bool IsCharacterTaken(Character character, bool isFirstPlayer)
     {
-        // Player 1 can choose anything
         if (isFirstPlayer) return false;
-        // Player 2 can't choose what Player 1 already chose
         return player1Slot.selectedCharacter == character;
     }
-
-    // ─── Helpers ──────────────────────────────────────────────────────
 
     private void StartSelection(PlayerSlot slot, InputType type, Gamepad gamepad, bool isSecondKeyboard)
     {
@@ -514,26 +523,18 @@ public class InputAssigner : MonoBehaviour
         SaveSlotData(slot);
     }
 
-    /// <summary>
-    /// Guarda el slot en assignedPlayers.
-    /// internalPlayerIndex: Gloppk = 1, Chopi = 2 (coincide con los tags Player1/Player2)
-    /// </summary>
     private void SaveSlotData(PlayerSlot slot)
     {
         while (assignedPlayers.Count < 2)
             assignedPlayers.Add(new PlayerSlotData());
 
         int slotIndex = slot == player1Slot ? 0 : 1;
-
         CharacterVisual visual = GetVisual(slot.selectedCharacter);
 
         assignedPlayers[slotIndex].inputType = slot.assignedInput;
         assignedPlayers[slotIndex].gamepad = slot.assignedGamepad;
         assignedPlayers[slotIndex].character = slot.selectedCharacter;
-
-        
         assignedPlayers[slotIndex].internalPlayerIndex = slotIndex + 1;
-
         assignedPlayers[slotIndex].gameplayVisuals = visual?.gameplayVisuals;
     }
 
@@ -549,20 +550,17 @@ public class InputAssigner : MonoBehaviour
         slot.currentSelectionType = InputType.None;
         slot.currentSelectionGamepad = null;
         slot.isUsingSecondKeyboard = false;
-        Character previouslySelected = slot.selectedCharacter;
         slot.selectedCharacter = Character.None;
 
         if (visual != null)
         {
             if (visual.slotObject != null)
                 visual.slotObject.transform.DOScale(visual.inactiveScale, visual.animationDuration).SetEase(visual.easeType);
-
             if (visual.characterSprite != null)
             {
                 if (visual.idleSprite != null) visual.characterSprite.sprite = visual.idleSprite;
                 visual.characterSprite.color = visual.inactiveColor;
             }
-
             if (visual.statusText != null) visual.statusText.text = "";
         }
     }
@@ -572,15 +570,12 @@ public class InputAssigner : MonoBehaviour
         if (slot.assignedInput == InputType.Gamepad && slot.assignedGamepad != null)
             usedGamepads.Remove(slot.assignedGamepad);
 
-        CharacterVisual visual = GetVisual(slot.selectedCharacter);
         MoveVisualToCenter(slot.selectedCharacter, slot.isUsingSecondKeyboard);
 
         Character previouslySelected = slot.selectedCharacter;
         ResetSlot(slot);
         if (previouslySelected != Character.None)
-        {
             ResetCharacterVisual(GetVisual(previouslySelected));
-        }
 
         while (assignedPlayers.Count < 2)
             assignedPlayers.Add(new PlayerSlotData());
@@ -619,7 +614,7 @@ public class InputAssigner : MonoBehaviour
     private void MoveVisualToCenter(Character character, bool isSecondKeyboard)
     {
         PlayerSlot slot = player1Slot.selectedCharacter == character ? player1Slot :
-                           player2Slot.selectedCharacter == character ? player2Slot : null;
+                          player2Slot.selectedCharacter == character ? player2Slot : null;
         if (slot == null) return;
 
         InputType type = slot.isSelecting ? slot.currentSelectionType : slot.assignedInput;
@@ -648,12 +643,6 @@ public class InputAssigner : MonoBehaviour
         bool bothAssigned = player1Slot.assignedInput != InputType.None &&
                             player2Slot.assignedInput != InputType.None;
 
-        if (bothAssigned && !hasAutoOpenedControlsPanel)
-        {
-            isControlsPanelManuallyClosed = false;
-            hasAutoOpenedControlsPanel = true;
-        }
-
         if (startButton != null)
         {
             if (bothAssigned != bothAssignedPrevious)
@@ -670,10 +659,6 @@ public class InputAssigner : MonoBehaviour
             }
         }
 
-        if (controlsPanel != null)
-            controlsPanel.SetActive(!isControlsPanelManuallyClosed &&
-                                    (bothAssigned || forceControlsPanelOpen));
-
         if (keyboardVisual != null) keyboardVisual.SetActive(!bothAssigned);
         if (keyboardVisual2 != null) keyboardVisual2.SetActive(!bothAssigned);
         if (gamepadVisual != null) gamepadVisual.SetActive(!bothAssigned);
@@ -684,7 +669,6 @@ public class InputAssigner : MonoBehaviour
     private void OnDisable()
     {
         if (startButton != null) startButton.transform.DOKill();
-        if (controlsPanel != null) controlsPanel.transform.DOKill();
         if (gloppkVisual != null)
         {
             if (gloppkVisual.slotObject != null) gloppkVisual.slotObject.transform.DOKill();
@@ -706,34 +690,11 @@ public class InputAssigner : MonoBehaviour
         if (player1Slot.assignedInput != InputType.None &&
             player2Slot.assignedInput != InputType.None)
         {
-            if (controlsPanel != null) controlsPanel.SetActive(false);
             if (SceneLoader.Instance != null)
                 SceneLoader.Instance.LoadRuleta();
             else
                 UnityEngine.SceneManagement.SceneManager.LoadScene("Select_Minigame");
         }
-    }
-
-    public void CloseControlsPanel()
-    {
-        isControlsPanelManuallyClosed = true;
-        forceControlsPanelOpen = false;
-        if (controlsPanel != null) controlsPanel.SetActive(false);
-    }
-
-    public void OpenControlsPanel()
-    {
-        isControlsPanelManuallyClosed = false;
-        forceControlsPanelOpen = true;
-        UpdateUI();
-    }
-
-    public void ToggleControlsPanel()
-    {
-        if (controlsPanel != null && controlsPanel.activeSelf)
-            CloseControlsPanel();
-        else
-            OpenControlsPanel();
     }
 
     public void BackToMenu()
