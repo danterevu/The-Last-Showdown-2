@@ -15,6 +15,18 @@ public enum SoundID //Esto simplemente es una lista de nombres que vos aca vas a
     PowerUpPickup,
     PowerUpActivate,
 
+    Hover,
+    Select,
+    Cancel,
+
+
+    //Ruleta
+    RSpin,
+    RSlow,
+    RStop,
+
+
+
     // Puntos
     PointAdd,
    
@@ -44,4 +56,19 @@ public enum SoundID //Esto simplemente es una lista de nombres que vos aca vas a
 
 
     // Gameplay M3
+    Berserker,
+    BPunch,
+    Chiquito,
+    Spit,
+    Landmine,
+    LExplosion,
+    DnaDeposit,
+    BoxThrow,
+    BoxCrash,
+
+
+    // Gameplay M4
+
+
+
 }
