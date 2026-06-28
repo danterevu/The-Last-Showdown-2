@@ -3,87 +3,94 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 
-public class CommentatorPanel : MonoBehaviour
+public class DialoguePanel : MonoBehaviour
 {
     [Header("Referencias UI")]
-    [SerializeField] private Image iconImage;
+    [SerializeField] private Image presenterImage;
     [SerializeField] private TextMeshProUGUI commentText;
-    [SerializeField] private CanvasGroup canvasGroup;
     [SerializeField] private RectTransform panelRect;
 
-    [Header("Ícono fijo de este comentarista")]
-    [SerializeField] private Sprite defaultIcon;
+    [Header("Typewriter")]
+    [SerializeField] private float charDelay = 0.03f;
 
-    [Header("Animación")]
-    [SerializeField] private float slideDistance = 100f;
-    [SerializeField] private float animDuration = 0.35f;
-    [SerializeField] private float displayDuration = 4f;
+    [Header("Animación slide")]
+    [SerializeField] private float slideInDuration = 0.3f;
+    [SerializeField] private float slideOutDuration = 0.25f;
+
+    private float panelWidth;
+    private Coroutine typewriterCoroutine;
+    private Coroutine hideCoroutine;
 
     public bool IsActive { get; private set; }
 
-    private Vector2 shownPosition;
-    private Coroutine showCoroutine;
-
     private void Awake()
     {
-        // guardamos la posición tal cual la pusiste en la escena
-        shownPosition = panelRect.anchoredPosition;
+        panelWidth = panelRect.rect.width;
     }
 
     public void HideImmediate()
     {
-        canvasGroup.alpha = 0f;
-        panelRect.anchoredPosition = shownPosition + Vector2.down * slideDistance;
+        StopAllCoroutines();
         IsActive = false;
+        gameObject.SetActive(false);
     }
 
-    public void Show(string text, float duration = -1f)
+    public void Show(string text, Sprite sprite, float duration)
     {
-        if (showCoroutine != null) StopCoroutine(showCoroutine);
-        float dur = duration > 0f ? duration : displayDuration;
-        showCoroutine = StartCoroutine(ShowRoutine(text, dur));
-    }
+        if (typewriterCoroutine != null) StopCoroutine(typewriterCoroutine);
+        if (hideCoroutine != null) StopCoroutine(hideCoroutine);
 
-    private IEnumerator ShowRoutine(string text, float duration)
-    {
+        presenterImage.sprite = sprite;
+        commentText.text = "";
+        gameObject.SetActive(true);
         IsActive = true;
 
-        commentText.text = text;
-        if (iconImage != null && defaultIcon != null)
-            iconImage.sprite = defaultIcon;
+        typewriterCoroutine = StartCoroutine(TypewriterRoutine(text));
+        hideCoroutine = StartCoroutine(ShowHideRoutine(duration));
+    }
 
-        Vector2 hiddenPos = shownPosition + Vector2.down * slideDistance;
-        panelRect.anchoredPosition = hiddenPos;
-        canvasGroup.alpha = 0f;
+    private IEnumerator TypewriterRoutine(string text)
+    {
+        commentText.text = "";
+        foreach (char c in text)
+        {
+            commentText.text += c;
+            yield return new WaitForSeconds(charDelay);
+        }
+    }
 
-        // slide in + fade in
+    private IEnumerator ShowHideRoutine(float displayDuration)
+    {
+        // Slide in desde la izquierda
+        yield return StartCoroutine(Slide(offscreen: true, onscreen: false, slideInDuration));
+
+        // Esperar mientras se muestra
+        yield return new WaitForSeconds(displayDuration);
+
+        // Slide out hacia la izquierda
+        yield return StartCoroutine(Slide(offscreen: false, onscreen: true, slideOutDuration));
+
+        IsActive = false;
+        gameObject.SetActive(false);
+    }
+
+    // Si saliendo=true, va de posicion visible hacia afuera; si false, al reves
+    private IEnumerator Slide(bool offscreen, bool onscreen, float duration)
+    {
+        Vector2 hidden = new Vector2(-panelWidth, panelRect.anchoredPosition.y);
+        Vector2 visible = new Vector2(0f, panelRect.anchoredPosition.y);
+
+        Vector2 from = onscreen ? visible : hidden;
+        Vector2 to = onscreen ? hidden : visible;
+
         float elapsed = 0f;
-        while (elapsed < animDuration)
+        while (elapsed < duration)
         {
-            float t = Mathf.SmoothStep(0f, 1f, elapsed / animDuration);
-            panelRect.anchoredPosition = Vector2.Lerp(hiddenPos, shownPosition, t);
-            canvasGroup.alpha = t;
             elapsed += Time.deltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+            panelRect.anchoredPosition = Vector2.Lerp(from, to, t);
             yield return null;
         }
-        panelRect.anchoredPosition = shownPosition;
-        canvasGroup.alpha = 1f;
-
-        // esperar
-        yield return new WaitForSeconds(duration);
-
-        // slide out + fade out
-        elapsed = 0f;
-        while (elapsed < animDuration)
-        {
-            float t = Mathf.SmoothStep(0f, 1f, elapsed / animDuration);
-            panelRect.anchoredPosition = Vector2.Lerp(shownPosition, hiddenPos, t);
-            canvasGroup.alpha = 1f - t;
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        HideImmediate();
-        showCoroutine = null;
+        panelRect.anchoredPosition = to;
     }
 }

@@ -5,18 +5,18 @@ public class CommentarySystem : MonoBehaviour
 {
     public static CommentarySystem Instance;
 
-    [Header("Paneles (uno por cara del presentador)")]
-    [SerializeField] private CommentatorPanel[] panels;
+    [Header("Panel de diálogo (único)")]
+    [SerializeField] private DialoguePanel panel;
+
     private bool isReady = false;
+
     [System.Serializable]
-
-    // campo
- 
-
-   
     public class CommentPool
     {
         public CommentTrigger trigger;
+
+        [Header("Sprite para este trigger")]
+        public Sprite presenterSprite;
 
         [TextArea(2, 5)]
         public string[] comments;
@@ -50,20 +50,14 @@ public class CommentarySystem : MonoBehaviour
 
     private void Start()
     {
-        foreach (var panel in panels)
-            panel.HideImmediate();
+        panel.HideImmediate();
     }
 
-   
     public void SetReady()
     {
         isReady = true;
     }
 
-    // al inicio de TriggerComment, antes de todo lo demás
-  
-
-    // Llena y mezcla la bolsa con todos los índices
     private void RefillBag(CommentPool pool)
     {
         pool.bag.Clear();
@@ -78,7 +72,6 @@ public class CommentarySystem : MonoBehaviour
         }
     }
 
-    // Saca el próximo índice de la bolsa; la rellena si se agotó
     private int NextFromBag(CommentPool pool)
     {
         if (pool.bag.Count == 0)
@@ -92,9 +85,9 @@ public class CommentarySystem : MonoBehaviour
     public void TriggerComment(CommentTrigger trigger)
     {
         if (!isReady) return;
-        // No-overlap: si CUALQUIER panel está activo, ignorar
-        foreach (var panel in panels)
-            if (panel.IsActive) return;
+
+        // No-overlap: si el panel está activo, ignorar
+        if (panel.IsActive) return;
 
         if (!lookup.TryGetValue(trigger, out var pool)) return;
         if (pool.comments == null || pool.comments.Length == 0) return;
@@ -102,14 +95,10 @@ public class CommentarySystem : MonoBehaviour
         // Cooldown por trigger
         if (Time.time < pool.lastFiredTime + pool.cooldown) return;
 
-        // Sacar comentario del shuffle bag
         int idx = NextFromBag(pool);
         string comment = pool.comments[idx];
 
-        // Panel random entre los disponibles
-        CommentatorPanel chosen = panels[Random.Range(0, panels.Length)];
-        chosen.Show(comment, pool.displayDuration);
-
+        panel.Show(comment, pool.presenterSprite, pool.displayDuration);
         pool.lastFiredTime = Time.time;
     }
 }
