@@ -79,7 +79,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -4178046375966092550, guid: 5989840a0808b0d458bc5d1616e1bdec, type: 3}
+  m_Sprite: {fileID: 9063777587512043735, guid: 190ba0e4306eb12448789e2c21d23e06, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -103,6 +103,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lifetime: 2
+  canKill: 1
+  lethalSpeed: 8
 --- !u!50 &7852923176887807371
 Rigidbody2D:
   serializedVersion: 5
@@ -168,7 +170,7 @@ PolygonCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.03, y: 0.55}
+    oldSize: {x: 0.74, y: 1.28}
     newSize: {x: 1.03, y: 0.55}
     adaptiveTilingThreshold: 0.5
     drawMode: 0

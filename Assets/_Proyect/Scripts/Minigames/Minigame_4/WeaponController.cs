@@ -72,7 +72,6 @@ public class WeaponController : MonoBehaviour
         if (shipAnimator == null)
             shipAnimator = GetComponentInChildren<Animator>();
 
-
         shipController = GetComponent<SpaceShipController>();
         SetupInput();
 
@@ -93,11 +92,6 @@ public class WeaponController : MonoBehaviour
         if (currentWeapon == null) return;
 
         fireCooldown -= Time.deltaTime;
-
-        // Input calculado una única vez — evita bugs al cambiar de arma entre frames
-        /*bool wasHeld = shootHeld;
-        shootHeld = shootAction != null && shootAction.IsPressed();
-        shootPressedThisFrame = shootHeld && !wasHeld;*/
 
         // Leer disparo desde teclado (asset) o gamepad (R2)
         bool wasHeld = shootHeld;
@@ -147,13 +141,13 @@ public class WeaponController : MonoBehaviour
 
     public void EquipWeapon(WeaponData data)
     {
+        // MEJORA: Reseteamos cualquier rastro de carga anterior antes de cambiar de arma
+        ResetCharge();
+
         currentWeapon = data;
         currentAmmo = data.maxAmmo;
-        chargeProgress = 0f;
-        chargeElapsed = 0f;
         fireCooldown = 0f;
 
-      
         shootHeld = false;
         shootPressedThisFrame = false;
 
@@ -163,6 +157,9 @@ public class WeaponController : MonoBehaviour
 
     private void DropWeapon()
     {
+        // MEJORA: Nos aseguramos de limpiar la carga visual al perder el arma
+        ResetCharge();
+
         if (defaultWeapon != null)
             EquipWeapon(defaultWeapon);
         else
@@ -205,19 +202,16 @@ public class WeaponController : MonoBehaviour
             _ => 0
         };
 
-      
         shipAnimator.SetInteger("WeaponIndex", index);
 
-      
         shipAnimator.SetTrigger("WeaponChanged");
     }
+
     private void TriggerShootAnim()
     {
         if (shipAnimator == null) return;
         shipAnimator.SetTrigger("Shoot");
     }
-
-  
 
     // ─────────────────────────────────────────────────────────
     // UPDATE POR TIPO DE ARMA
@@ -278,10 +272,10 @@ public class WeaponController : MonoBehaviour
             ResetCharge();
         }
     }
+
     private void StartChargedBlink()
     {
         if (blinkRoutine != null) return;
-
         blinkRoutine = StartCoroutine(BlinkCoroutine());
     }
 
@@ -301,13 +295,14 @@ public class WeaponController : MonoBehaviour
     {
         while (true)
         {
-            shipSprite.color = Color.white;
+            if (shipSprite != null) shipSprite.color = Color.white;
             yield return new WaitForSeconds(blinkSpeed);
 
-            shipSprite.color = Color.cyan;
+            if (shipSprite != null) shipSprite.color = Color.cyan;
             yield return new WaitForSeconds(blinkSpeed);
         }
     }
+
     private void UpdateMinigun()
     {
         if (!shootHeld || fireCooldown > 0f) return;
@@ -339,6 +334,7 @@ public class WeaponController : MonoBehaviour
         if (shipAnimator != null)
             shipAnimator.SetFloat("ChargeProgress", 0f);
 
+        // MEJORA CRÍTICA: Aseguramos lanzar el evento 0f para avisarle al Cubo de forma inmediata
         OnChargeChanged?.Invoke(0f);
     }
 
