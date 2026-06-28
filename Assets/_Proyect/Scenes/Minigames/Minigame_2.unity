@@ -116883,6 +116883,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1742874992225911105, guid: db6ac4ff540177c429f792caff5a1c36, type: 3}
   m_PrefabInstance: {fileID: 1744453613}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1770379176 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2486350897938599216, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+  m_PrefabInstance: {fileID: 1307435117}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44475c08cb5597348a174c4b156531f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1775410697
 GameObject:
   m_ObjectHideFlags: 0
@@ -122001,10 +122012,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1e25081fa7f9e949b743a89568d0b72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  panel: {fileID: 0}
+  panel: {fileID: 1770379176}
   pools:
   - trigger: 3
-    presenterSprite: {fileID: 0}
+    presenterSprite: {fileID: 21300000, guid: 61aa581448356004ba1de127669ff7c9, type: 3}
     comments:
     - Creo que produccion se paso con la dificultad...
     - Fijate por donde estas yendo
@@ -122012,14 +122023,14 @@ MonoBehaviour:
     displayDuration: 0
     cooldown: 8
   - trigger: 4
-    presenterSprite: {fileID: 0}
+    presenterSprite: {fileID: 21300000, guid: 61aa581448356004ba1de127669ff7c9, type: 3}
     comments:
     - No te olvides de quedarte ahi lo maximo posible
     - Ya era hora...
     displayDuration: 0
     cooldown: 8
   - trigger: 5
-    presenterSprite: {fileID: 0}
+    presenterSprite: {fileID: 21300000, guid: 61aa581448356004ba1de127669ff7c9, type: 3}
     comments:
     - Diganle adios a esta seccion!
     - Nuevo seccion, nuevas chances de remontar!
@@ -122027,7 +122038,7 @@ MonoBehaviour:
     displayDuration: 0
     cooldown: 8
   - trigger: 7
-    presenterSprite: {fileID: 0}
+    presenterSprite: {fileID: 21300000, guid: 61aa581448356004ba1de127669ff7c9, type: 3}
     comments:
     - "\xA1Les queda cada vez menos para demostrar quien es mejor!"
     - "\xA1Queda poco tiempo, haganlo valer!"
@@ -122035,7 +122046,7 @@ MonoBehaviour:
     displayDuration: 0
     cooldown: 8
   - trigger: 8
-    presenterSprite: {fileID: 0}
+    presenterSprite: {fileID: 21300000, guid: 61aa581448356004ba1de127669ff7c9, type: 3}
     comments:
     - "Wowowowow, \xA1que paliza!"
     - "\xA1A veces se gana, y a veces se humilla!"
@@ -122043,7 +122054,7 @@ MonoBehaviour:
     displayDuration: 0
     cooldown: 8
   - trigger: 9
-    presenterSprite: {fileID: 0}
+    presenterSprite: {fileID: 21300000, guid: 61aa581448356004ba1de127669ff7c9, type: 3}
     comments:
     - "NO LO PUEDO CREER pero que pu\xF1etazo!"
     - Esto es perfecto para nuestro canal de clips!
@@ -122053,7 +122064,7 @@ MonoBehaviour:
     displayDuration: 0
     cooldown: 8
   - trigger: 6
-    presenterSprite: {fileID: 0}
+    presenterSprite: {fileID: 21300000, guid: 61aa581448356004ba1de127669ff7c9, type: 3}
     comments:
     - "\xA1Esto se pone todavia mas interesante!"
     - Espero que hayan apostado por tal remontada!

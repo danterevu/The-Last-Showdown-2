@@ -164,28 +164,25 @@ public class MutantDNAManager : MonoBehaviour, IMinijuegoControlable
     // -------------------------------------------------------------
     private IEnumerator ChangeZone()
     {
-        Debug.Log("ChangeZone() iniciado");
-        ForceDropAllFromPlayers();      // Soltar caja y ADN de los jugadores
+        ForceDropAllFromPlayers();
         dnaPickup.ForceSpawnNow();
         gameRunning = false;
+
+        // Limpiar ANTES de que las manos agarren
+        p1Controller.ClearPowerUpState();
+        p2Controller.ClearPowerUpState();
 
         int oldZoneIndex = currentZoneIndex;
         int newZoneIndex = GetNextZone(currentZoneIndex);
 
         yield return StartCoroutine(PlayZoneTransition(oldZoneIndex, newZoneIndex));
 
-        // Limpiar power-ups
-        p1Controller.ClearPowerUpState();
-        p2Controller.ClearPowerUpState();
-
         currentZoneIndex = newZoneIndex;
 
-        // Actualizar spawner a la nueva zona
         if (powerUpSpawner != null)
             powerUpSpawner.SetActiveZone(currentZoneIndex);
 
         gameRunning = true;
-        Debug.Log("ChangeZone() terminado");
     }
 
     private IEnumerator PlayZoneTransition(int oldZoneIndex, int newZoneIndex)
@@ -313,28 +310,19 @@ public class MutantDNAManager : MonoBehaviour, IMinijuegoControlable
 
     private IEnumerator CountdownFadeAndReleasePlayers(int newZoneIndex)
     {
-        if (countdownText != null) countdownText.gameObject.SetActive(true);
         bool fadeDone = false;
         bool playersReleased = false;
+        bool countdownDone = false;
 
         StartCoroutine(FadeFromBlackCoroutine(() => fadeDone = true));
         StartCoroutine(ReleasePlayersCoroutine(newZoneIndex, () => playersReleased = true));
 
-        // Mostrar cuenta regresiva (3,2,1,�Ya!)
-        for (int i = 3; i >= 0; i--)
-        {
-            if (countdownText != null)
-            {
-                if (i > 0) countdownText.text = i.ToString();
-                else countdownText.text = "�Ya!";
-                yield return StartCoroutine(AnimateCountdownText(countdownText));
-            }
-            if (i > 0) yield return new WaitForSeconds(0.5f);
-        }
+        if (hud != null)
+            hud.StartCountdown(() => countdownDone = true);
+        else
+            countdownDone = true;
 
-        while (!fadeDone || !playersReleased) yield return null;
-
-        if (countdownText != null) countdownText.gameObject.SetActive(false);
+        while (!fadeDone || !playersReleased || !countdownDone) yield return null;
     }
 
     private IEnumerator ReleasePlayersCoroutine(int newZoneIndex, System.Action onComplete)
@@ -343,32 +331,45 @@ public class MutantDNAManager : MonoBehaviour, IMinijuegoControlable
         if (player1Spawns == null || player2Spawns == null) { onComplete?.Invoke(); yield break; }
 
         ZoneHandSpawns spawns = handSpawnsByZone[newZoneIndex];
+
         if (handLeft != null && spawns.handLeftSpawn != null)
             handLeft.transform.position = spawns.handLeftSpawn.position;
         if (handRight != null && spawns.handRightSpawn != null)
             handRight.transform.position = spawns.handRightSpawn.position;
 
-        // Estirar manos hacia los nuevos spawns
         bool leftStretch = false, rightStretch = false;
         if (handLeft != null) StartCoroutine(StretchHandCoroutine(handLeft, player1Spawns[newZoneIndex].position, () => leftStretch = true));
         if (handRight != null) StartCoroutine(StretchHandCoroutine(handRight, player2Spawns[newZoneIndex].position, () => rightStretch = true));
         while (!leftStretch || !rightStretch) yield return null;
 
-        yield return StartCoroutine(MoveHandsToPositions(player1Spawns[newZoneIndex].position, player2Spawns[newZoneIndex].position));
+        yield return StartCoroutine(MoveHandsToPositions(
+            player1Spawns[newZoneIndex].position,
+            player2Spawns[newZoneIndex].position
+        ));
 
         if (handLeft != null) handLeft.ReleasePlayer(player1Spawns[newZoneIndex].position);
         if (handRight != null) handRight.ReleasePlayer(player2Spawns[newZoneIndex].position);
 
-        // Restaurar escala
         bool leftScale = false, rightScale = false;
         if (handLeft != null) StartCoroutine(ReturnHandScaleCoroutine(handLeft, () => leftScale = true));
         if (handRight != null) StartCoroutine(ReturnHandScaleCoroutine(handRight, () => rightScale = true));
         while (!leftScale || !rightScale) yield return null;
 
-        yield return new WaitForSeconds(0.5f);
-        // Desactivar manos
+        yield return new WaitForSeconds(1f);
+
+        Animator p1Animator = player1 != null ? player1.GetComponent<Animator>() : null;
+        Animator p2Animator = player2 != null ? player2.GetComponent<Animator>() : null;
+        if (p1Animator != null) p1Animator.SetBool("Surprised", false);
+        if (p2Animator != null) p2Animator.SetBool("Surprised", false);
+
+        yield return StartCoroutine(MoveHandsToPositions(
+            spawns.handLeftSpawn != null ? spawns.handLeftSpawn.position : handLeft.transform.position,
+            spawns.handRightSpawn != null ? spawns.handRightSpawn.position : handRight.transform.position
+        ));
+
         if (handLeft != null) handLeft.gameObject.SetActive(false);
         if (handRight != null) handRight.gameObject.SetActive(false);
+
         onComplete?.Invoke();
     }
 

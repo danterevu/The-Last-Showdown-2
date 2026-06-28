@@ -43,7 +43,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -106,28 +106,6 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: EscupitaJoeHUD_0
-      rect:
-        serializedVersion: 2
-        x: 3
-        y: 139
-        width: 25
-        height: 16
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4a507690486dd60d0800000000000000
-      internalID: -3427847878777305692
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: EscupitaJoeHUD_1
       rect:
         serializedVersion: 2
@@ -136,7 +114,7 @@ TextureImporter:
         width: 312
         height: 252
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -149,33 +127,11 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: EscupitaJoeHUD_2
-      rect:
-        serializedVersion: 2
-        x: 307
-        y: 117
-        width: 15
-        height: 22
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 744e6a05f615ebc10800000000000000
-      internalID: 2071182417173341255
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 6f4ba61c05473d7419bf8df6da332e8a
     internalID: 0
     vertices: []
     indices: 
@@ -184,7 +140,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      EscupitaJoeHUD_1: 7022325424108256077
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
