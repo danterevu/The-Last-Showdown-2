@@ -85211,6 +85211,18 @@ PrefabInstance:
       propertyPath: spriteDamaged
       value: 
       objectReference: {fileID: -5115243970476982452, guid: f5b9e1f0e8e80544296c8dc3c62fe734, type: 3}
+    - target: {fileID: 3315501056831197118, guid: a05ff3dc45a3f9e4eb8f76442c475a4c, type: 3}
+      propertyPath: lineOfSightMask.m_Bits
+      value: 1048575
+      objectReference: {fileID: 0}
+    - target: {fileID: 3671972523404156227, guid: a05ff3dc45a3f9e4eb8f76442c475a4c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.22
+      objectReference: {fileID: 0}
+    - target: {fileID: 3671972523404156227, guid: a05ff3dc45a3f9e4eb8f76442c475a4c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.99
+      objectReference: {fileID: 0}
     - target: {fileID: 3687394366730480185, guid: a05ff3dc45a3f9e4eb8f76442c475a4c, type: 3}
       propertyPath: m_LocalPosition.x
       value: -81.11
