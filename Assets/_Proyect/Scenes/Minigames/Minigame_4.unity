@@ -65451,8 +65451,25 @@ PrefabInstance:
       value: 0.50980395
       objectReference: {fileID: 0}
     - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[3].description
+      value: Cubrete, esquiva y asegurate de matar a tu rival para sumar puntos,
+        el mejor de tres rondas gana
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: onCompletado.m_PersistentCalls.m_Calls.Array.size
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[3].modifiers.Array.data[0].title
+      value: Nada
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[3].modifiers.Array.data[1].title
+      value: Golden Kill
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[3].modifiers.Array.data[2].title
+      value: Combo Rounds
       objectReference: {fileID: 0}
     - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: onCompletado.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
@@ -65462,6 +65479,19 @@ PrefabInstance:
       propertyPath: onCompletado.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
       objectReference: {fileID: 1164052813}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[3].modifiers.Array.data[0].description
+      value: No hay nada especial aqui, no se que andan buscando, CONCENTRENSE EN
+        GANAR
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[3].modifiers.Array.data[1].description
+      value: La primera kill de la ronda vale X3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[3].modifiers.Array.data[2].description
+      value: Cada ronda consecutiva suma mas puntos
+      objectReference: {fileID: 0}
     - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: onCompletado.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
       value: 2

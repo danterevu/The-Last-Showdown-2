@@ -4418,6 +4418,18 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[0].modifiers.Array.data[0].title
+      value: Power up Kill bonus
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[0].modifiers.Array.data[1].title
+      value: Death gives bonus
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[0].modifiers.Array.data[2].title
+      value: Winner bonus
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: onCompletado.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
       value: 1
       objectReference: {fileID: 0}
@@ -4425,6 +4437,18 @@ PrefabInstance:
       propertyPath: onCompletado.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
       objectReference: {fileID: 1071790879}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[0].modifiers.Array.data[0].description
+      value: Si activas un power up y tu rival muere, ganas mas puntos
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[0].modifiers.Array.data[1].description
+      value: Morir no solo resta puntos, este le da puntos al rival
+      objectReference: {fileID: 0}
+    - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
+      propertyPath: minigamesData.Array.data[0].modifiers.Array.data[2].description
+      value: Asegurense de ganar, esto ahora vale mas
+      objectReference: {fileID: 0}
     - target: {fileID: 7007107702520311659, guid: ba37d2aadd25b5a45b89d8fd65bee026, type: 3}
       propertyPath: onCompletado.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
       value: 2
