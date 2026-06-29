@@ -5131,7 +5131,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 477715852698166268, guid: 86fa07be2b48ae74cbb0b76bc8b56b65, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -19.59
+      value: -20.9
       objectReference: {fileID: 0}
     - target: {fileID: 477715852698166268, guid: 86fa07be2b48ae74cbb0b76bc8b56b65, type: 3}
       propertyPath: m_LocalPosition.z
@@ -72619,10 +72619,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 794951326}
     m_Modifications:
-    - target: {fileID: 4595342161488433512, guid: 747f29e95b8d37d4fbd8f56a619db446, type: 3}
-      propertyPath: m_SortingOrder
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5301316206043688246, guid: 747f29e95b8d37d4fbd8f56a619db446, type: 3}
       propertyPath: m_SortingOrder
       value: 10
@@ -123159,10 +123155,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5985103901016001636, guid: 747f29e95b8d37d4fbd8f56a619db446, type: 3}
-      propertyPath: m_SortingOrder
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6592490764671431503, guid: 747f29e95b8d37d4fbd8f56a619db446, type: 3}
       propertyPath: m_Name
       value: RotatingSaw (7)
@@ -126909,7 +126901,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 477715852698166268, guid: 86fa07be2b48ae74cbb0b76bc8b56b65, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 8
+      value: 6.8
       objectReference: {fileID: 0}
     - target: {fileID: 477715852698166268, guid: 86fa07be2b48ae74cbb0b76bc8b56b65, type: 3}
       propertyPath: m_LocalPosition.z

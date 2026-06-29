@@ -18,16 +18,16 @@ MonoBehaviour:
   firePointIndexes: 000000000100000002000000
   player1ProjectilePrefab: {fileID: 2318206693037641433, guid: 114d55dccbffdb94f90be4de7ebe586e, type: 3}
   player2ProjectilePrefab: {fileID: 2318206693037641433, guid: 1ba47984147479043957d4752c6d5032, type: 3}
-  projectileSpeed: 12
+  projectileSpeed: 20
   damage: 10
-  range: 10
-  maxAmmo: 30
+  range: 5
+  maxAmmo: 10
   semiAutoDelay: 0.25
   chargeTime: 1.5
   laserDamageMultiplier: 5
   laserSizeMultiplier: 3
-  shotgunPellets: 6
+  shotgunPellets: 20
   shotgunSpread: 30
-  shotgunKnockback: 8
+  shotgunKnockback: 20
   shotgunFireRate: 0.6
   minigunshotsPerSecond: 12

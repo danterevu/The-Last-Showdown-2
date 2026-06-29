@@ -256,13 +256,19 @@ public class SpaceLaserTurret : MonoBehaviour
         Vector2 dir = (worldTarget - head.position);
         if (dir.sqrMagnitude < 0.0001f) return;
 
-        Vector2 axis = headAimLocalAxis.sqrMagnitude > 0.0001f ? headAimLocalAxis.normalized : Vector2.right;
+        Vector2 axis = headAimLocalAxis.sqrMagnitude > 0.0001f
+            ? headAimLocalAxis.normalized : Vector2.right;
         float axisAngle = Mathf.Atan2(axis.y, axis.x) * Mathf.Rad2Deg;
-        float targetAngle = Mathf.Clamp(
-            Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - axisAngle,
-            minRotation, maxRotation);
+        float rawTarget = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - axisAngle;
 
-        float currentAngle = Mathf.Repeat(head.eulerAngles.z + 180f, 360f) - 180f;
+
+        // Normalizar entre -180 y 180
+        rawTarget = Mathf.Repeat(rawTarget + 180f, 360f) - 180f;
+
+        float currentAngle = Mathf.Repeat(head.localEulerAngles.z + 180f, 360f) - 180f;
+
+        // Clamp DESPUÉS de normalizar
+        float targetAngle = Mathf.Clamp(rawTarget, minRotation, maxRotation);
 
         float newAngle;
         if (targetFollowSmoothTime > 0f)
@@ -273,7 +279,9 @@ public class SpaceLaserTurret : MonoBehaviour
             newAngle = Mathf.MoveTowardsAngle(currentAngle, targetAngle,
                 Mathf.Max(0f, turnSpeed) * Time.deltaTime);
 
-        head.rotation = Quaternion.Euler(0f, 0f, Mathf.Clamp(newAngle, minRotation, maxRotation));
+        head.localRotation = Quaternion.Euler(0f, 0f, newAngle);
+
+
     }
 
     private Vector2 GetWorldAimDirection()
@@ -311,7 +319,7 @@ public class SpaceLaserTurret : MonoBehaviour
             return IsPlayerCollider(hit.collider);
         }
         return false;
-    }
+    }   
 
     private bool IsPlayerCollider(Collider2D col)
     {
