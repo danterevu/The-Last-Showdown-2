@@ -902,6 +902,7 @@ GameObject:
   - component: {fileID: 821393832}
   - component: {fileID: 821393831}
   - component: {fileID: 821393830}
+  - component: {fileID: 821393833}
   m_Layer: 0
   m_Name: EstoyBien1_0
   m_TagString: Untagged
@@ -1001,6 +1002,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 867359049}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &821393833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 821393829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72c87572457c82946bcf72ddfa8391fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerNumber: 2
+  animator: {fileID: 821393830}
+  spriteRenderer: {fileID: 821393831}
+  gloppk:
+    character: 1
+    animatorController: {fileID: 9100000, guid: e061e09d6997b7d49959ce65c55799eb, type: 2}
+    sprite: {fileID: 390726121763567455, guid: 700eb9aa1fe0ca343b560757b8379dee, type: 3}
+  chopi:
+    character: 2
+    animatorController: {fileID: 9100000, guid: 5eef3a38e63b97a498484ff86661e63c, type: 2}
+    sprite: {fileID: -5419837715956032601, guid: 5086d9d301964374881ccd4641490620, type: 3}
 --- !u!1 &841636504
 GameObject:
   m_ObjectHideFlags: 0
@@ -1841,6 +1865,7 @@ GameObject:
   - component: {fileID: 1688230385}
   - component: {fileID: 1688230384}
   - component: {fileID: 1688230383}
+  - component: {fileID: 1688230386}
   m_Layer: 0
   m_Name: EstoyBien_0
   m_TagString: Untagged
@@ -1940,6 +1965,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 867359049}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1688230386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1688230382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72c87572457c82946bcf72ddfa8391fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerNumber: 1
+  animator: {fileID: 1688230383}
+  spriteRenderer: {fileID: 1688230384}
+  gloppk:
+    character: 1
+    animatorController: {fileID: 9100000, guid: e061e09d6997b7d49959ce65c55799eb, type: 2}
+    sprite: {fileID: 390726121763567455, guid: 700eb9aa1fe0ca343b560757b8379dee, type: 3}
+  chopi:
+    character: 2
+    animatorController: {fileID: 9100000, guid: 5eef3a38e63b97a498484ff86661e63c, type: 2}
+    sprite: {fileID: -5419837715956032601, guid: 5086d9d301964374881ccd4641490620, type: 3}
 --- !u!1 &1810411621
 GameObject:
   m_ObjectHideFlags: 0
