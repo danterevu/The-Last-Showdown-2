@@ -97,6 +97,7 @@ public class RouletteShowSequence : MonoBehaviour
 
     void Start()
     {
+        AudioManager.Instance?.ResumeMusic(SoundID.SelectionMusic);
         PlayShowSequence();
     }
 

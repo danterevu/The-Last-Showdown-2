@@ -89,12 +89,14 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
 
     private void Start()
     {
+        AudioManager.Instance?.PlayMusic(SoundID.Minigame2Music);
+
         if (GameManager.Instance == null)
         {
             GameObject gm = new GameObject("GameManager"); // crea un game object
             gm.AddComponent<GameManager>(); //al game object se le da el componente gamemanager
         }
-       
+
 
         p1Controller = player1.GetComponent<PlatformPlayerController>();
         p2Controller = player2.GetComponent<PlatformPlayerController>();
@@ -256,11 +258,11 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
             countdownText.gameObject.SetActive(true);
 
         bool fadeDone = false;
-       
+
         bool playersReleased = false;
 
         StartCoroutine(FadeFromBlackCoroutine(() => fadeDone = true));
-        
+
         for (int i = 3; i >= 0; i--)
         {
             if (countdownText != null)
@@ -289,7 +291,7 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
                 yield return new WaitForSeconds(0.5f);
         }
 
-      
+
 
         while (!fadeDone || !playersReleased)
         {
@@ -667,7 +669,7 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
             case PowerUpPickup.PowerUpType.Jetpack:
                 StartCoroutine(powerUpEffects.ActivateJetpack(user));
                 break;
-           
+
         }
     }
 
@@ -874,7 +876,7 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
     public void EndMinigame()
     {
         gameRunning = false;
-        
+
         // Null check para GameManager
         if (GameManager.Instance != null)
         {
@@ -885,13 +887,13 @@ public class KingOfHill : MonoBehaviour, IMinijuegoControlable
             PlayerPrefs.SetInt("LastRoundP2", p2Round);
             PlayerPrefs.SetInt("LastPlayedMinigame", 2);
         }
-        
+
         // Buscar SceneLoader si Instance es nulo
         if (SceneLoader.Instance == null)
         {
             SceneLoader.Instance = FindAnyObjectByType<SceneLoader>();
         }
-        
+
         // Null check para SceneLoader antes de llamar LoadResults
         if (SceneLoader.Instance != null)
         {

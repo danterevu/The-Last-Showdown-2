@@ -16,6 +16,8 @@ public class SceneLoader : MonoBehaviour
     // LOAD SCENES 
     public void LoadMinigame(int minigameId)
     {
+        AudioManager.Instance?.PauseMusic();
+
         string sceneName = "Minigame_" + minigameId;
 
         SceneManager.LoadScene(sceneName);

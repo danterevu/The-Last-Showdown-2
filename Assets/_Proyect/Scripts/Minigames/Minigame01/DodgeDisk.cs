@@ -1,39 +1,39 @@
-    using UnityEngine;
-    using TMPro;
-    using System.Collections;
+using UnityEngine;
+using TMPro;
+using System.Collections;
 
-    public class DodgeDisk : MonoBehaviour, IMinijuegoControlable
-    {
-        [Header("Minigame Settings")]
-        [SerializeField] private float gameDuration = 90f;
-        [SerializeField] private float pointInterval = 5f;
-        [SerializeField] private float invulnerableTime = 3f;
+public class DodgeDisk : MonoBehaviour, IMinijuegoControlable
+{
+    [Header("Minigame Settings")]
+    [SerializeField] private float gameDuration = 90f;
+    [SerializeField] private float pointInterval = 5f;
+    [SerializeField] private float invulnerableTime = 3f;
 
-        [Header("References")]
-        [SerializeField] private HUDManager hudManager;
-        [SerializeField] private DiskMovement diskMovement;
-        [SerializeField] private Collider2D diskCollider;
-        [SerializeField] private Transform diskSpawnPoint;
-        [SerializeField] private GameObject player1;
-        [SerializeField] private GameObject player2;
-        [SerializeField] private Collider2D player1Collider;
-        [SerializeField] private Collider2D player2Collider;
-        [SerializeField] private Transform player1SpawnPoint;
-        [SerializeField] private Transform player2SpawnPoint;
+    [Header("References")]
+    [SerializeField] private HUDManager hudManager;
+    [SerializeField] private DiskMovement diskMovement;
+    [SerializeField] private Collider2D diskCollider;
+    [SerializeField] private Transform diskSpawnPoint;
+    [SerializeField] private GameObject player1;
+    [SerializeField] private GameObject player2;
+    [SerializeField] private Collider2D player1Collider;
+    [SerializeField] private Collider2D player2Collider;
+    [SerializeField] private Transform player1SpawnPoint;
+    [SerializeField] private Transform player2SpawnPoint;
 
-        [Header("UI")]
-        [SerializeField] private TextMeshProUGUI timerText;
-        [SerializeField] private TextMeshProUGUI countdownText;
- 
+    [Header("UI")]
+    [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private TextMeshProUGUI countdownText;
 
-        [Header("Debug")]
-        [SerializeField] private float gameTimer;
-        [SerializeField] private float pointTimer;
-        [SerializeField] private bool player1Invulnerable;
-        [SerializeField] private bool player2Invulnerable;
-        [SerializeField] private float invulnTimer1;
-        [SerializeField] private float invulnTimer2;
-        [SerializeField] private bool gameRunning;
+
+    [Header("Debug")]
+    [SerializeField] private float gameTimer;
+    [SerializeField] private float pointTimer;
+    [SerializeField] private bool player1Invulnerable;
+    [SerializeField] private bool player2Invulnerable;
+    [SerializeField] private float invulnTimer1;
+    [SerializeField] private float invulnTimer2;
+    [SerializeField] private bool gameRunning;
 
     [Header("Death")]
     [SerializeField] private Animator player1Animator;
@@ -43,107 +43,109 @@
     [Header("Audience")]
     [SerializeField] private AudienceAnimator audience1;
     [SerializeField] private AudienceAnimator audience2;
-    
-        private bool player1UsedPowerUp = false;
-        private bool player2UsedPowerUp = false;
-        private float powerUpKillTimer1 = 0f;
-        private float powerUpKillTimer2 = 0f;
-        private const float POWER_UP_KILL_WINDOW = 5f; // segundos de ventana
 
-        private void Start()
+    private bool player1UsedPowerUp = false;
+    private bool player2UsedPowerUp = false;
+    private float powerUpKillTimer1 = 0f;
+    private float powerUpKillTimer2 = 0f;
+    private const float POWER_UP_KILL_WINDOW = 5f; // segundos de ventana
+
+    private void Start()
+    {
+        AudioManager.Instance?.PlayMusic(SoundID.Minigame1Music);
+
+        InicializarMinijuego();
+        CongelarJugadores();
+    }
+
+    public void InicializarMinijuego()
+    {
+        gameTimer = gameDuration;
+        pointTimer = pointInterval;
+
+        player1.transform.position = player1SpawnPoint.position;
+        player2.transform.position = player2SpawnPoint.position;
+
+        diskMovement.transform.position = diskSpawnPoint.position;
+        UpdateUI();
+        CommentarySystem.Instance?.TriggerComment(CommentTrigger.DodgeDiskEntry);
+    }
+
+    public void IniciarMinijuego()
+    {
+        FreezePlayers(false);
+        gameRunning = true;
+        diskMovement.Launch();
+    }
+
+    public void CongelarJugadores()
+    {
+        FreezePlayers(true);
+    }
+
+    public void DescongelarJugadores()
+    {
+        FreezePlayers(false);
+    }
+
+    private void FreezePlayers(bool freeze)
+    {
+        if (player1 != null)
         {
-            InicializarMinijuego();
-            CongelarJugadores();
+            PlayerController controller1 = player1.GetComponent<PlayerController>();
+            controller1?.SetFrozen(freeze);
+        }
+        if (player2 != null)
+        {
+            PlayerController controller2 = player2.GetComponent<PlayerController>();
+            controller2?.SetFrozen(freeze);
+        }
+    }
+
+    private void Update()
+    {
+        if (!gameRunning) return;
+        UpdateTimers();
+        UpdateUI();
+    }
+
+    private void UpdateTimers()
+    {
+        gameTimer -= Time.deltaTime;
+        if (gameTimer <= 0f)
+        {
+            gameTimer = 0f;
+            EndMinigame();
+            return;
         }
 
-        public void InicializarMinijuego()
+        pointTimer -= Time.deltaTime;
+        if (pointTimer <= 0f)
         {
-            gameTimer = gameDuration;
+            GivePointsToBothPlayers();
             pointTimer = pointInterval;
-
-            player1.transform.position = player1SpawnPoint.position;
-            player2.transform.position = player2SpawnPoint.position;
-
-            diskMovement.transform.position = diskSpawnPoint.position;
-            UpdateUI();
-            CommentarySystem.Instance?.TriggerComment(CommentTrigger.DodgeDiskEntry);
         }
 
-        public void IniciarMinijuego()
+        if (player1Invulnerable)
         {
-            FreezePlayers(false);
-            gameRunning = true;
-            diskMovement.Launch();
-        }
-
-        public void CongelarJugadores()
-        {
-            FreezePlayers(true);
-        }
-
-        public void DescongelarJugadores()
-        {
-            FreezePlayers(false);
-        }
-
-        private void FreezePlayers(bool freeze)
-        {
-            if (player1 != null)
+            invulnTimer1 -= Time.deltaTime;
+            if (invulnTimer1 <= 0f)
             {
-                PlayerController controller1 = player1.GetComponent<PlayerController>();
-                controller1?.SetFrozen(freeze);
-            }
-            if (player2 != null)
-            {
-                PlayerController controller2 = player2.GetComponent<PlayerController>();
-                controller2?.SetFrozen(freeze);
+                player1Invulnerable = false;
+                Physics2D.IgnoreCollision(diskCollider, player1Collider, false);
             }
         }
 
-        private void Update()
+        if (player2Invulnerable)
         {
-            if (!gameRunning) return;
-            UpdateTimers();
-            UpdateUI();
+            invulnTimer2 -= Time.deltaTime;
+            if (invulnTimer2 <= 0f)
+            {
+                player2Invulnerable = false;
+                Physics2D.IgnoreCollision(diskCollider, player2Collider, false);
+            }
         }
-
-        private void UpdateTimers()
-        {
-            gameTimer -= Time.deltaTime;
-            if (gameTimer <= 0f)
-            {
-                gameTimer = 0f;
-                EndMinigame();
-                return;
-            }
-
-            pointTimer -= Time.deltaTime;
-            if (pointTimer <= 0f)
-            {
-                GivePointsToBothPlayers();
-                pointTimer = pointInterval;
-            }
-
-            if (player1Invulnerable)
-            {
-                invulnTimer1 -= Time.deltaTime;
-                if (invulnTimer1 <= 0f)
-                {
-                    player1Invulnerable = false;
-                    Physics2D.IgnoreCollision(diskCollider, player1Collider, false);
-                }
-            }
-
-            if (player2Invulnerable)
-            {
-                invulnTimer2 -= Time.deltaTime;
-                if (invulnTimer2 <= 0f)
-                {
-                    player2Invulnerable = false;
-                    Physics2D.IgnoreCollision(diskCollider, player2Collider, false);
-                }
-            }
-            UpdatePowerUpKillTimers();
+        UpdatePowerUpKillTimers();
     }
 
     private void RespawnPlayer(int player)
@@ -195,10 +197,10 @@
     }
 
     private void GivePointsToBothPlayers()
-        {
-            GameManager.Instance.AddResult(1, true);
-            GameManager.Instance.AddResult(2, true);
-        }
+    {
+        GameManager.Instance.AddResult(1, true);
+        GameManager.Instance.AddResult(2, true);
+    }
     private void UpdateUI()
     {
         if (hudManager != null) hudManager.UpdateTimer(gameTimer);
@@ -214,32 +216,32 @@
 
 
     private IEnumerator FlashPlayer(GameObject player)
+    {
+        SpriteRenderer sr = player.GetComponentInChildren<SpriteRenderer>();
+        float elapsed = 0f;
+        bool visible = true;
+
+        while (elapsed < invulnerableTime)
         {
-            SpriteRenderer sr = player.GetComponentInChildren<SpriteRenderer>();
-            float elapsed = 0f;
-            bool visible = true;
-
-            while (elapsed < invulnerableTime)
-            {
-                visible = !visible;
-                sr.enabled = visible;
-                elapsed += 0.2f;
-                yield return new WaitForSeconds(0.2f);
-            }
-
-            sr.enabled = true;
+            visible = !visible;
+            sr.enabled = visible;
+            elapsed += 0.2f;
+            yield return new WaitForSeconds(0.2f);
         }
 
-        // llamar esto desde PowerUpManager cuando un jugador usa un power up
-        public void NotifyPowerUpUsed(int player)
-        {
-            if (player == 1) { player1UsedPowerUp = true; powerUpKillTimer1 = POWER_UP_KILL_WINDOW; }
-            else { player2UsedPowerUp = true; powerUpKillTimer2 = POWER_UP_KILL_WINDOW; }
-        }
+        sr.enabled = true;
+    }
 
-        // en Update, agregar esto al final de UpdateTimers:
-        private void UpdatePowerUpKillTimers()
-        {
+    // llamar esto desde PowerUpManager cuando un jugador usa un power up
+    public void NotifyPowerUpUsed(int player)
+    {
+        if (player == 1) { player1UsedPowerUp = true; powerUpKillTimer1 = POWER_UP_KILL_WINDOW; }
+        else { player2UsedPowerUp = true; powerUpKillTimer2 = POWER_UP_KILL_WINDOW; }
+    }
+
+    // en Update, agregar esto al final de UpdateTimers:
+    private void UpdatePowerUpKillTimers()
+    {
         if (player1UsedPowerUp)
         {
             powerUpKillTimer1 -= Time.deltaTime;
@@ -256,7 +258,7 @@
             if (powerUpKillTimer2 <= 0f)
             {
                 player2UsedPowerUp = false;
-                
+
                 CommentarySystem.Instance?.TriggerComment(CommentTrigger.PowerUpUsedNoKill);
             }
         }
@@ -277,7 +279,7 @@
             {
                 GameManager.Instance.AddPoints(2, ModifierManager.Instance.powerUpKillBonusPoints);
                 player2UsedPowerUp = false;
-                CommentarySystem.Instance?.TriggerComment(CommentTrigger.PowerUpKill); 
+                CommentarySystem.Instance?.TriggerComment(CommentTrigger.PowerUpKill);
             }
 
             GameManager.Instance.RemovePoints(1, 10);
@@ -292,7 +294,7 @@
             {
                 GameManager.Instance.AddPoints(1, ModifierManager.Instance.powerUpKillBonusPoints);
                 player1UsedPowerUp = false;
-                CommentarySystem.Instance?.TriggerComment(CommentTrigger.PowerUpKill); 
+                CommentarySystem.Instance?.TriggerComment(CommentTrigger.PowerUpKill);
             }
 
             GameManager.Instance.RemovePoints(2, 10);
@@ -303,23 +305,23 @@
 
     // EndMinigame actualizado
     public void EndMinigame()
+    {
+        gameRunning = false;
+        diskMovement.Stop();
+
+        // modificador winner bonus
+        if (ModifierManager.Instance != null &&
+            ModifierManager.Instance.activeDDModifier == ModifierManager.DodgeDiskModifier.WinnerBonus)
         {
-            gameRunning = false;
-            diskMovement.Stop();
+            int winner = GameManager.Instance.player1RoundPoints >= GameManager.Instance.player2RoundPoints ? 1 : 2;
+            GameManager.Instance.AddPoints(winner, ModifierManager.Instance.winnerBonusPoints);
+        }
 
-            // modificador winner bonus
-            if (ModifierManager.Instance != null &&
-                ModifierManager.Instance.activeDDModifier == ModifierManager.DodgeDiskModifier.WinnerBonus)
-            {
-                int winner = GameManager.Instance.player1RoundPoints >= GameManager.Instance.player2RoundPoints ? 1 : 2;
-                GameManager.Instance.AddPoints(winner, ModifierManager.Instance.winnerBonusPoints);
-            }
-
-            var (p1Round, p2Round) = GameManager.Instance.FinishMinigame();
-            GameManager.Instance.EndRound(1);
+        var (p1Round, p2Round) = GameManager.Instance.FinishMinigame();
+        GameManager.Instance.EndRound(1);
         PlayerPrefs.SetInt("LastPlayedMinigame", 1);
         PlayerPrefs.SetInt("LastRoundP1", p1Round);
-            PlayerPrefs.SetInt("LastRoundP2", p2Round);
-            SceneLoader.Instance.LoadResults();
-        }
+        PlayerPrefs.SetInt("LastRoundP2", p2Round);
+        SceneLoader.Instance.LoadResults();
     }
+}

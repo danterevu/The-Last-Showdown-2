@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,7 +21,7 @@ public class FinalScreenManager : MonoBehaviour
     [SerializeField] private GameObject choppyLoserBottom;
     [SerializeField] private GameObject cinematicPresenter;
     [SerializeField] private GameObject cinematicPresenterHand;
-    [SerializeField] private GameObject cinematicPresenterHandTie; 
+    [SerializeField] private GameObject cinematicPresenterHandTie;
 
     [Header("Animators ganador")]
     [SerializeField] private Animator gloppyWinnerAnimator;
@@ -49,7 +49,7 @@ public class FinalScreenManager : MonoBehaviour
     [SerializeField] private float punchDuration = 0.3f;
     [SerializeField] private float delayBetweenElements = 0.4f;
 
-    [Header("Fade cinemática")]
+    [Header("Fade cinemï¿½tica")]
     [SerializeField] private float fadeDuration = 0.5f;
 
     [Header("Debug")]
@@ -62,6 +62,8 @@ public class FinalScreenManager : MonoBehaviour
 
     private void Start()
     {
+        AudioManager.Instance?.ResumeMusic(SoundID.SelectionMusic);
+
         int p1, p2;
 
         if (debugMode || GameManager.Instance == null)
@@ -100,17 +102,17 @@ public class FinalScreenManager : MonoBehaviour
 
         if (isTie)
         {
-            winnerText.text = $"¡Empate!\n{p1}";
+            winnerText.text = $"ï¿½Empate!\n{p1}";
             loserScoreText.text = "";
         }
         else if (isPlayer1Winner)
         {
-            winnerText.text = $"¡ Gloppy!\n{p1}";
+            winnerText.text = $"ï¿½ Gloppy!\n{p1}";
             loserScoreText.text = $"Choppy: {p2}";
         }
         else
         {
-            winnerText.text = $"¡ Choppy!\n{p2}";
+            winnerText.text = $"ï¿½ Choppy!\n{p2}";
             loserScoreText.text = $"Gloppy: {p1}";
         }
     }

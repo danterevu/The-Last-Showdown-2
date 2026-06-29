@@ -62,7 +62,7 @@ public class Results : MonoBehaviour
 
     [SerializeField] private float resultsFadeDuration = 0.5f;
     [SerializeField] private float bigDifferenceThreshold = 50f;
-    
+
     private int p1PreviousScore;
     private int p2PreviousScore;
     private int p1RoundScore;
@@ -72,6 +72,8 @@ public class Results : MonoBehaviour
 
     private void Start()
     {
+        AudioManager.Instance?.ResumeMusic(SoundID.SelectionMusic);
+
         if (resultsPanel != null)
         {
             resultsPanel.alpha = 0f;
@@ -86,7 +88,7 @@ public class Results : MonoBehaviour
             c.a = 0f;
             typewriterText.color = c;
         }
-        
+
         // Si es modo debug, usar valores de debug
         if (debugMode)
         {
@@ -106,14 +108,14 @@ public class Results : MonoBehaviour
             {
                 // Cargar el HUDTheme del minijuego seleccionado
                 LoadThemeFromMinigame();
-                
+
                 // Guardar puntaje previo
                 p1RoundScore = PlayerPrefs.GetInt("LastRoundP1", 0);
                 p2RoundScore = PlayerPrefs.GetInt("LastRoundP2", 0);
-                
+
                 p1PreviousScore = GameManager.Instance.player1Score - p1RoundScore;
                 p2PreviousScore = GameManager.Instance.player2Score - p2RoundScore;
-                
+
                 p1TargetScore = GameManager.Instance.player1Score;
                 p2TargetScore = GameManager.Instance.player2Score;
             }
@@ -122,7 +124,7 @@ public class Results : MonoBehaviour
                 Debug.LogWarning("[Results] GameManager no encontrado, usando valores por defecto!");
             }
         }
-        
+
         ApplyTheme();
 
         player1RoundText.text = "Puntos obtenidos: " + p1RoundScore;
@@ -147,9 +149,9 @@ public class Results : MonoBehaviour
             Debug.LogWarning("[Results] GameManager no está presente, no se puede cargar el tema!");
             return;
         }
-        
+
         int selectedIdInt;
-        
+
         // Obtener último minijuego jugado desde playedMinigames
         var played = GameManager.Instance.GetPlayedMinigames();
         if (played != null && played.Count > 0)
@@ -161,7 +163,7 @@ public class Results : MonoBehaviour
             // Si no hay playedMinigames, intentar con PlayerPrefs
             selectedIdInt = PlayerPrefs.GetInt("LastPlayedMinigame", 1); // Default a 1 si no hay nada
         }
-        
+
         Debug.Log($"[Results] Buscando tema para Minigame ID: {selectedIdInt}");
 
         // Cargar el HUDTheme directamente por nombre (Minigame1, Minigame2, etc.)
@@ -218,7 +220,7 @@ public class Results : MonoBehaviour
             c.a = 1f;
             blackScreen.color = c;
         }
-        
+
         // Fade out de la pantalla negra para revelar la escena
         if (blackScreen != null)
         {
@@ -246,14 +248,14 @@ public class Results : MonoBehaviour
         if (typewriterText != null)
         {
             typewriterText.text = "";
-            
+
             // Fade in del texto
             Color c = typewriterText.color;
             c.a = 0f;
             typewriterText.color = c;
             typewriterText.DOFade(1f, typewriterFadeDuration);
             yield return new WaitForSeconds(typewriterFadeDuration);
-            
+
             // Escribir el texto caracter por caracter
             foreach (char letter in typewriterMessage)
             {

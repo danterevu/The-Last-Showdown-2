@@ -19,13 +19,17 @@ public class AudioManager : MonoBehaviour
     private AudioSource activeMusicSource;
     private Coroutine crossfadeCoroutine;
 
-    // Volúmenes maestros (0-1), se aplican al reproducir
+
     private float musicVolumeMaster = 1f;
     private float sfxVolumeMaster = 1f;
 
-    // Guarda el volumen "real" (del AudioEntry) del clip activo para
-    // que al cambiar el slider el nuevo valor sea proporcional
+
     private float activeMusicEntryVolume = 1f;
+
+
+    private AudioClip pausedMusicClip;
+    private float pausedMusicTime = 0f;
+    private bool hasPausedMusic = false;
 
     private void Awake()
     {
@@ -106,6 +110,35 @@ public class AudioManager : MonoBehaviour
         crossfadeCoroutine = StartCoroutine(FadeOut(activeMusicSource, fadeDuration));
     }
 
+
+    public void PauseMusic(float fadeDuration = 0.5f)
+    {
+        if (activeMusicSource == null || activeMusicSource.clip == null) return;
+
+        pausedMusicClip = activeMusicSource.clip;
+        pausedMusicTime = activeMusicSource.time;
+        hasPausedMusic = true;
+
+        if (crossfadeCoroutine != null) StopCoroutine(crossfadeCoroutine);
+        crossfadeCoroutine = StartCoroutine(FadeOutAndPause(activeMusicSource, fadeDuration));
+    }
+
+
+    public void ResumeMusic(SoundID id, float fadeDuration = 0.5f)
+    {
+        var entry = database.Get(id);
+        if (entry == null || entry.clip == null) return;
+
+        // Ya está sonando esta música -> no hacer nada
+        if (activeMusicSource.clip == entry.clip && activeMusicSource.isPlaying) return;
+
+        float resumeTime = (hasPausedMusic && pausedMusicClip == entry.clip) ? pausedMusicTime : 0f;
+        hasPausedMusic = false;
+
+        if (crossfadeCoroutine != null) StopCoroutine(crossfadeCoroutine);
+        crossfadeCoroutine = StartCoroutine(CrossFadeFromTime(entry, resumeTime, fadeDuration));
+    }
+
     private IEnumerator CrossFade(AudioDatabase.AudioEntry entry, float duration)
     {
         AudioSource outgoing = activeMusicSource;
@@ -150,6 +183,53 @@ public class AudioManager : MonoBehaviour
         source.Stop();
     }
 
+    private IEnumerator FadeOutAndPause(AudioSource source, float duration)
+    {
+        float startVol = source.volume;
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            source.volume = Mathf.Lerp(startVol, 0f, elapsed / duration);
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+        source.volume = 0f;
+        source.Pause(); // Pause en vez de Stop: conserva el clip "vivo" en la fuente
+        crossfadeCoroutine = null;
+    }
+
+    private IEnumerator CrossFadeFromTime(AudioDatabase.AudioEntry entry, float startTime, float duration)
+    {
+        AudioSource outgoing = activeMusicSource;
+        AudioSource incoming = outgoing == musicSourceA ? musicSourceB : musicSourceA;
+
+        activeMusicEntryVolume = entry.volume;
+
+        incoming.clip = entry.clip;
+        incoming.volume = 0f;
+        incoming.loop = entry.loop;
+        incoming.time = Mathf.Clamp(startTime, 0f, Mathf.Max(0f, entry.clip.length - 0.01f));
+        incoming.Play();
+
+        float elapsed = 0f;
+        float startVol = outgoing.volume;
+        float targetVol = entry.volume * musicVolumeMaster;
+
+        while (elapsed < duration)
+        {
+            float t = elapsed / duration;
+            incoming.volume = Mathf.Lerp(0f, targetVol, t);
+            outgoing.volume = Mathf.Lerp(startVol, 0f, t);
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        incoming.volume = targetVol;
+        outgoing.Stop();
+        activeMusicSource = incoming;
+        crossfadeCoroutine = null;
+    }
+
     // ─── Setup ───────────────────────────────────────────────────────
 
     private void BuildSFXPool()
@@ -163,3 +243,4 @@ public class AudioManager : MonoBehaviour
         }
     }
 }
+

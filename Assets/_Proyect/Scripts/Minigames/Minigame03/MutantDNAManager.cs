@@ -57,6 +57,8 @@ public class MutantDNAManager : MonoBehaviour, IMinijuegoControlable
 
     private void Start()
     {
+        AudioManager.Instance?.PlayMusic(SoundID.Minigame3Music);
+
         p1Controller = player1.GetComponent<PlayerControllerDNA>();
         p2Controller = player2.GetComponent<PlayerControllerDNA>();
 

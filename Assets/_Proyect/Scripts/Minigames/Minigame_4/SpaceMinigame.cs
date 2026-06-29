@@ -73,6 +73,8 @@ public class SpaceMinigame : MonoBehaviour, IMinijuegoControlable
 
     private void Start()
     {
+        AudioManager.Instance?.PlayMusic(SoundID.Minigame4Music);
+
         Debug.Log($"SpaceMinigame Start | Esperando a que termine el contador...");
 
         InicializarMinijuego();

@@ -19,6 +19,8 @@ public class CharacterSelectionSceneAnimator : MonoBehaviour
 
     private void Start()
     {
+        AudioManager.Instance?.ResumeMusic(SoundID.SelectionMusic);
+
         InitializeScene();
         StartSelectionPhase();
     }
