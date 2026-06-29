@@ -2621,12 +2621,18 @@ MonoBehaviour:
     - type: 0
       animatorController: {fileID: 9100000, guid: cf15dd8a321323041804ada4f46bf85f, type: 2}
       idleSprite: {fileID: 8793639957104055765, guid: 516e469386d8b114aa6e53ffb2427b26, type: 3}
+      hudAnimatorController: {fileID: 9100000, guid: a8b1cfbe8eafc414ebf8e209ee7e9675, type: 2}
+      hudIdleSprite: {fileID: 7601818099110319145, guid: 7989e3bb73d6fc14cbb1d3ca082da21f, type: 3}
     - type: 1
       animatorController: {fileID: 9100000, guid: fc82756405daf454588a6b111f60310f, type: 2}
       idleSprite: {fileID: -7391493387824456820, guid: a2db327e860040548a1b2adb32c5df8d, type: 3}
+      hudAnimatorController: {fileID: 9100000, guid: a8b1cfbe8eafc414ebf8e209ee7e9675, type: 2}
+      hudIdleSprite: {fileID: 7601818099110319145, guid: 7989e3bb73d6fc14cbb1d3ca082da21f, type: 3}
     - type: 2
       animatorController: {fileID: 9100000, guid: f8eb28d10e4f0ad4ab0b94003e714e3a, type: 2}
       idleSprite: {fileID: -7451426116336585031, guid: 40f75e4bdae379c48845ee52047182fa, type: 3}
+      hudAnimatorController: {fileID: 9100000, guid: a8b1cfbe8eafc414ebf8e209ee7e9675, type: 2}
+      hudIdleSprite: {fileID: 7601818099110319145, guid: 7989e3bb73d6fc14cbb1d3ca082da21f, type: 3}
   chopiVisual:
     slotObject: {fileID: 1920039351}
     characterSprite: {fileID: 167617791}
@@ -2646,12 +2652,18 @@ MonoBehaviour:
     - type: 0
       animatorController: {fileID: 9100000, guid: 1f64f867a3858d54eb038aabd18e7be9, type: 2}
       idleSprite: {fileID: 230195096967155060, guid: 38331325de0ec214fb1b8fc930984bd0, type: 3}
+      hudAnimatorController: {fileID: 9100000, guid: f86acf918ed96354ca71410aa29c93f8, type: 2}
+      hudIdleSprite: {fileID: 925032359058535651, guid: b151c5b1a7477a34abb4f3860c493a57, type: 3}
     - type: 1
       animatorController: {fileID: 9100000, guid: e6b28ce1e727c044893e9e76c20b738f, type: 2}
       idleSprite: {fileID: 2502275255383848712, guid: 517fd1e7ec357664abfb0651680eb35c, type: 3}
+      hudAnimatorController: {fileID: 9100000, guid: f86acf918ed96354ca71410aa29c93f8, type: 2}
+      hudIdleSprite: {fileID: 925032359058535651, guid: b151c5b1a7477a34abb4f3860c493a57, type: 3}
     - type: 2
       animatorController: {fileID: 9100000, guid: f9eaf4c146c285c4eaccad9501f829ec, type: 2}
       idleSprite: {fileID: 5029237864814843118, guid: 79e0195e187f2534a86c1654be7dc744, type: 3}
+      hudAnimatorController: {fileID: 9100000, guid: f86acf918ed96354ca71410aa29c93f8, type: 2}
+      hudIdleSprite: {fileID: 925032359058535651, guid: b151c5b1a7477a34abb4f3860c493a57, type: 3}
   promptText: {fileID: 1658068284}
   startButton: {fileID: 477231628}
   player1PromptText: 'Jugador 1: Elige tu personaje con A/D o el mando'

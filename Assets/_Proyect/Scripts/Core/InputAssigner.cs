@@ -17,6 +17,9 @@ public class InputAssigner : MonoBehaviour
         public VisualType type;
         public RuntimeAnimatorController animatorController;
         public Sprite idleSprite;
+        [Header("HUD")]
+        public RuntimeAnimatorController hudAnimatorController;
+        public Sprite hudIdleSprite;
     }
 
     [System.Serializable]
@@ -45,6 +48,7 @@ public class InputAssigner : MonoBehaviour
             foreach (var v in gameplayVisuals)
                 if (v.type == type) return v;
             return null;
+
         }
     }
 
@@ -107,6 +111,23 @@ public class InputAssigner : MonoBehaviour
         if (data?.gameplayVisuals == null) return null;
         foreach (var v in data.gameplayVisuals)
             if (v.type == type) return v.idleSprite;
+        return null;
+    }
+    public static RuntimeAnimatorController GetHUDAnimatorController(int internalIndex, VisualType type)
+    {
+        var data = GetInternalPlayer(internalIndex);
+        if (data?.gameplayVisuals == null) return null;
+        foreach (var v in data.gameplayVisuals)
+            if (v.type == type) return v.hudAnimatorController;
+        return null;
+    }
+
+    public static Sprite GetHUDIdleSprite(int internalIndex, VisualType type)
+    {
+        var data = GetInternalPlayer(internalIndex);
+        if (data?.gameplayVisuals == null) return null;
+        foreach (var v in data.gameplayVisuals)
+            if (v.type == type) return v.hudIdleSprite;
         return null;
     }
 
