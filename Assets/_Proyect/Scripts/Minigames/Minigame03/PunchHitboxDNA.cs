@@ -60,6 +60,7 @@ public class PunchHitboxDNA : MonoBehaviour
                 target.NotifyPowerUpHit(owner.CompareTag("Player1") ? 1 : 2);
                 knockDir = new Vector2(dirX * 0.8f, 1.2f).normalized;
                 finalKnockbackForce = owner.knockbackForce * berserkKnockbackMultiplier;
+                target.ReceiveBerserkHit(knockDir);
             }
             else
             {
