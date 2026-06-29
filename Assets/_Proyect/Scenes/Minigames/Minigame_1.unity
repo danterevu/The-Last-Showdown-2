@@ -824,10 +824,10 @@ MonoBehaviour:
   diskMovement: {fileID: 181162187}
   wallPrefab: {fileID: 7966696002276527167, guid: 255399bb0ca740241a30d64fa21fe6d3, type: 3}
   powerUpPickup: {fileID: 1312090746}
-  freezeDuration: 3
+  freezeDuration: 2
   wallDuration: 5
   magnetDuration: 3
-  invertDuration: 4
+  invertDuration: 3
   magnetEffectPlayer1: {fileID: 1845965288}
   magnetEffectPlayer2: {fileID: 1486317246}
   wallPosition: {x: 0, y: 0, z: 0}
@@ -3931,6 +3931,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player1
       objectReference: {fileID: 0}
+    - target: {fileID: 4194919698614557734, guid: ab0dc5c92f8f873418294e201b1e2f3a, type: 3}
+      propertyPath: topDownSpeed
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 5977419167255780278, guid: ab0dc5c92f8f873418294e201b1e2f3a, type: 3}
       propertyPath: m_LocalPosition.x
       value: -6.15
@@ -4494,6 +4498,10 @@ PrefabInstance:
     - target: {fileID: 163626226805196753, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
       propertyPath: m_Name
       value: Player2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2301863690828031753, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
+      propertyPath: topDownSpeed
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 3430260594853427124, guid: f9c6bd4f98b2710489437cf73fc3014a, type: 3}
       propertyPath: m_LocalPosition.x
