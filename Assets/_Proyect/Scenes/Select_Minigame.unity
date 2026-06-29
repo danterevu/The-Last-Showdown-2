@@ -479,7 +479,7 @@ MeshRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 5
+  m_SortingOrder: -5
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!224 &133032774
 RectTransform:
@@ -489,7 +489,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 133032771}
   m_LocalRotation: {x: -0, y: -0, z: -0.43523106, w: 0.9003188}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0.77}
   m_LocalScale: {x: 0.93449146, y: 0.93449146, z: 0}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -1432,7 +1432,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: -5
+  m_SortingOrder: -3
   m_Sprite: {fileID: -6291641308854743428, guid: 5e05f5154ebb59349b81cec8da6b2ab7, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1452,12 +1452,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 381691227}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.11, y: -1.6, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.5004264, y: -0.020149946, z: 0.06838646}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 705203194}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &393587229
 GameObject:
@@ -2077,7 +2077,7 @@ MonoBehaviour:
       - text: En lo frio del hielo y el azul del neon, una amigable sierra se acercara
           a ustedes a darle una calida bienvenida! vamos a los modificadores
         presenterSprite: {fileID: 0}
-        displayDuration: 5
+        displayDuration: 8
         isFinalDialogue: 1
   - minigameId: 2
     minigameName: King of HIll
@@ -2098,7 +2098,7 @@ MonoBehaviour:
       - text: En campos de juego... laseres por monton, un punto a controlar y a
           golpes se deberan de arreglar! vamos a la ruleta de modificadores!
         presenterSprite: {fileID: 0}
-        displayDuration: 4
+        displayDuration: 6
         isFinalDialogue: 1
   - minigameId: 3
     minigameName: DNA
@@ -2111,12 +2111,12 @@ MonoBehaviour:
       - text: DNA disponible para entrar a la accion! ese fue el minijuego elegido
           por la ruleta de la desolacion
         presenterSprite: {fileID: 0}
-        displayDuration: 3
+        displayDuration: 5
         isFinalDialogue: 0
       - text: "Peleen para llenar esos frascos y esperen efectos varios a la hora
           de encontrarse con nuevos cambios... \n"
         presenterSprite: {fileID: 0}
-        displayDuration: 3
+        displayDuration: 5
         isFinalDialogue: 0
       - text: 'No olviden mi nueva implementacion, cajas por monton, no olviden de
           darles uso, que para eso son, vamos a la ruletade modificadores!
@@ -2136,7 +2136,7 @@ MonoBehaviour:
       - text: La suerte del destino nos dejo en medio del espacio, equipense con
           armas y detonen obstaculos
         presenterSprite: {fileID: 0}
-        displayDuration: 2
+        displayDuration: 4
         isFinalDialogue: 0
       - text: "Matense el uno al otro, en busca de la victoria, o torturen sus almas
           hasta volverse escoria \n\n"
@@ -2145,7 +2145,7 @@ MonoBehaviour:
         isFinalDialogue: 0
       - text: Vamos a la ruleta de modificadores!
         presenterSprite: {fileID: 0}
-        displayDuration: 3
+        displayDuration: 5
         isFinalDialogue: 0
   - minigameId: 5
     minigameName: Chase
@@ -2521,6 +2521,7 @@ Transform:
   m_Children:
   - {fileID: 1867737120}
   - {fileID: 1670929146}
+  - {fileID: 381691229}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &731278239
@@ -5765,7 +5766,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: '
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4b86f3e2eccf7d543b2fe73406d40982, type: 2}
   m_sharedMaterial: {fileID: 7824492847044947346, guid: 4b86f3e2eccf7d543b2fe73406d40982, type: 2}
@@ -5774,7 +5777,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278190080
   m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -5830,7 +5833,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 6.344134, y: 1.0774584, z: 9.906078, w: 0.9759891}
+  m_margin: {x: 6.4375706, y: 0.90579176, z: 10.069721, w: 1.2044443}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   _SortingLayer: 0
@@ -5882,7 +5885,7 @@ MeshRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 5
+  m_SortingOrder: -5
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!224 &1767174870
 RectTransform:
@@ -5892,7 +5895,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1767174867}
   m_LocalRotation: {x: -0, y: -0, z: 0.9999999, w: -0.00052356074}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0.77}
   m_LocalScale: {x: 0.9344915, y: 0.9344915, z: 0}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -6008,7 +6011,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 6.0591483, y: 1.8527973, z: 10.215433, w: 1.101662}
+  m_margin: {x: 6.4375706, y: 0.90579176, z: 10.069721, w: 1.2044443}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   _SortingLayer: 0
@@ -6060,7 +6063,7 @@ MeshRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 5
+  m_SortingOrder: -5
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!224 &1802444245
 RectTransform:
@@ -6070,7 +6073,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1802444242}
   m_LocalRotation: {x: -0, y: -0, z: 0.44760302, w: 0.8942324}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0.77}
   m_LocalScale: {x: 0.93449146, y: 0.93449146, z: 0}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -7174,7 +7177,6 @@ SceneRoots:
   - {fileID: 450780170}
   - {fileID: 2009424673}
   - {fileID: 1281542209}
-  - {fileID: 381691229}
   - {fileID: 339007349}
   - {fileID: 426064639}
   - {fileID: 1217648290}
