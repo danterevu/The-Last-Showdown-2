@@ -19,14 +19,15 @@ public class AudioManager : MonoBehaviour
     private AudioSource activeMusicSource;
     private Coroutine crossfadeCoroutine;
 
-
+    // Volúmenes maestros (0-1), se aplican al reproducir
     private float musicVolumeMaster = 1f;
     private float sfxVolumeMaster = 1f;
 
-
+    // Guarda el volumen "real" (del AudioEntry) del clip activo para
+    // que al cambiar el slider el nuevo valor sea proporcional
     private float activeMusicEntryVolume = 1f;
 
-
+    // Estado de pausa de música (para poder reanudar desde donde quedó)
     private AudioClip pausedMusicClip;
     private float pausedMusicTime = 0f;
     private bool hasPausedMusic = false;
@@ -40,28 +41,27 @@ public class AudioManager : MonoBehaviour
         BuildSFXPool();
         activeMusicSource = musicSourceA;
 
-        // Carga los valores guardados sin llamar ApplyAllSettings todavía
-        // (el AudioManager puede no estar listo cuando se llama)
+
         musicVolumeMaster = SettingsManager.MusicVolume;
         sfxVolumeMaster = SettingsManager.SFXVolume;
     }
 
     // Volumen maestro 
 
-    /// <summary>Llamado por SettingsManager cuando el slider de música cambia</summary>
+
     public void SetMusicVolume(float vol)
     {
         musicVolumeMaster = Mathf.Clamp01(vol);
-        // Aplica inmediatamente a la source activa
+
         if (activeMusicSource != null)
             activeMusicSource.volume = activeMusicEntryVolume * musicVolumeMaster;
     }
 
-    /// <summary>Llamado por SettingsManager cuando el slider de SFX cambia</summary>
+
     public void SetSFXVolume(float vol)
     {
         sfxVolumeMaster = Mathf.Clamp01(vol);
-        // Los SFX ya usarán el nuevo volumen en el próximo Play()
+
     }
 
     public float GetMusicVolume() => musicVolumeMaster;
@@ -110,7 +110,10 @@ public class AudioManager : MonoBehaviour
         crossfadeCoroutine = StartCoroutine(FadeOut(activeMusicSource, fadeDuration));
     }
 
-
+    /// <summary>
+    /// Pausa la música actual con un fade y recuerda en qué momento estaba
+    /// para poder reanudarla más adelante con ResumeMusic().
+    /// </summary>
     public void PauseMusic(float fadeDuration = 0.5f)
     {
         if (activeMusicSource == null || activeMusicSource.clip == null) return;
@@ -123,7 +126,10 @@ public class AudioManager : MonoBehaviour
         crossfadeCoroutine = StartCoroutine(FadeOutAndPause(activeMusicSource, fadeDuration));
     }
 
-
+    /// <summary>
+    /// Reanuda la música indicada. Si es la misma que se pausó con PauseMusic(),
+    /// continúa desde el mismo punto. Si no, la inicia normalmente (como PlayMusic).
+    /// </summary>
     public void ResumeMusic(SoundID id, float fadeDuration = 0.5f)
     {
         var entry = database.Get(id);
@@ -243,4 +249,3 @@ public class AudioManager : MonoBehaviour
         }
     }
 }
-
